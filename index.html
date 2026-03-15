@@ -123,4 +123,138 @@
             </div>
             <div id="faq-box" class="h-64 overflow-y-auto p-5 space-y-6 text-sm text-gray-300" onscroll="checkFAQ(this)">
                 <div><b class="text-white text-xs uppercase block mb-1">Comment inscrire un membre ?</b>Utilise ton lien Referral "Sponsor" directement dans ton application Chogan.</div>
-                <div><b class="text-white text-xs uppercase block mb-1">Système de points (PT) ?</b>Silver = 100 PT<br>Gold = 250 PT<br>Platinum = 5
+                <div><b class="text-white text-xs uppercase block mb-1">Système de points (PT) ?</b>Silver = 100 PT<br>Gold = 250 PT<br>Platinum = 500 PT (Requis pour le Live).</div>
+                <div><b class="text-white text-xs uppercase block mb-1">Comment utiliser la mallette ?</b>Trie tes parfums par numéros de correspondance (ex: 01, 135) pour les trouver plus vite lors de tes présentations.</div>
+                <div class="h-32 flex items-center justify-center text-[10px] text-gray-600 uppercase font-black text-center mt-8 border-t border-white/5 pt-8">Continue de descendre vers le bas...</div>
+            </div>
+        </div>
+
+        <a id="wa-btn" href="https://wa.me/33XXXXXXXXX" class="hidden w-full bg-green-500 hover:bg-green-400 text-black p-5 rounded-2xl flex justify-center items-center space-x-2 font-black uppercase tracking-wide transition-colors shadow-lg shadow-green-500/20">
+            <span>Contacter Marie (WhatsApp)</span>
+        </a>
+    </main>
+
+    <main id="tab-admin" class="tab-content p-6 space-y-6 hidden">
+        <h2 class="text-3xl font-black text-indigo-500 italic uppercase">Panel Expert</h2>
+        <div class="glass p-6 rounded-3xl space-y-5">
+            <div>
+                <label class="text-[10px] font-black uppercase text-gray-400 mb-2 block">Message d'accueil (Annonce)</label>
+                <textarea id="admin-input-msg" class="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:border-indigo-500 h-24 resize-none"></textarea>
+            </div>
+            <div>
+                <label class="text-[10px] font-black uppercase text-gray-400 mb-2 block">Texte Promo du mois</label>
+                <input id="admin-input-promo" type="text" class="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-sm text-white outline-none focus:border-indigo-500">
+            </div>
+            <button onclick="saveAdminChanges()" class="w-full bg-indigo-600 hover:bg-indigo-500 p-4 rounded-xl font-black uppercase text-xs tracking-widest text-white transition-colors">Publier les modifications</button>
+        </div>
+    </main>
+
+    <nav id="app-nav" class="hidden fixed bottom-6 left-6 right-6 h-16 bg-[#111] border border-white/10 rounded-2xl flex justify-around items-center px-2 z-40 shadow-2xl">
+        <button onclick="showTab('home')" class="nav-btn flex flex-col items-center justify-center w-16 h-full text-white transition-colors">
+            <span class="text-lg mb-0.5">🏠</span><span class="text-[8px] font-black uppercase tracking-wider">Home</span>
+        </button>
+        <button onclick="showTab('business')" class="nav-btn flex flex-col items-center justify-center w-16 h-full text-gray-600 hover:text-gray-300 transition-colors">
+            <span class="text-lg mb-0.5">💎</span><span class="text-[8px] font-black uppercase tracking-wider">Biz</span>
+        </button>
+        <button onclick="showTab('help')" class="nav-btn flex flex-col items-center justify-center w-16 h-full text-gray-600 hover:text-gray-300 transition-colors">
+            <span class="text-lg mb-0.5">💬</span><span class="text-[8px] font-black uppercase tracking-wider">Aide</span>
+        </button>
+    </nav>
+</div>
+
+<script>
+    // Chargement des données sauvegardées au démarrage
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedMsg = localStorage.getItem('limitless_msg');
+        const savedPromo = localStorage.getItem('limitless_promo');
+        if(savedMsg) {
+            document.getElementById('msg-motivation').innerText = `"${savedMsg}"`;
+            document.getElementById('admin-input-msg').value = savedMsg;
+        }
+        if(savedPromo) {
+            document.getElementById('promo-text').innerText = savedPromo;
+            document.getElementById('admin-input-promo').value = savedPromo;
+        }
+    });
+
+    function handleLogin() {
+        const u = document.getElementById('user-name').value.trim();
+        const p = document.getElementById('user-pass').value;
+        
+        if(u.toLowerCase() === 'marie' && p === 'ADMIN2026') {
+            document.getElementById('admin-btn').classList.remove('hidden');
+            document.getElementById('user-badge').innerText = "Directrice Marie";
+            document.getElementById('user-badge').classList.replace('bg-indigo-500/10', 'bg-red-500/20');
+            document.getElementById('user-badge').classList.replace('text-indigo-400', 'text-red-400');
+            closeLogin();
+        } else if(u !== "" && p !== "") {
+            closeLogin();
+        } else { 
+            alert("Accès refusé. Veuillez entrer un prénom et un mot de passe."); 
+        }
+    }
+
+    function closeLogin() {
+        const loginScreen = document.getElementById('login-screen');
+        loginScreen.style.opacity = '0';
+        setTimeout(() => {
+            loginScreen.style.display = 'none';
+            document.getElementById('app-header').classList.remove('hidden');
+            document.getElementById('app-nav').classList.remove('hidden');
+            showTab('home');
+        }, 500);
+    }
+
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.getElementById('tab-'+id).classList.remove('hidden');
+        
+        // Reset nav colors
+        document.querySelectorAll('.nav-btn').forEach(b => {
+            b.classList.remove('text-white');
+            b.classList.add('text-gray-600');
+        });
+        
+        // Highlight active nav (if not admin)
+        if(id !== 'admin') {
+            event.currentTarget.classList.remove('text-gray-600');
+            event.currentTarget.classList.add('text-white');
+        }
+    }
+
+    function checkFAQ(el) {
+        // Débloque le bouton WhatsApp quand on arrive en bas de la FAQ
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+            const btn = document.getElementById('wa-btn');
+            btn.classList.remove('hidden');
+            btn.classList.add('animate-[fadeIn_0.5s_ease-out]');
+        }
+    }
+
+    function calculateDZD() {
+        const euros = parseFloat(document.getElementById('euro-input').value) || 0;
+        const taux = parseFloat(document.getElementById('tauxDZD').value) || 0;
+        const result = Math.round(euros * taux);
+        // Formate le nombre avec des espaces (ex: 7 350)
+        document.getElementById('dzd-result').innerHTML = `${result.toLocaleString('fr-FR')} <span class="text-sm">DZD</span>`;
+    }
+
+    function saveAdminChanges() {
+        const m = document.getElementById('admin-input-msg').value.trim();
+        const pr = document.getElementById('admin-input-promo').value.trim();
+        
+        if(m) {
+            document.getElementById('msg-motivation').innerText = `"${m}"`;
+            localStorage.setItem('limitless_msg', m);
+        }
+        if(pr) {
+            document.getElementById('promo-text').innerText = pr;
+            localStorage.setItem('limitless_promo', pr);
+        }
+        
+        alert("✅ Application mise à jour avec succès !");
+        showTab('home');
+    }
+</script>
+</body>
+</html>
