@@ -3,56 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHOGAN LUXE - MARIE</title>
+    <title>CHOGAN LUXE - MARIE OFFICIAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #b8860b; --soft-gray: #f9f9f9; }
+        :root { --gold: #b8860b; }
         body { font-family: 'Inter', sans-serif; background: #ffffff; color: #1a1a1a; margin: 0; }
         .chogan-font { font-family: 'Cinzel', serif; color: var(--gold); }
         
-        /* Design purifié type Catalogue */
-        .luxury-card { 
-            background: #fff; 
-            border: 1px solid #f0f0f0; 
-            border-radius: 4px; 
-            transition: all 0.3s ease;
-        }
-        .luxury-card:hover { border-color: var(--gold); }
-        
-        /* Boutons Catégories */
-        .cat-btn { 
-            font-size: 9px; 
-            font-weight: 700; 
-            letter-spacing: 1.5px;
-            padding: 8px; 
-            text-transform: uppercase;
-            color: #ccc;
-            border-bottom: 2px solid transparent;
-        }
+        .luxury-card { background: #fff; border: 1px solid #f0f0f0; border-radius: 4px; }
+        .cat-btn { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 8px; text-transform: uppercase; color: #ccc; border-bottom: 2px solid transparent; }
         .cat-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
-
-        /* Actions principales */
-        .btn-black {
-            background: #000;
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            padding: 15px;
-            border-radius: 2px;
-            width: 100%;
-        }
-
-        /* Navigation basse */
+        .btn-black { background: #000; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 15px; border-radius: 2px; width: 100%; }
+        
         .nav-btn { display: flex; flex-direction: column; align-items: center; opacity: 0.2; color: #000; transition: 0.3s; }
         .nav-btn.active { opacity: 1; color: var(--gold); }
         
-        .tab-content { display: none; padding-bottom: 100px; }
-        .tab-content.active { display: block; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-content { display: none; padding-bottom: 120px; }
+        .tab-content.active { display: block; }
+        
+        /* Stats Styles */
+        .stat-box { border-left: 2px solid var(--gold); padding-left: 15px; margin-bottom: 20px; }
     </style>
 </head>
 <body class="max-w-md mx-auto">
@@ -75,8 +47,8 @@
     </header>
 
     <div id="tab1" class="tab-content active p-4">
-        <input type="text" id="search" onkeyup="renderCatalog()" placeholder="RECHERCHER DANS LE CATALOGUE..." 
-               class="w-full p-3 border-b border-gray-100 mb-6 outline-none text-[10px] tracking-widest text-center">
+        <input type="text" id="search" onkeyup="renderCatalog()" placeholder="RECHERCHER..." 
+               class="w-full p-3 border-b border-gray-100 mb-6 outline-none text-[10px] tracking-widest text-center uppercase">
 
         <div class="flex justify-around mb-8 border-b border-gray-50 pb-2">
             <button onclick="setFilter('ALL')" id="filter-ALL" class="cat-btn active">Tous</button>
@@ -84,61 +56,171 @@
             <button onclick="setFilter('M')" id="filter-M" class="cat-btn">Hommes</button>
             <button onclick="setFilter('L')" id="filter-L" class="cat-btn">Luxury</button>
         </div>
-
         <div id="grid" class="grid grid-cols-2 gap-x-4 gap-y-8"></div>
     </div>
 
     <div id="tab2" class="tab-content p-6">
         <h2 class="chogan-font text-lg text-center tracking-[4px] mb-10 uppercase">Votre Panier</h2>
-        
         <div id="cart-list" class="space-y-6 mb-10"></div>
-        
         <div class="border-t border-b border-gray-100 py-6 mb-8">
             <div class="flex justify-between text-[10px] tracking-widest text-gray-400 mb-4 uppercase">
                 <span>Livraison</span>
                 <div class="flex items-center">
-                    <input type="number" id="ship" value="2.5" oninput="updateAll()" class="w-12 text-right outline-none bg-transparent text-black font-bold">
+                    <input type="number" id="ship" value="2.5" oninput="updateAll()" class="w-12 text-right outline-none bg-transparent text-black font-bold font-sans">
                     <span class="cur-sym ml-1">€</span>
                 </div>
             </div>
             <div class="flex justify-between items-center uppercase tracking-[2px]">
                 <span class="text-xs font-bold">Total</span>
-                <span id="final-total" class="text-xl font-bold text-amber-700">0 €</span>
+                <span id="final-total" class="text-xl font-bold text-amber-700 font-sans">0 €</span>
             </div>
         </div>
+        <button onclick="confirmOrder()" class="btn-black mb-4">Commander via WhatsApp</button>
+        <button onclick="resetCart()" class="w-full text-[8px] tracking-[2px] text-gray-300 uppercase font-bold">Vider le panier</button>
+    </div>
 
-        <button onclick="generateOrder()" class="btn-black mb-4">Commander via WhatsApp</button>
-        <button onclick="resetCart()" class="w-full text-[8px] tracking-[2px] text-gray-300 uppercase font-bold">Vider la sélection</button>
+    <div id="tab3" class="tab-content p-8">
+        <h2 class="chogan-font text-lg text-center tracking-[4px] mb-12 uppercase">Ventes de la Semaine</h2>
+        
+        <div class="stat-box">
+            <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Total Chiffre d'Affaires</p>
+            <p id="stat-revenue" class="text-2xl font-bold tracking-tighter">0.00 €</p>
+        </div>
+
+        <div class="stat-box">
+            <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Parfums vendus</p>
+            <p id="stat-count" class="text-2xl font-bold tracking-tighter">0</p>
+        </div>
+
+        <div class="mt-20">
+            <button onclick="resetStats()" class="w-full border border-red-100 text-red-200 py-3 text-[8px] uppercase tracking-widest font-bold">Réinitialiser la semaine</button>
+        </div>
     </div>
 
     <div id="tab5" class="tab-content p-8 text-center">
         <h2 class="chogan-font text-lg tracking-[4px] mb-12 uppercase">Configuration</h2>
         <div class="py-10 border border-dashed border-gray-200 rounded mb-6">
-            <p class="text-[9px] tracking-widest text-gray-400 mb-6 uppercase">Importer la liste des produits (PDF)</p>
+            <p class="text-[9px] tracking-widest text-gray-400 mb-6 uppercase font-bold">Importer Catalogue (PDF)</p>
             <input type="file" id="pdfInput" accept="application/pdf" class="hidden" onchange="handlePDF(event)">
             <button onclick="document.getElementById('pdfInput').click()" class="border border-black px-6 py-2 text-[10px] uppercase tracking-widest font-bold">Choisir Fichier</button>
         </div>
-        <button onclick="clearCatalog()" class="text-red-200 text-[8px] uppercase tracking-widest">Effacer toute la base</button>
+        <button onclick="clearCatalog()" class="text-red-200 text-[8px] uppercase tracking-widest">Effacer catalogue</button>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 grid grid-cols-7 p-4 z-50 bg-white/95 border-t border-gray-50">
+    <nav class="fixed bottom-0 left-0 right-0 grid grid-cols-4 p-4 z-50 bg-white/95 border-t border-gray-50">
         <button onclick="showTab(1)" id="nav1" class="nav-btn active"><span class="text-lg">🛍️</span><span class="text-[6px] font-black uppercase mt-1">Shop</span></button>
         <button onclick="showTab(2)" id="nav2" class="nav-btn"><span class="text-lg">📜</span><span class="text-[6px] font-black uppercase mt-1">Ordre</span></button>
-        <button class="nav-btn"><span class="text-lg opacity-10">💎</span></button>
-        <button class="nav-btn"><span class="text-lg opacity-10">📈</span></button>
+        <button onclick="showTab(3)" id="nav3" class="nav-btn"><span class="text-lg">📈</span><span class="text-[6px] font-black uppercase mt-1">Stats</span></button>
         <button onclick="showTab(5)" id="nav5" class="nav-btn"><span class="text-lg">⚙️</span><span class="text-[6px] font-black uppercase mt-1">Admin</span></button>
-        <button class="nav-btn"><span class="text-lg opacity-10">🎓</span></button>
-        <button class="nav-btn"><span class="text-lg opacity-10">👤</span></button>
     </nav>
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        
         let currentCurrency = 'EUR';
         let currentFilter = 'ALL';
         let cart = [];
         let products = JSON.parse(localStorage.getItem('chogan_marie_db')) || [];
+        
+        // Stats Persistence
+        let stats = JSON.parse(localStorage.getItem('chogan_stats')) || { revenue: 0, count: 0 };
 
         const imgMap = { 'W': '14856.jpg', 'M': '14859.jpg', 'L': '14833.jpg', 'DEFAULT': '14857.jpg' };
+
+        function setCurrency(cur) {
+            currentCurrency = cur;
+            document.getElementById('opt-eur').style.color = (cur === 'EUR' ? '#000' : '#ccc');
+            document.getElementById('opt-dzd').style.color = (cur === 'DZD' ? '#000' : '#ccc');
+            updateAll();
+        }
+
+        function renderCatalog() {
+            const grid = document.getElementById('grid');
+            const search = document.getElementById('search').value.toLowerCase();
+            const rate = document.getElementById('rate').value;
+            grid.innerHTML = products.length === 0 ? '<div class="col-span-2 text-center py-20 text-gray-200 text-[9px] uppercase tracking-widest">Attente import PDF...</div>' : '';
+            
+            const filtered = products.filter(p => (p.brand.toLowerCase().includes(search) || p.id.toLowerCase().includes(search)) && (currentFilter === 'ALL' || p.cat === currentFilter));
+
+            filtered.forEach(p => {
+                const priceText = (currentCurrency === 'EUR') ? p.price.toFixed(2) + ' €' : Math.round(p.price * rate).toLocaleString() + ' DA';
+                grid.innerHTML += `
+                    <div class="luxury-card pb-4">
+                        <img src="${imgMap[p.cat] || imgMap['DEFAULT']}" class="h-44 w-full object-cover rounded-t">
+                        <div class="px-2 pt-4 text-center">
+                            <h3 class="text-[10px] font-bold uppercase truncate tracking-tight text-gray-900">${p.brand}</h3>
+                            <p class="text-[11px] font-bold text-amber-700 mt-1 font-sans">${priceText}</p>
+                            <button onclick="addToCart('${p.brand}', ${p.price})" class="mt-3 text-[8px] font-bold uppercase tracking-[2px] border-b border-black pb-1">Ajouter</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function confirmOrder() {
+            if(cart.length === 0) return;
+            const rate = document.getElementById('rate').value;
+            const shipVal = parseFloat(document.getElementById('ship').value) || 0;
+            
+            // Update Stats
+            stats.count += cart.length;
+            stats.revenue += cart.reduce((s, i) => s + i.price, 0);
+            localStorage.setItem('chogan_stats', JSON.stringify(stats));
+
+            // Generate WhatsApp
+            let text = `📦 *CHOGAN LUXE - MARIE*\n---\n`;
+            cart.forEach(i => {
+                const p = (currentCurrency === 'EUR') ? i.price.toFixed(2) + ' €' : Math.round(i.price * rate) + ' DA';
+                text += `• ${i.brand} : ${p}\n`;
+            });
+            text += `• Livraison : ${shipVal.toLocaleString()} ${currentCurrency === 'EUR' ? '€' : 'DA'}\n---\n*TOTAL : ${document.getElementById('final-total').innerText}*`;
+            
+            navigator.clipboard.writeText(text);
+            alert("Vente enregistrée et message copié !");
+            updateAll();
+        }
+
+        function resetStats() {
+            if(confirm("Effacer les statistiques de la semaine ?")) {
+                stats = { revenue: 0, count: 0 };
+                localStorage.setItem('chogan_stats', JSON.stringify(stats));
+                updateAll();
+            }
+        }
+
+        function addToCart(brand, price) { cart.push({brand, price}); updateAll(); showTab(2); }
+        function remove(i) { cart.splice(i, 1); updateAll(); }
+        function resetCart() { cart = []; updateAll(); }
+        function clearCatalog() { products = []; localStorage.removeItem('chogan_marie_db'); updateAll(); }
+
+        function showTab(n) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab' + n).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('nav' + n).classList.add('active');
+        }
+
+        function updateAll() {
+            renderCatalog();
+            // Update Cart
+            const list = document.getElementById('cart-list');
+            const rate = document.getElementById('rate').value;
+            list.innerHTML = cart.length ? '' : '<div class="text-center py-10 font-medium text-gray-200 text-[10px] uppercase tracking-widest">Panier Vide</div>';
+            cart.forEach((item, i) => {
+                const p = (currentCurrency === 'EUR') ? item.price.toFixed(2) + ' €' : Math.round(item.price * rate).toLocaleString() + ' DA';
+                list.innerHTML += `<div class="flex justify-between items-center py-4 border-b border-gray-50">
+                    <div class="text-[10px] font-bold uppercase tracking-tight">${item.brand}</div>
+                    <div class="text-[10px] font-bold text-amber-700 font-sans">${p} <button onclick="remove(${i})" class="ml-4 text-gray-300">×</button></div>
+                </div>`;
+            });
+            const ship = parseFloat(document.getElementById('ship').value) || 0;
+            const sub = cart.reduce((s, i) => s + i.price, 0);
+            if (currentCurrency === 'EUR') { document.getElementById('final-total').innerText = (sub + ship).toFixed(2) + " €"; }
+            else { document.getElementById('final-total').innerText = Math.round((sub * rate) + ship).toLocaleString() + " DA"; }
+
+            // Update Stats Tab
+            document.getElementById('stat-revenue').innerText = stats.revenue.toFixed(2) + " €";
+            document.getElementById('stat-count').innerText = stats.count;
+        }
 
         function setFilter(cat) {
             currentFilter = cat;
@@ -147,61 +229,7 @@
             renderCatalog();
         }
 
-        function setCurrency(cur) {
-            currentCurrency = cur;
-            document.getElementById('opt-eur').style.color = (cur === 'EUR' ? '#000' : '#ccc');
-            document.getElementById('opt-dzd').style.color = (cur === 'DZD' ? '#000' : '#ccc');
-            const rate = document.getElementById('rate').value;
-            const ship = document.getElementById('ship');
-            ship.value = (cur === 'EUR') ? 2.5 : Math.round(2.5 * rate);
-            updateAll();
-        }
-
-        function renderCatalog() {
-            const grid = document.getElementById('grid');
-            const search = document.getElementById('search').value.toLowerCase();
-            const rate = document.getElementById('rate').value;
-            grid.innerHTML = products.length === 0 ? '<div class="col-span-2 text-center py-20 text-gray-200 text-[9px] uppercase tracking-widest">Prêt pour l\'import PDF</div>' : '';
-            
-            const filtered = products.filter(p => {
-                const mSearch = p.brand.toLowerCase().includes(search) || p.id.toLowerCase().includes(search);
-                const mCat = (currentFilter === 'ALL') || (p.cat === currentFilter);
-                return mSearch && mCat;
-            });
-
-            filtered.forEach(p => {
-                const priceText = (currentCurrency === 'EUR') ? p.price.toFixed(2) + ' €' : Math.round(p.price * rate).toLocaleString() + ' DA';
-                const imgSrc = imgMap[p.cat] || imgMap['DEFAULT'];
-                
-                grid.innerHTML += `
-                    <div class="luxury-card pb-4">
-                        <img src="${imgSrc}" class="h-44 w-full object-cover rounded-t">
-                        <div class="px-2 pt-4 text-center">
-                            <h3 class="text-[10px] font-bold uppercase truncate tracking-tight text-gray-900">${p.brand}</h3>
-                            <p class="text-[11px] font-medium text-amber-700 mt-1">${priceText}</p>
-                            <button onclick="addToCart('${p.brand}', ${p.price})" class="mt-3 text-[8px] font-bold uppercase tracking-[2px] border-b border-black pb-1 hover:text-amber-600 hover:border-amber-600 transition">Ajouter</button>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function generateOrder() {
-            if(cart.length === 0) return;
-            const rate = document.getElementById('rate').value;
-            const shipVal = parseFloat(document.getElementById('ship').value) || 0;
-            const cur = currentCurrency === 'EUR' ? '€' : 'DA';
-            let text = `📦 *CHOGAN LUXE - MARIE*\n---\n`;
-            cart.forEach(i => {
-                const p = (currentCurrency === 'EUR') ? i.price.toFixed(2) + ' €' : Math.round(i.price * rate) + ' DA';
-                text += `• ${i.brand} : ${p}\n`;
-            });
-            text += `• Livraison : ${shipVal.toLocaleString()} ${cur}\n`;
-            text += `---\n*TOTAL : ${document.getElementById('final-total').innerText}*`;
-            navigator.clipboard.writeText(text);
-            alert("Sélection copiée !");
-        }
-
-        // Fonctions techniques inchangées pour garder la stabilité
+        // PDF Import Logic
         async function handlePDF(event) {
             const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
@@ -233,36 +261,6 @@
             }
         }
 
-        function addToCart(brand, price) { cart.push({brand, price}); updateAll(); showTab(2); }
-        function remove(i) { cart.splice(i, 1); updateAll(); }
-        function resetCart() { cart = []; updateAll(); }
-        function clearCatalog() { products = []; localStorage.removeItem('chogan_marie_db'); updateAll(); }
-
-        function showTab(n) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab' + n).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('nav' + n).classList.add('active');
-        }
-
-        function updateAll() {
-            renderCatalog();
-            const list = document.getElementById('cart-list');
-            const rate = document.getElementById('rate').value;
-            list.innerHTML = cart.length ? '' : '<div class="text-center py-10 font-medium text-gray-200 text-[10px] uppercase tracking-widest">Panier Vide</div>';
-            cart.forEach((item, i) => {
-                const p = (currentCurrency === 'EUR') ? item.price.toFixed(2) + ' €' : Math.round(item.price * rate).toLocaleString() + ' DA';
-                list.innerHTML += `<div class="flex justify-between items-center py-4 border-b border-gray-50">
-                    <div class="text-[10px] font-bold uppercase tracking-tight">${item.brand}</div>
-                    <div class="text-[10px] font-bold text-amber-700">${p} <button onclick="remove(${i})" class="ml-4 text-gray-300">×</button></div>
-                </div>`;
-            });
-            const ship = parseFloat(document.getElementById('ship').value) || 0;
-            const sub = cart.reduce((s, i) => s + i.price, 0);
-            document.querySelectorAll('.cur-sym').forEach(el => el.innerText = (currentCurrency === 'EUR' ? '€' : 'DA'));
-            if (currentCurrency === 'EUR') { document.getElementById('final-total').innerText = (sub + ship).toFixed(2) + " €"; }
-            else { document.getElementById('final-total').innerText = Math.round((sub * rate) + ship).toLocaleString() + " DA"; }
-        }
         updateAll();
     </script>
 </body>
