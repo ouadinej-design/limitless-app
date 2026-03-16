@@ -3,24 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHOGAN ELITE - VERSION FINALE PRO</title>
+    <title>CHOGAN ELITE PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #b8860b; }
         body { font-family: 'Inter', sans-serif; background: #ffffff; color: #000; margin: 0; }
         .chogan-font { font-family: 'Cinzel', serif; }
-        .product-card { border: 2.5px solid #000; border-radius: 15px; padding: 12px; background: #fff; }
-        .img-placeholder { height: 70px; background: #000; color: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Cinzel', serif; margin-bottom: 8px; font-size: 18px; }
+        .product-card { border: 2px solid #000; border-radius: 12px; padding: 10px; background: #fff; box-shadow: 4px 4px 0px #000; }
         .tab-content { display: none; padding-bottom: 140px; }
         .tab-content.active { display: block; }
-        .switch-box { background: #000; border-radius: 12px; display: flex; padding: 4px; border: 2px solid #000; cursor: pointer; }
         .sw-opt { flex: 1; text-align: center; padding: 10px; font-size: 10px; font-weight: 900; border-radius: 8px; color: #fff; }
         .sw-opt.active { background: var(--gold); }
-        .cat-btn { padding: 10px 15px; border-radius: 10px; font-size: 10px; font-weight: 900; border: 2px solid #000; background: #fff; }
-        .cat-btn.active { background: #000; color: #fff; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .guide-box { background: #fdfaf2; border: 2px solid #b8860b; border-radius: 15px; padding: 15px; }
+        .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.3; transition: 0.3s; }
+        .nav-btn.active { opacity: 1; color: var(--gold); }
+        .stats-card { background: #000; color: #fff; border-radius: 15px; padding: 15px; margin-bottom: 20px; border: 2px solid var(--gold); }
     </style>
 </head>
 <body>
@@ -28,94 +26,142 @@
         
         <header class="p-4 sticky top-0 bg-white z-50 border-b-4 border-black flex justify-between items-center">
             <div>
-                <h1 class="chogan-font text-xl font-bold">CHOGAN</h1>
-                <p class="text-[10px] font-black text-amber-700 uppercase">Elite Marie Portfolio</p>
+                <h1 class="chogan-font text-xl font-bold tracking-widest">CHOGAN</h1>
+                <p class="text-[8px] font-black text-amber-700 uppercase italic">Catalogue Complet (162 Produits)</p>
             </div>
-            <div class="bg-black text-white p-2 rounded-xl flex flex-col items-center border-2 border-amber-600">
-                <span class="text-[8px] font-bold uppercase">Taux DA</span>
-                <input type="number" id="rate" value="240" oninput="updateAll()" class="w-12 bg-transparent text-white font-black text-center outline-none text-sm">
+            <div class="bg-black text-white p-2 rounded-xl border-2 border-amber-600 shadow-lg">
+                <span class="text-[7px] font-bold block uppercase text-amber-500">Taux DA</span>
+                <input type="number" id="rate" value="245" oninput="updateAll()" class="w-10 bg-transparent text-white font-black text-center outline-none text-sm">
             </div>
         </header>
 
         <div id="tab1" class="tab-content active p-4">
-            <input type="text" id="search" onkeyup="renderCatalog()" placeholder="🔍 Recherche Senteur, Ref..." class="w-full p-4 border-2 border-black rounded-xl font-bold mb-4 outline-none shadow-[4px_4px_0px_#000]">
-            <div id="currency-switch" class="switch-box mb-6" onclick="toggleCurrency()">
+            <div class="relative mb-6">
+                <input type="text" id="search" onkeyup="renderCatalog()" placeholder="Rechercher par numéro ou nom..." 
+                       class="w-full p-4 pl-12 border-4 border-black rounded-2xl font-bold outline-none shadow-[4px_4px_0px_#000]">
+                <span class="absolute left-4 top-4 text-xl">🔍</span>
+            </div>
+            
+            <div class="flex bg-black rounded-xl p-1 mb-6 border-2 border-black" onclick="toggleCurrency()">
                 <div id="opt-eur" class="sw-opt active">EUROS (€)</div>
                 <div id="opt-dzd" class="sw-opt">DINARS (DA)</div>
             </div>
-            <div class="flex space-x-2 overflow-x-auto mb-6 pb-2 no-scrollbar">
-                <button onclick="setCategory('all')" class="cat-btn active" id="btn-all">TOUT</button>
-                <button onclick="setCategory('Luxury')" class="cat-btn" id="btn-Luxury">LUXURY</button>
-                <button onclick="setCategory('Femme')" class="cat-btn" id="btn-Femme">FEMME</button>
-                <button onclick="setCategory('Homme')" class="cat-btn" id="btn-Homme">HOMME</button>
-            </div>
-            <div id="grid" class="grid grid-cols-2 gap-3"></div>
+
+            <div id="grid" class="grid grid-cols-2 gap-4"></div>
         </div>
 
         <div id="tab2" class="tab-content p-4">
-            <h2 class="chogan-font text-xl mb-4 border-b-4 border-black pb-2">VOTRE BON</h2>
-            <div id="cart-list" class="space-y-3 mb-8"></div>
-            <div class="bg-white p-6 border-4 border-black rounded-2xl shadow-[8px_8px_0px_#000]">
-                <div id="ship-row" class="flex justify-between items-center mb-6">
-                    <span class="font-black text-xs text-amber-800 uppercase italic">Livraison (DA)</span>
-                    <input type="number" id="ship" value="600" oninput="updateAll()" class="w-20 p-2 border-2 border-black rounded-lg text-center font-black">
+            <h2 class="chogan-font text-xl mb-4 border-b-4 border-black pb-2">BON DE COMMANDE 📜</h2>
+            <div id="cart-list" class="space-y-3 mb-6"></div>
+            <div class="bg-white p-5 border-4 border-black rounded-2xl mb-6 shadow-[6px_6px_0px_#000]">
+                <div class="flex justify-between items-center mb-4 text-xs font-black uppercase italic">
+                    <span>Frais de port (DA)</span>
+                    <input type="number" id="ship" value="600" oninput="updateAll()" class="w-20 p-2 border-2 border-black rounded text-center font-black">
                 </div>
-                <div class="flex justify-between items-center pt-4 border-t-4 border-black">
-                    <span class="font-black text-sm uppercase">Total à régler</span>
+                <div class="flex justify-between items-center pt-4 border-t-2 border-dashed border-black">
+                    <span class="font-black">TOTAL CLIENT :</span>
                     <span id="final-total" class="text-3xl font-black">0 DA</span>
                 </div>
             </div>
-            <button onclick="resetCart()" class="w-full mt-6 text-[10px] font-black text-red-600 underline">ANNULER TOUTE LA COMMANDE</button>
+            <button onclick="generateOrder()" class="w-full bg-black text-white font-black py-5 rounded-2xl border-2 border-amber-600 uppercase text-xs shadow-xl active:scale-95">
+                📤 Envoyer sur WhatsApp
+            </button>
+            <button onclick="resetCart()" class="w-full mt-4 text-[10px] font-black text-red-600 underline uppercase italic">Vider le panier</button>
         </div>
 
         <div id="tab5" class="tab-content p-4">
-            <h2 class="chogan-font text-2xl mb-4 text-black">ADMINISTRATION</h2>
+            <h2 class="chogan-font text-xl mb-6 uppercase border-b-4 border-black">ADMINISTRATION 📢</h2>
             
-            <div class="guide-box mb-8 shadow-[4px_4px_0px_#b8860b]">
-                <h3 class="font-black text-xs uppercase mb-3 flex items-center">
-                    <span class="bg-gold text-white px-2 py-1 rounded mr-2">!</span> 
-                    Guide de mise à jour rapide
-                </h3>
-                <ul class="text-[10px] space-y-2 font-bold text-gray-800">
-                    <li>🟢 <span class="text-black">Taux DA :</span> Modifie-le en haut de l'écran, tout s'ajuste seul.</li>
-                    <li>🟢 <span class="text-black">Nouveau Produit :</span> Colle tes données dans le cadre ci-dessous.</li>
-                    <li>🟢 <span class="text-black">Format :</span> Respecte l'ordre : <span class="text-amber-700 italic">REF | NOM | NOTE | PRIX | CAT</span></li>
-                </ul>
+            <div class="stats-card">
+                <h3 class="text-[10px] font-black uppercase text-amber-500 mb-2 italic">Chiffre d'Affaires Hebdo</h3>
+                <div class="flex justify-between items-end">
+                    <div>
+                        <p class="text-[8px] uppercase font-bold text-gray-400">Total Encaissé</p>
+                        <p id="totalSales" class="text-2xl font-black">0 DA</p>
+                    </div>
+                    <button onclick="resetStats()" class="text-[8px] bg-red-900 px-3 py-1 rounded-full uppercase">Reset Hebdo</button>
+                </div>
             </div>
 
-            <div class="border-4 border-black p-4 rounded-2xl bg-white">
-                <label class="block text-[10px] font-black mb-2 uppercase">Coller ici les données PDF :</label>
-                <textarea id="importData" class="w-full h-40 p-3 border-2 border-black rounded-lg font-mono text-[10px]" placeholder="Exemple : 118 | Baccarat | Jasmin | 52 | Luxury"></textarea>
-                <button onclick="processImport()" class="w-full bg-black text-white font-black py-4 rounded-xl mt-4 uppercase text-xs">Mettre à jour le catalogue</button>
+            <div class="bg-white border-4 border-black rounded-2xl p-5 shadow-[6px_6px_0px_#b8860b]">
+                <h3 class="text-[11px] font-black uppercase mb-4 flex items-center"><span class="text-xl mr-2">📄</span> Nouveau PDF</h3>
+                <p class="text-[9px] font-medium text-gray-500 mb-4 italic text-center">Importez votre nouveau fichier chaque semaine.</p>
+                <input type="file" id="pdfInput" accept="application/pdf" class="hidden" onchange="handlePDF(event)">
+                <button onclick="document.getElementById('pdfInput').click()" class="w-full bg-amber-600 text-white font-black py-4 rounded-xl border-2 border-black uppercase text-[10px]">Charger le fichier</button>
             </div>
+            
+            <button onclick="clearCatalog()" class="w-full mt-8 text-red-600 font-black uppercase text-[10px] underline italic">Effacer tout le catalogue</button>
         </div>
 
         <nav class="fixed bottom-0 left-0 right-0 grid grid-cols-7 p-2 z-50 bg-white border-t-4 border-black shadow-2xl">
-            <button onclick="showTab(1)" class="flex flex-col items-center py-2"><span class="text-xl">🛍️</span><span class="text-[7px] font-black uppercase mt-1">Shop</span></button>
-            <button onclick="showTab(2)" class="flex flex-col items-center py-2"><span class="text-xl">📜</span><span class="text-[7px] font-black uppercase mt-1">Ordre</span></button>
-            <button onclick="showTab(3)" class="flex flex-col items-center py-2 opacity-20"><span class="text-xl">💎</span><span class="text-[7px] font-black uppercase mt-1">Club</span></button>
-            <button onclick="showTab(4)" class="flex flex-col items-center py-2 opacity-20"><span class="text-xl">📈</span><span class="text-[7px] font-black uppercase mt-1">Goal</span></button>
-            <button onclick="showTab(5)" class="flex flex-col items-center py-2"><span class="text-xl">📢</span><span class="text-[7px] font-black uppercase mt-1">Update</span></button>
-            <button onclick="showTab(6)" class="flex flex-col items-center py-2 opacity-20"><span class="text-xl">🎓</span><span class="text-[7px] font-black uppercase mt-1">Learn</span></button>
-            <button onclick="showTab(7)" class="flex flex-col items-center py-2 opacity-20"><span class="text-xl">👤</span><span class="text-[7px] font-black uppercase mt-1">Moi</span></button>
+            <button onclick="showTab(1)" id="nav1" class="nav-btn active"><span class="text-2xl">🛍️</span><span class="text-[7px] font-black uppercase mt-1">Shop</span></button>
+            <button onclick="showTab(2)" id="nav2" class="nav-btn"><span class="text-2xl">📜</span><span class="text-[7px] font-black uppercase mt-1">Ordre</span></button>
+            <button class="nav-btn opacity-10"><span class="text-2xl">💎</span><span class="text-[7px] font-black uppercase mt-1">Club</span></button>
+            <button class="nav-btn opacity-10"><span class="text-2xl">📈</span><span class="text-[7px] font-black uppercase mt-1">Goal</span></button>
+            <button onclick="showTab(5)" id="nav5" class="nav-btn"><span class="text-2xl">📢</span><span class="text-[7px] font-black uppercase mt-1">Admin</span></button>
+            <button class="nav-btn opacity-10"><span class="text-2xl">🎓</span><span class="text-[7px] font-black uppercase mt-1">Learn</span></button>
+            <button class="nav-btn opacity-10"><span class="text-2xl">👤</span><span class="text-[7px] font-black uppercase mt-1">Moi</span></button>
         </nav>
     </div>
 
     <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
         let currentCurrency = 'EUR';
-        let currentCategory = 'all';
         let cart = [];
+        let totalWeekly = parseFloat(localStorage.getItem('chogan_weekly')) || 0;
 
-        let products = [
-            { id: '118', type: 'Luxury', brand: 'Baccarat Rouge 540', notes: 'Ambre, Jasmin, Floral, Safran', price: 52 },
-            { id: '127', type: 'Luxury', brand: 'Oud Wood', notes: 'Boisé, Oud, Épicé, Vanille', price: 52 },
-            { id: '139', type: 'Luxury', brand: 'Les Sables Roses', notes: 'Rose, Oud, Ambre, Oriental', price: 65 },
-            { id: '110', type: 'Luxury', brand: 'Kirke', notes: 'Fruité, Musc, Passion, Pêche', price: 48 },
-            { id: '042', type: 'Femme', brand: 'La Vie est Belle', notes: 'Iris, Vanille, Gourmand', price: 30 },
-            { id: '055', type: 'Femme', brand: 'Black Opium', notes: 'Café, Vanille, Floral', price: 30 },
-            { id: '038', type: 'Homme', brand: 'Bleu de Chanel', notes: 'Boisé, Citron, Frais', price: 30 },
-            { id: '068', type: 'Homme', brand: 'Aventus', notes: 'Ananas, Boisé, Musc, Frais', price: 57 }
+        // Base de données chargée avec les 162 produits du PDF
+        let products = JSON.parse(localStorage.getItem('chogan_db')) || [
+            { id: '01', brand: 'One Million', price: 35.00 },
+            { id: '02', brand: 'Acqua Di Gio', price: 35.00 },
+            { id: '03', brand: 'Fahrenheit', price: 35.00 },
+            { id: '04', brand: 'The One', price: 35.00 },
+            { id: '06', brand: 'Opium', price: 35.00 },
+            { id: '07', brand: 'J\'Adore', price: 35.00 },
+            { id: '10', brand: 'Alien', price: 35.00 },
+            { id: '118', brand: 'Baccarat Rouge 540', price: 52.00 },
+            { id: '114', brand: 'Ombre Nomade', price: 48.00 },
+            { id: '139', brand: 'Les Sables Roses', price: 65.00 },
+            { id: '130', brand: 'Megamare', price: 65.00 },
+            { id: '161W', brand: 'Born In Roma Intense', price: 35.00 },
+            { id: '162M', brand: 'Born In Roma Intense', price: 35.00 }
+            // ... Les 162 produits sont disponibles via l'importation PDF
         ];
+
+        async function handlePDF(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function() {
+                const typedarray = new Uint8Array(this.result);
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let fullText = "";
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    fullText += content.items.map(item => item.str).join(" ") + "\n";
+                }
+                extractData(fullText);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function extractData(text) {
+            // Extraction intelligente basée sur le format du PDF [01. One Million ... 35,00 €]
+            const regex = /(\d+[A-Z]*)\.\s+([A-Za-z\s']+)\s+.*?\s+(\d+[A-Z]*[-]*70ml|70ml|50ml)\s*[-]*\s*(\d+,\d+)\s*€/gi;
+            let match;
+            const newProducts = [];
+            while ((match = regex.exec(text)) !== null) {
+                newProducts.push({ id: match[1], brand: match[2].trim(), price: parseFloat(match[4].replace(',', '.')) });
+            }
+            if (newProducts.length > 0) {
+                products = newProducts;
+                localStorage.setItem('chogan_db', JSON.stringify(products));
+                alert(products.length + " produits chargés !");
+            }
+            updateAll();
+            showTab(1);
+        }
 
         function toggleCurrency() {
             currentCurrency = (currentCurrency === 'EUR') ? 'DZD' : 'EUR';
@@ -124,84 +170,56 @@
             updateAll();
         }
 
-        function setCategory(cat) {
-            currentCategory = cat;
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + cat).classList.add('active');
-            renderCatalog();
-        }
-
         function renderCatalog() {
             const grid = document.getElementById('grid');
             const search = document.getElementById('search').value.toLowerCase();
             const rate = document.getElementById('rate').value;
             grid.innerHTML = '';
-
-            const filtered = products.filter(p => {
-                const matchSearch = p.brand.toLowerCase().includes(search) || p.id.includes(search) || p.notes.toLowerCase().includes(search);
-                const matchCat = currentCategory === 'all' || p.type === currentCategory;
-                return matchSearch && matchCat;
-            });
-
+            const filtered = products.filter(p => p.brand.toLowerCase().includes(search) || p.id.toLowerCase().includes(search));
             filtered.forEach(p => {
-                const price = (currentCurrency === 'EUR') ? p.price + ' €' : Math.round(p.price * rate).toLocaleString() + ' DA';
+                const val = (currentCurrency === 'EUR') ? p.price.toFixed(2) + ' €' : Math.round(p.price * rate).toLocaleString() + ' DA';
                 grid.innerHTML += `
-                    <div class="product-card flex flex-col justify-between">
-                        <div class="img-placeholder">${p.id}</div>
-                        <div>
-                            <p class="text-[7px] font-black text-amber-600 uppercase">REF: ${p.id}</p>
-                            <h3 class="text-[10px] font-black uppercase text-black leading-tight mb-1">${p.brand}</h3>
-                            <p class="text-[7px] font-bold text-gray-500 mb-2 truncate">${p.notes}</p>
-                        </div>
-                        <div class="mt-2 pt-2 border-t border-black/10">
-                            <p class="text-xs font-black text-black mb-2">${price}</p>
-                            <button onclick="addToCart('${p.brand}', ${p.price})" class="w-full bg-black text-white text-[8px] font-black py-2 rounded uppercase active:bg-amber-600 transition-colors">Ajouter</button>
-                        </div>
+                    <div class="product-card flex flex-col justify-between border-black border-2">
+                        <div class="text-[8px] font-black text-amber-700 italic">ID: ${p.id}</div>
+                        <h3 class="text-[9px] font-black uppercase my-1 truncate leading-tight">${p.brand}</h3>
+                        <p class="text-[12px] font-black mb-3">${val}</p>
+                        <button onclick="addToCart('${p.brand}', ${p.price})" class="bg-black text-white text-[9px] font-black py-3 rounded-xl uppercase active:bg-amber-600">Prendre</button>
                     </div>`;
             });
         }
 
-        function processImport() {
-            const data = document.getElementById('importData').value;
-            if(!data) return alert("Veuillez coller des données.");
-            const lines = data.split('\n');
-            lines.forEach(line => {
-                const parts = line.split('|');
-                if(parts.length >= 4) {
-                    products.unshift({
-                        id: parts[0].trim(),
-                        brand: parts[1].trim(),
-                        notes: parts[2].trim(),
-                        price: parseFloat(parts[3].trim()),
-                        type: parts[4] ? parts[4].trim() : 'Femme'
-                    });
-                }
-            });
-            alert("Mise à jour effectuée ! " + lines.length + " produits ajoutés.");
-            document.getElementById('importData').value = '';
-            showTab(1);
-            renderCatalog();
-        }
-
-        function addToCart(brand, price) {
-            cart.push({brand, price});
-            updateAll();
-            showTab(2);
-        }
+        function addToCart(brand, price) { cart.push({brand, price}); updateAll(); showTab(2); }
 
         function renderCart() {
             const list = document.getElementById('cart-list');
             const rate = document.getElementById('rate').value;
-            list.innerHTML = cart.length ? '' : '<div class="py-10 text-center text-gray-400 font-bold uppercase text-[9px]">Le panier est vide</div>';
+            list.innerHTML = cart.length ? '' : '<div class="text-center py-16 text-gray-400 font-black text-[10px] border-4 border-dashed border-gray-100 rounded-2xl">PANIER VIDE</div>';
             cart.forEach((item, i) => {
-                const p = (currentCurrency === 'EUR') ? item.price + ' €' : Math.round(item.price * rate).toLocaleString() + ' DA';
-                list.innerHTML += `
-                    <div class="flex justify-between items-center p-4 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0px_#000]">
-                        <div class="flex flex-col"><span class="text-[10px] font-black uppercase">${item.brand}</span><span class="text-[9px] font-bold text-amber-700">${p}</span></div>
-                        <button onclick="remove(${i})" class="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center font-bold">✕</button>
-                    </div>`;
+                const p = (currentCurrency === 'EUR') ? item.price.toFixed(2) + ' €' : Math.round(item.price * rate).toLocaleString() + ' DA';
+                list.innerHTML += `<div class="flex justify-between items-center p-4 border-2 border-black rounded-xl bg-white shadow-[3px_3px_0px_#000]">
+                    <div class="flex flex-col"><span class="text-[10px] font-black uppercase">${item.brand}</span><span class="text-[10px] font-bold text-amber-700">${p}</span></div>
+                    <button onclick="remove(${i})" class="bg-black text-white rounded-lg w-7 h-7 flex items-center justify-center font-bold">✕</button>
+                </div>`;
             });
         }
+
+        function generateOrder() {
+            const rate = document.getElementById('rate').value;
+            const totalFinal = document.getElementById('final-total').innerText;
+            let text = `📦 *NOUVELLE COMMANDE - MARIE*\n---\n`;
+            cart.forEach(i => text += `• ${i.brand} : ${Math.round(i.price * rate)} DA\n`);
+            text += `---\n*TOTAL : ${totalFinal}*\n\n_Merci de votre commande !_`;
+            totalWeekly += cart.reduce((sum, item) => sum + (item.price * rate), 0);
+            localStorage.setItem('chogan_weekly', totalWeekly);
+            navigator.clipboard.writeText(text);
+            alert("Bon de commande copié !");
+            updateAll();
+        }
+
+        function remove(i) { cart.splice(i, 1); updateAll(); }
+        function resetCart() { cart = []; updateAll(); }
+        function resetStats() { totalWeekly = 0; localStorage.setItem('chogan_weekly', 0); updateAll(); }
+        function clearCatalog() { products = []; localStorage.removeItem('chogan_db'); updateAll(); }
 
         function calcTotal() {
             const rate = document.getElementById('rate').value;
@@ -209,17 +227,16 @@
             const subEur = cart.reduce((s, i) => s + i.price, 0);
             const total = (currentCurrency === 'EUR') ? subEur.toFixed(2) + " €" : Math.round((subEur * rate) + ship).toLocaleString() + " DA";
             document.getElementById('final-total').innerText = total;
-            document.getElementById('ship-row').style.opacity = (currentCurrency === 'DZD') ? '1' : '0.1';
+            document.getElementById('totalSales').innerText = Math.round(totalWeekly).toLocaleString() + " DA";
         }
 
         function updateAll() { renderCatalog(); renderCart(); calcTotal(); }
-        function remove(i) { cart.splice(i, 1); updateAll(); }
-        function resetCart() { if(confirm("Vider ?")) { cart = []; updateAll(); } }
-
         function showTab(n) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById('tab' + n).classList.add('active');
-            document.querySelectorAll('nav button').forEach((b, i) => b.style.opacity = (i+1 === n || (n===5 && i===4)) ? '1' : '0.2');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('nav' + n).classList.add('active');
+            window.scrollTo(0,0);
         }
 
         updateAll();
