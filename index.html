@@ -3,117 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHOGAN ELITE PRO</title>
+    <title>CHOGAN ELITE - MARIE PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #b8860b; }
-        body { font-family: 'Inter', sans-serif; background: #ffffff; color: #000; margin: 0; }
+        body { font-family: 'Inter', sans-serif; background: #fff; color: #000; }
         .chogan-font { font-family: 'Cinzel', serif; }
-        .product-card { border: 2px solid #000; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 4px 4px 0px #000; }
-        .product-img { height: 120px; width: 100%; object-fit: cover; border-bottom: 2px solid #000; }
-        .tab-content { display: none; padding-bottom: 140px; }
-        .tab-content.active { display: block; }
+        .luxury-card { border: 3px solid #000; border-radius: 15px; overflow: hidden; box-shadow: 6px 6px 0px #000; transition: 0.2s; }
+        .cat-btn { border: 2px solid #000; font-size: 9px; font-weight: 900; padding: 8px 4px; border-radius: 8px; text-transform: uppercase; transition: 0.3s; }
+        .cat-btn.active { background: #000; color: #fff; }
         .sw-opt { flex: 1; text-align: center; padding: 10px; font-size: 10px; font-weight: 900; border-radius: 8px; color: #fff; cursor: pointer; }
         .sw-opt.active { background: var(--gold); }
-        .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.3; }
+        .tab-content { display: none; padding-bottom: 120px; }
+        .tab-content.active { display: block; }
+        .nav-btn { display: flex; flex-direction: column; align-items: center; opacity: 0.4; }
         .nav-btn.active { opacity: 1; color: var(--gold); }
     </style>
 </head>
-<body>
-    <div id="app" class="max-w-md mx-auto min-h-screen">
+<body class="max-w-md mx-auto">
+
+    <header class="p-4 sticky top-0 bg-white z-50 border-b-4 border-black flex justify-between items-center">
+        <div>
+            <h1 class="chogan-font text-2xl font-bold">CHOGAN</h1>
+            <p class="text-[9px] font-black text-amber-700 uppercase italic">Elite Marie Management</p>
+        </div>
+        <div class="bg-black text-white p-2 rounded-xl border-2 border-amber-600">
+            <span class="text-[7px] font-bold block uppercase text-center">Taux DA</span>
+            <input type="number" id="rate" value="245" oninput="updateAll()" class="w-10 bg-transparent text-white font-black text-center outline-none text-sm">
+        </div>
+    </header>
+
+    <div id="tab1" class="tab-content active p-4">
+        <input type="text" id="search" onkeyup="renderCatalog()" placeholder="Rechercher une référence..." 
+               class="w-full p-4 border-4 border-black rounded-2xl font-bold mb-4 outline-none shadow-[4px_4px_0px_#000]">
+
+        <div class="grid grid-cols-4 gap-2 mb-4">
+            <button onclick="setFilter('ALL')" id="filter-ALL" class="cat-btn active">Tous</button>
+            <button onclick="setFilter('W')" id="filter-W" class="cat-btn">Femmes</button>
+            <button onclick="setFilter('M')" id="filter-M" class="cat-btn">Hommes</button>
+            <button onclick="setFilter('L')" id="filter-L" class="cat-btn text-amber-600">Luxury</button>
+        </div>
         
-        <header class="p-4 sticky top-0 bg-white z-50 border-b-4 border-black flex justify-between items-center">
-            <div>
-                <h1 class="chogan-font text-xl font-bold tracking-widest">CHOGAN</h1>
-                <p class="text-[8px] font-black text-amber-700 uppercase italic">Elite Marie - Officiel</p>
-            </div>
-            <div class="bg-black text-white p-2 rounded-xl border-2 border-amber-600">
-                <span class="text-[7px] font-bold block uppercase text-amber-500 text-center">Taux</span>
-                <input type="number" id="rate" value="245" oninput="updateAll()" class="w-10 bg-transparent text-white font-black text-center outline-none text-sm">
-            </div>
-        </header>
-
-        <div id="tab1" class="tab-content active p-4">
-            <input type="text" id="search" onkeyup="renderCatalog()" placeholder="Rechercher Ref ou Nom..." 
-                   class="w-full p-4 border-4 border-black rounded-2xl font-bold mb-6 outline-none shadow-[4px_4px_0px_#000]">
-            
-            <div class="flex bg-black rounded-xl p-1 mb-6 border-2 border-black">
-                <div id="opt-eur" onclick="setCurrency('EUR')" class="sw-opt active">EUROS (€)</div>
-                <div id="opt-dzd" onclick="setCurrency('DZD')" class="sw-opt">DINARS (DA)</div>
-            </div>
-
-            <div id="grid" class="grid grid-cols-2 gap-4"></div>
+        <div class="flex bg-black rounded-xl p-1 mb-6 border-2 border-black">
+            <div id="opt-eur" onclick="setCurrency('EUR')" class="sw-opt active">EUROS (€)</div>
+            <div id="opt-dzd" onclick="setCurrency('DZD')" class="sw-opt">DINARS (DA)</div>
         </div>
 
-        <div id="tab2" class="tab-content p-4">
-            <h2 class="chogan-font text-xl mb-4 border-b-4 border-black pb-2 uppercase italic">Mon Panier</h2>
-            <div id="cart-list" class="space-y-3 mb-6"></div>
-            
-            <div class="bg-white p-5 border-4 border-black rounded-2xl mb-6 shadow-[6px_6px_0px_#000]">
-                <div class="flex justify-between items-center mb-4 text-xs font-black uppercase">
-                    <span>Frais de port (<span class="currency-label">€</span>)</span>
-                    <input type="number" id="ship" value="2.5" oninput="updateAll()" class="w-24 p-2 border-2 border-black rounded text-center bg-amber-50 font-bold">
-                </div>
-                <div class="flex justify-between items-center pt-4 border-t-2 border-dashed border-black">
-                    <span class="font-black">TOTAL À PAYER :</span>
-                    <span id="final-total" class="text-2xl font-black">0 €</span>
-                </div>
-            </div>
-
-            <button onclick="generateOrder()" class="w-full bg-black text-white font-black py-5 rounded-2xl border-2 border-amber-600 uppercase text-xs mb-4">
-                📤 Copier pour WhatsApp
-            </button>
-            <button onclick="resetCart()" class="w-full text-red-600 font-black uppercase text-[10px] underline">Effacer le panier</button>
-        </div>
-
-        <div id="tab5" class="tab-content p-4">
-            <h2 class="chogan-font text-xl mb-6 border-b-4 border-black uppercase italic">Mise à jour Hebdo</h2>
-            <div class="bg-white border-4 border-black rounded-2xl p-5 mb-6">
-                <h3 class="text-[11px] font-black uppercase mb-4 italic text-amber-700">Importer nouveau PDF</h3>
-                <input type="file" id="pdfInput" accept="application/pdf" class="hidden" onchange="handlePDF(event)">
-                <button onclick="document.getElementById('pdfInput').click()" class="w-full bg-amber-600 text-white font-black py-4 rounded-xl border-2 border-black uppercase text-[10px] shadow-lg">Choisir le fichier PDF</button>
-            </div>
-            <button onclick="clearCatalog()" class="w-full bg-red-100 text-red-600 font-black py-3 rounded-xl border-2 border-red-600 uppercase text-[10px]">Vider tout le catalogue actuel</button>
-        </div>
-
-        <nav class="fixed bottom-0 left-0 right-0 grid grid-cols-7 p-2 z-50 bg-white border-t-4 border-black">
-            <button onclick="showTab(1)" id="nav1" class="nav-btn active"><span class="text-2xl">🛍️</span><span class="text-[7px] font-black uppercase mt-1">Shop</span></button>
-            <button onclick="showTab(2)" id="nav2" class="nav-btn"><span class="text-2xl">📜</span><span class="text-[7px] font-black uppercase mt-1">Ordre</span></button>
-            <button class="nav-btn opacity-10"><span class="text-2xl">💎</span><span class="text-[7px] font-black uppercase mt-1">Club</span></button>
-            <button class="nav-btn opacity-10"><span class="text-2xl">📈</span><span class="text-[7px] font-black uppercase mt-1">Goal</span></button>
-            <button onclick="showTab(5)" id="nav5" class="nav-btn"><span class="text-2xl">📢</span><span class="text-[7px] font-black uppercase mt-1">Admin</span></button>
-            <button class="nav-btn opacity-10"><span class="text-2xl">🎓</span><span class="text-[7px] font-black uppercase mt-1">Learn</span></button>
-            <button class="nav-btn opacity-10"><span class="text-2xl">👤</span><span class="text-[7px] font-black uppercase mt-1">Moi</span></button>
-        </nav>
+        <div id="grid" class="grid grid-cols-2 gap-4"></div>
     </div>
+
+    <div id="tab2" class="tab-content p-4">
+        <h2 class="chogan-font text-xl mb-4 border-b-4 border-black pb-2">MON PANIER 📜</h2>
+        <div id="cart-list" class="space-y-3 mb-6"></div>
+        
+        <div class="bg-white p-5 border-4 border-black rounded-2xl mb-6 shadow-[6px_6px_0px_#000]">
+            <div class="flex justify-between items-center mb-4 text-xs font-black uppercase">
+                <span>Livraison (<span class="cur-sym">€</span>)</span>
+                <input type="number" id="ship" value="2.5" oninput="updateAll()" class="w-24 p-2 border-2 border-black rounded text-center bg-amber-50">
+            </div>
+            <div class="flex justify-between items-center pt-4 border-t-2 border-dashed border-black">
+                <span class="font-black">TOTAL :</span>
+                <span id="final-total" class="text-3xl font-black">0 €</span>
+            </div>
+        </div>
+        <button onclick="generateOrder()" class="w-full bg-black text-white font-black py-5 rounded-2xl border-2 border-amber-600 uppercase mb-4 active:scale-95">📤 Envoyer Commande</button>
+        <button onclick="resetCart()" class="w-full text-red-600 font-black uppercase text-[10px] underline">Vider le panier</button>
+    </div>
+
+    <div id="tab5" class="tab-content p-4">
+        <h2 class="chogan-font text-xl mb-6 border-b-4 border-black uppercase italic">Admin</h2>
+        <div class="bg-white border-4 border-black rounded-2xl p-5 mb-6 shadow-[6px_6px_0px_#b8860b]">
+            <h3 class="text-[11px] font-black uppercase mb-4 italic text-amber-700">Importation Hebdomadaire PDF</h3>
+            <input type="file" id="pdfInput" accept="application/pdf" class="hidden" onchange="handlePDF(event)">
+            <button onclick="document.getElementById('pdfInput').click()" class="w-full bg-black text-white font-black py-4 rounded-xl border-2 border-amber-600 uppercase text-[10px]">Charger la liste PDF</button>
+        </div>
+        <button onclick="clearCatalog()" class="w-full bg-red-50 text-red-600 font-black py-4 rounded-xl border-2 border-red-600 uppercase text-[10px]">Réinitialiser le Catalogue</button>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 grid grid-cols-7 p-2 z-50 bg-white border-t-4 border-black shadow-2xl">
+        <button onclick="showTab(1)" id="nav1" class="nav-btn active"><span class="text-xl">🛍️</span><span class="text-[7px] font-black uppercase mt-1">Shop</span></button>
+        <button onclick="showTab(2)" id="nav2" class="nav-btn"><span class="text-xl">📜</span><span class="text-[7px] font-black uppercase mt-1">Ordre</span></button>
+        <button class="nav-btn"><span class="text-xl opacity-10">💎</span></button>
+        <button class="nav-btn"><span class="text-xl opacity-10">📈</span></button>
+        <button onclick="showTab(5)" id="nav5" class="nav-btn"><span class="text-xl">📢</span><span class="text-[7px] font-black uppercase mt-1">Admin</span></button>
+        <button class="nav-btn"><span class="text-xl opacity-10">🎓</span></button>
+        <button class="nav-btn"><span class="text-xl opacity-10">👤</span></button>
+    </nav>
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
         let currentCurrency = 'EUR';
+        let currentFilter = 'ALL';
         let cart = [];
         
-        // Utilisation des photos envoyées
-        const images = ["14859.jpg", "14857.jpg", "14856.jpg", "14858.jpg"];
+        // Photos pour les catégories
+        const imgMap = {
+            'W': '14856.jpg', // Femme
+            'M': '14859.jpg', // Homme
+            'L': '14833.jpg', // Luxury
+            'DEFAULT': '14857.jpg'
+        };
 
-        let products = JSON.parse(localStorage.getItem('chogan_db')) || [
-            { id: '118', brand: 'Baccarat Rouge 540', price: 52 },
-            { id: '139', brand: 'Les Sables Roses', price: 65 },
-            { id: '114', brand: 'Ombre Nomade', price: 48 }
+        let products = JSON.parse(localStorage.getItem('chogan_marie_db')) || [
+            { id: '118', brand: 'Baccarat Rouge', price: 52, cat: 'L' },
+            { id: '01', brand: 'One Million', price: 35, cat: 'M' },
+            { id: '07', brand: 'J\'adore', price: 35, cat: 'W' }
         ];
+
+        function setFilter(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('filter-' + cat).classList.add('active');
+            renderCatalog();
+        }
 
         function setCurrency(cur) {
             currentCurrency = cur;
             document.getElementById('opt-eur').classList.toggle('active', cur === 'EUR');
             document.getElementById('opt-dzd').classList.toggle('active', cur === 'DZD');
-            
-            // Ajustement automatique des frais de port si on change de devise
             const rate = document.getElementById('rate').value;
-            const shipInput = document.getElementById('ship');
-            if(cur === 'DZD') { shipInput.value = Math.round(2.5 * rate); } 
-            else { shipInput.value = 2.5; }
-            
+            const ship = document.getElementById('ship');
+            ship.value = (cur === 'EUR') ? 2.5 : Math.round(2.5 * rate);
             updateAll();
         }
 
@@ -123,26 +135,30 @@
             const rate = document.getElementById('rate').value;
             grid.innerHTML = '';
             
-            const filtered = products.filter(p => p.brand.toLowerCase().includes(search) || p.id.toLowerCase().includes(search));
+            const filtered = products.filter(p => {
+                const matchSearch = p.brand.toLowerCase().includes(search) || p.id.toLowerCase().includes(search);
+                const matchCat = (currentFilter === 'ALL') || (p.cat === currentFilter);
+                return matchSearch && matchCat;
+            });
 
-            filtered.forEach((p, index) => {
-                const priceVal = (currentCurrency === 'EUR') ? p.price.toFixed(2) + ' €' : Math.round(p.price * rate).toLocaleString() + ' DA';
-                const img = images[index % images.length]; // Alterne entre tes 4 photos
+            filtered.forEach(p => {
+                const priceText = (currentCurrency === 'EUR') ? p.price.toFixed(2) + ' €' : Math.round(p.price * rate).toLocaleString() + ' DA';
+                const imgSrc = imgMap[p.cat] || imgMap['DEFAULT'];
                 
                 grid.innerHTML += `
-                    <div class="product-card flex flex-col">
-                        <img src="${img}" class="product-img" alt="Chogan">
+                    <div class="luxury-card flex flex-col">
+                        <img src="${imgSrc}" class="h-32 w-full object-cover border-b-2 border-black">
                         <div class="p-3">
-                            <div class="text-[8px] font-black text-amber-700 italic">REF: ${p.id}</div>
-                            <h3 class="text-[9px] font-black uppercase truncate mb-1">${p.brand}</h3>
-                            <p class="text-[12px] font-black mb-3">${priceVal}</p>
-                            <button onclick="addToCart('${p.brand}', ${p.price})" class="w-full bg-black text-white text-[8px] font-black py-2 rounded-lg uppercase">Prendre</button>
+                            <span class="text-[7px] font-black px-2 py-0.5 bg-black text-white rounded-full uppercase">${p.cat}</span>
+                            <div class="text-[8px] font-bold text-amber-800 mt-1 italic">REF: ${p.id}</div>
+                            <h3 class="text-[9px] font-black uppercase truncate mb-2">${p.brand}</h3>
+                            <p class="text-[12px] font-black mb-3">${priceText}</p>
+                            <button onclick="addToCart('${p.brand}', ${p.price})" class="w-full bg-black text-white text-[9px] font-black py-2 rounded-lg active:bg-amber-700">AJOUTER</button>
                         </div>
                     </div>`;
             });
         }
 
-        // --- Fonctions PDF & Cart inchangées mais optimisées ---
         async function handlePDF(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -165,26 +181,37 @@
             const regex = /(\d+[A-Z]*)\.\s+([A-Za-z\s']+)\s+.*?\s+(\d+[A-Z]*[-]*70ml|70ml|50ml)\s*[-]*\s*(\d+,\d+)\s*€/gi;
             let match; const newProducts = [];
             while ((match = regex.exec(text)) !== null) {
-                newProducts.push({ id: match[1], brand: match[2].trim(), price: parseFloat(match[4].replace(',', '.')) });
+                const id = match[1];
+                const brand = match[2].trim();
+                const price = parseFloat(match[4].replace(',', '.'));
+                let cat = 'W';
+                if (id.includes('M')) cat = 'M';
+                if (price > 40) cat = 'L'; // Exemple: Si +40€ c'est du Luxury
+                
+                newProducts.push({ id, brand, price, cat });
             }
-            if (newProducts.length > 0) { products = newProducts; localStorage.setItem('chogan_db', JSON.stringify(products)); alert(products.length + " produits importés !"); }
+            if (newProducts.length > 0) {
+                products = newProducts;
+                localStorage.setItem('chogan_marie_db', JSON.stringify(products));
+                alert(products.length + " produits détectés !");
+            }
             updateAll(); showTab(1);
         }
 
         function addToCart(brand, price) { cart.push({brand, price}); updateAll(); showTab(2); }
         function remove(i) { cart.splice(i, 1); updateAll(); }
         function resetCart() { cart = []; updateAll(); }
-        function clearCatalog() { if(confirm("Supprimer tout le catalogue ?")) { products = []; localStorage.removeItem('chogan_db'); updateAll(); } }
+        function clearCatalog() { if(confirm("Effacer tout ?")) { products = []; localStorage.removeItem('chogan_marie_db'); updateAll(); } }
 
         function renderCart() {
             const list = document.getElementById('cart-list');
             const rate = document.getElementById('rate').value;
-            list.innerHTML = cart.length ? '' : '<div class="text-center py-10 text-gray-300 font-black text-[10px] italic">PANIER VIDE</div>';
+            list.innerHTML = cart.length ? '' : '<div class="text-center py-10 text-gray-400 font-black text-xs">VOTRE PANIER EST VIDE</div>';
             cart.forEach((item, i) => {
                 const p = (currentCurrency === 'EUR') ? item.price.toFixed(2) + ' €' : Math.round(item.price * rate).toLocaleString() + ' DA';
-                list.innerHTML += `<div class="flex justify-between items-center p-4 border-2 border-black rounded-xl bg-white">
-                    <div class="text-[9px] font-black uppercase">${item.brand}</div>
-                    <div class="text-[10px] font-black">${p} <button onclick="remove(${i})" class="ml-3 text-red-600 font-bold text-lg">×</button></div>
+                list.innerHTML += `<div class="flex justify-between items-center p-4 border-2 border-black rounded-xl bg-white shadow-sm">
+                    <div class="text-[10px] font-black uppercase">${item.brand}</div>
+                    <div class="text-[10px] font-black">${p} <button onclick="remove(${i})" class="ml-4 text-red-600 text-xl">×</button></div>
                 </div>`;
             });
         }
@@ -192,15 +219,12 @@
         function calcTotal() {
             const rate = document.getElementById('rate').value;
             const ship = parseFloat(document.getElementById('ship').value) || 0;
-            const subTotal = cart.reduce((s, i) => s + i.price, 0);
-            
-            document.querySelectorAll('.currency-label').forEach(el => el.innerText = (currentCurrency === 'EUR' ? '€' : 'DA'));
-
+            const sub = cart.reduce((s, i) => s + i.price, 0);
+            document.querySelectorAll('.cur-sym').forEach(el => el.innerText = (currentCurrency === 'EUR' ? '€' : 'DA'));
             if (currentCurrency === 'EUR') {
-                document.getElementById('final-total').innerText = (subTotal + ship).toFixed(2) + " €";
+                document.getElementById('final-total').innerText = (sub + ship).toFixed(2) + " €";
             } else {
-                // Conversion du sous-total + frais déjà en DA
-                document.getElementById('final-total').innerText = Math.round((subTotal * rate) + ship).toLocaleString() + " DA";
+                document.getElementById('final-total').innerText = Math.round((sub * rate) + ship).toLocaleString() + " DA";
             }
         }
 
@@ -215,7 +239,7 @@
             });
             text += `---\n*TOTAL : ${total}*`;
             navigator.clipboard.writeText(text);
-            alert("Récapitulatif copié !");
+            alert("Bon de commande copié !");
         }
 
         function showTab(n) {
@@ -223,7 +247,6 @@
             document.getElementById('tab' + n).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('nav' + n).classList.add('active');
-            window.scrollTo(0,0);
         }
 
         function updateAll() { renderCatalog(); renderCart(); calcTotal(); }
@@ -231,4 +254,3 @@
     </script>
 </body>
 </html>
-
