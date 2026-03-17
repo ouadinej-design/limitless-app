@@ -3,194 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CHOGAN PRESTIGE - MARIE</title>
+    <title>CHOGAN ELITE - MARIE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap');
-        body { font-family: 'Montserrat', sans-serif; background: #000; color: #fff; padding-bottom: 110px; overflow-x: hidden; }
-        .page { display: none; }
-        .page.active { display: block; animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+        body { font-family: 'Montserrat', sans-serif; background: #fff; color: #000; padding-bottom: 110px; }
         .gold-text { color: #C5A059; }
-        .nav-bar { background: #0a0a0a; border-top: 1px solid #222; height: 85px; position: fixed; bottom: 0; width: 100%; display: flex; z-index: 1000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 7px; color: #555; font-weight: bold; text-transform: uppercase; border: none; background: none; }
-        .nav-item.active { color: #C5A059; font-weight: 900; }
-        .card { background: #111; border: 1px solid #222; border-radius: 12px; margin-bottom: 12px; padding: 15px; }
-        .btn-format { background: #C5A059; color: #000; font-size: 9px; font-weight: 900; padding: 10px 2px; border-radius: 6px; text-align: center; border: none; }
-        .btn-format:active { background: #fff; transform: scale(0.95); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .nav-bar { background: #fff; border-top: 1px solid #eee; height: 85px; position: fixed; bottom: 0; width: 100%; display: flex; z-index: 1000; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: #bbb; font-weight: bold; text-transform: uppercase; border: none; background: none; }
+        .nav-item.active { color: #C5A059; }
+        .card-perf { border: 1px solid #eee; border-radius: 20px; text-align: center; padding: 15px; position: relative; }
+        .recap-box { border: 3px solid #000; border-radius: 20px; padding: 20px; box-shadow: 5px 5px 0px #000; }
+        .btn-currency { border: 1px solid #eee; border-radius: 25px; padding: 8px 15px; font-weight: bold; font-size: 10px; }
+        .btn-currency.active { background: #000; color: #fff; }
     </style>
 </head>
 <body>
 
-    <header class="p-5 text-center bg-black border-b border-zinc-900 sticky top-0 z-50">
-        <h1 class="text-xl font-black tracking-[4px] gold-text">CHOGAN</h1>
-        <p class="text-[8px] text-zinc-500 tracking-[3px] uppercase">Luxury Group - Marie</p>
+    <header class="p-6 flex justify-between items-center bg-white sticky top-0 z-50">
+        <div>
+            <h1 class="text-2xl font-black">CHOGAN</h1>
+            <p class="text-[10px] gold-text font-bold uppercase tracking-widest">Elite Marie</p>
+        </div>
+        <div class="bg-black text-white p-2 rounded-xl text-center shadow-lg">
+            <p class="text-[8px] uppercase font-bold text-zinc-400">Taux DA</p>
+            <input type="number" id="taux-input" value="245" onchange="updateAll()" class="bg-transparent text-center text-lg font-black w-12 outline-none border-b border-zinc-700">
+        </div>
     </header>
 
-    <div id="p1" class="page active p-6">
-        <h2 class="gold-text font-black text-center mb-6 uppercase tracking-widest text-sm">Tarifs Officiels</h2>
-        <div class="card space-y-4">
-            <div class="flex justify-between border-b border-zinc-800 pb-3"><span>FORMAT 15 ML</span><span class="gold-text font-bold">10,50 €</span></div>
-            <div class="flex justify-between border-b border-zinc-800 pb-3"><span>FORMAT 30 ML</span><span class="gold-text font-bold">18,00 €</span></div>
-            <div class="flex justify-between border-b border-zinc-800 pb-3"><span>FORMAT 100 ML</span><span class="gold-text font-bold">35,00 €</span></div>
+    <div id="p1" class="page active p-4">
+        <div class="flex justify-center gap-2 mb-6">
+            <button onclick="setCurrency('EUR')" id="btn-eur" class="btn-currency active">EUROS (€)</button>
+            <button onclick="setCurrency('DA')" id="btn-da" class="btn-currency">DINARS (DA)</button>
         </div>
-        <div class="mt-8">
-            <h3 class="gold-text text-[10px] font-bold uppercase mb-3">Recherche Rapide</h3>
-            <input type="text" id="search" onkeyup="render()" placeholder="Entrez un nom ou une réf..." class="w-full bg-zinc-900 border border-zinc-700 p-4 rounded-xl text-white text-sm outline-none focus:border-gold-text">
-        </div>
+        <div class="grid grid-cols-2 gap-4" id="list-container">
+            </div>
     </div>
 
-    <div id="p2" class="page p-4"><div id="list-femme"></div></div>
-    <div id="p3" class="page p-4"><div id="list-homme"></div></div>
-    <div id="p4" class="page p-4"><div id="list-enfant"></div></div>
-    <div id="p5" class="page p-4"><div id="list-luxury"></div></div>
-    <div id="p6" class="page p-4"><div id="list-prestige"></div></div>
-
-    <div id="p7" class="page p-6">
-        <h2 class="gold-text font-black text-center mb-6 uppercase tracking-widest text-sm">Mon Panier</h2>
-        <div id="cart-content" class="space-y-3 mb-8 text-[10px]"></div>
-        <div class="card text-center py-8">
-            <span class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Total Estimation</span>
-            <div id="total-price" class="text-4xl font-black gold-text mt-2">0.00 €</div>
+    <div id="p2" class="page p-6">
+        <h2 class="text-xl font-black uppercase mb-6 border-b-4 border-black pb-1 inline-block">Récapitulatif</h2>
+        <div id="order-items" class="space-y-3 mb-6"></div>
+        <div class="recap-box">
+            <div class="flex justify-between items-center font-bold mb-2 uppercase text-xs">
+                <span>Frais de port (<span class="cur-txt">€</span>)</span>
+                <span class="bg-zinc-100 px-3 py-1 border border-black rounded-lg">2,5</span>
+            </div>
+            <div class="border-t border-zinc-200 my-4"></div>
+            <div class="flex justify-between items-end">
+                <span class="text-lg font-black">TOTAL :</span>
+                <span class="text-2xl font-black" id="total-val">0.00 €</span>
+            </div>
         </div>
-        <button onclick="sendWhatsApp()" class="w-full bg-green-600 py-5 rounded-xl font-black uppercase text-xs tracking-widest shadow-xl active:bg-green-700">Envoyer la commande</button>
-        <button onclick="clearCart()" class="w-full mt-4 text-[9px] text-zinc-600 uppercase font-bold tracking-widest">Vider le panier</button>
+        <button onclick="send()" class="w-full bg-black text-white py-5 rounded-2xl mt-8 font-black uppercase flex items-center justify-center gap-3 active:scale-95 transition-all">
+            📤 Envoyer la commande
+        </button>
     </div>
+
+    <div id="p3" class="page p-6 text-center"><h2>Club Diamond</h2></div>
+    <div id="p4" class="page p-6 text-center"><h2>Goal & Stats</h2></div>
+    <div id="p5" class="page p-6 text-center"><h2>Admin Panel</h2></div>
+    <div id="p6" class="page p-6 text-center"><h2>Learn Center</h2></div>
+    <div id="p7" class="page p-6 text-center"><h2>Mon Profil</h2></div>
 
     <nav class="nav-bar">
-        <button onclick="show(1)" class="nav-item active" id="n1">🏷️<br>Prix</button>
-        <button onclick="show(2)" class="nav-item" id="n2">🌸<br>Femme</button>
-        <button onclick="show(3)" class="nav-item" id="n3">👔<br>Homme</button>
-        <button onclick="show(4)" class="nav-item" id="n4">👶<br>Enfants</button>
-        <button onclick="show(5)" class="nav-item" id="n5">✨<br>Luxe</button>
-        <button onclick="show(6)" class="nav-item" id="n6">👑<br>Pres.</button>
-        <button onclick="show(7)" class="nav-item" id="n7">🛒<br>Panier</button>
+        <button onclick="show(1)" class="nav-item active" id="n1">🛍️<br>Shop</button>
+        <button onclick="show(2)" class="nav-item" id="n2">📜<br>Ordre</button>
+        <button onclick="show(3)" class="nav-item" id="n3">💎<br>Club</button>
+        <button onclick="show(4)" class="nav-item" id="n4">📈<br>Goal</button>
+        <button onclick="show(5)" class="nav-item" id="n5">📢<br>Admin</button>
+        <button onclick="show(6)" class="nav-item" id="n6">🎓<br>Learn</button>
+        <button onclick="show(7)" class="nav-item" id="n7">👤<br>Moi</button>
     </nav>
 
     <script>
-        const T_CLASSIC = [{v:"15ml", p:10.50}, {v:"30ml", p:18.00}, {v:"100ml", p:35.00}];
-        const T_KIDS = [{v:"15ml", p:10.50}, {v:"30ml", p:18.00}];
-        const T_LUX = [{v:"30ml", p:18.00}, {v:"50ml", p:35.00}, {v:"70ml", p:52.00}];
-        const T_PRE = [{v:"50ml", p:52.00}];
-
-        // BASE DE DONNÉES COMPLÈTE (Échantillon représentatif des 162)
+        let currency = 'EUR';
+        let cart = [];
+        
         const products = [
-            // FEMME (001 à 111+)
-            { id: "007", n: "J'adore (Dior)", c: "femme", f: T_CLASSIC },
-            { id: "010", n: "Alien (Mugler)", c: "femme", f: T_CLASSIC },
-            { id: "042", n: "La Vie Est Belle", c: "femme", f: T_CLASSIC },
-            { id: "111", n: "Good Girl (C. Herrera)", c: "femme", f: T_CLASSIC },
-            { id: "023", n: "Black Opium (YSL)", c: "femme", f: T_CLASSIC },
-            { id: "055", n: "Coco Mademoiselle", c: "femme", f: T_CLASSIC },
-            { id: "021", n: "Hypnotic Poison", c: "femme", f: T_CLASSIC },
-            { id: "083", n: "Mon Paris", c: "femme", f: T_CLASSIC },
-            
-            // HOMME
-            { id: "001", n: "One Million (P. Rabanne)", c: "homme", f: T_CLASSIC },
-            { id: "094", n: "Sauvage (Dior)", c: "homme", f: T_CLASSIC },
-            { id: "002", n: "Acqua Di Gio", c: "homme", f: T_CLASSIC },
-            { id: "005", n: "Invictus", c: "homme", f: T_CLASSIC },
-            { id: "020", n: "Le Mâle (Gaultier)", c: "homme", f: T_CLASSIC },
-            
-            // ENFANTS (3 RÉF PHOTOS)
-            { id: "088", n: "Petits et Mamans (Bvlgari)", c: "enfant", f: T_KIDS },
-            { id: "090", n: "Baby Touch (Burberry)", c: "enfant", f: T_KIDS },
-            { id: "092", n: "Tartine et Chocolat", c: "enfant", f: T_KIDS },
-            
-            // LUXURY
-            { id: "118", n: "Baccarat Rouge 540", c: "luxury", f: T_LUX },
-            { id: "068", n: "Aventus (Creed)", c: "luxury", f: T_LUX },
-            { id: "120", n: "Kirke", c: "luxury", f: T_LUX },
-            { id: "129", n: "Lost Cherry (Tom Ford)", c: "luxury", f: T_LUX },
-
-            // PRESTIGE
-            { id: "105", n: "Oud Wood (Tom Ford)", c: "prestige", f: T_PRE },
-            { id: "107", n: "Tobacco Vanille", c: "prestige", f: T_PRE },
-            { id: "102", n: "Black Afgano", c: "prestige", f: T_PRE }
+            { id: "007", n: "J'adore", b: "J", p: 18 },
+            { id: "042", n: "La Vie Est Belle", b: "L", p: 18 },
+            { id: "094", n: "Sauvage", b: "S", p: 18 },
+            { id: "118", n: "Baccarat Rouge", b: "B", p: 18 },
+            { id: "068", n: "Aventus", b: "A", p: 18 },
+            { id: "105", n: "Oud Wood", b: "O", p: 52 }
         ];
 
-        // Remplissage automatique pour atteindre les 162 si nécessaire
-        for(let i=1; i<=140; i++) {
-           if(!products.find(p => p.id === i.toString().padStart(3, '0'))) {
-               // Simulation des références manquantes pour l'exemple
-               // Vous pouvez remplacer par vos noms réels
-           }
+        function setCurrency(c) {
+            currency = c;
+            document.getElementById('btn-eur').classList.toggle('active', c==='EUR');
+            document.getElementById('btn-da').classList.toggle('active', c==='DA');
+            updateAll();
         }
 
-        let cart = JSON.parse(localStorage.getItem('chogan_cart')) || [];
+        function updateAll() {
+            renderProducts();
+            updateRecap();
+        }
+
+        function renderProducts() {
+            const t = parseFloat(document.getElementById('taux-input').value) || 1;
+            const container = document.getElementById('list-container');
+            container.innerHTML = '';
+            products.forEach(p => {
+                const finalPrice = currency === 'EUR' ? p.p : (p.p * t);
+                container.innerHTML += `
+                    <div class="card-perf shadow-sm">
+                        <div class="w-14 h-14 bg-yellow-50 rounded-full flex items-center justify-center text-xl font-bold gold-text mx-auto mb-2">${p.b}</div>
+                        <p class="gold-text text-[8px] font-bold">#${p.id}</p>
+                        <h3 class="font-bold text-[10px] uppercase mb-2 truncate">${p.n}</h3>
+                        <p class="font-black text-sm mb-3">${finalPrice.toLocaleString()} ${currency==='EUR'?'€':'DA'}</p>
+                        <button onclick="add('${p.id}')" class="bg-black text-white w-full py-2 rounded-lg font-bold text-[9px] uppercase">Prendre</button>
+                    </div>`;
+            });
+        }
+
+        function add(id) {
+            cart.push(products.find(x => x.id === id));
+            updateRecap();
+            // Petit retour visuel sur l'icône Ordre
+            const ord = document.getElementById('n2');
+            ord.style.transform = "scale(1.2)";
+            setTimeout(() => ord.style.transform = "scale(1)", 200);
+        }
+
+        function updateRecap() {
+            const t = parseFloat(document.getElementById('taux-input').value) || 1;
+            const list = document.getElementById('order-items');
+            list.innerHTML = '';
+            let subtotal = 0;
+
+            cart.forEach((item, i) => {
+                const p = currency === 'EUR' ? item.p : (item.p * t);
+                subtotal += p;
+                list.innerHTML += `
+                    <div class="border-2 border-black rounded-xl p-3 flex justify-between items-center font-bold text-[11px] uppercase">
+                        <span>${item.n}</span>
+                        <div class="flex items-center gap-3">
+                            <span>${p.toLocaleString()} ${currency==='EUR'?'€':'DA'}</span>
+                            <button onclick="cart.splice(${i},1);updateRecap()" class="text-red-500 text-lg">×</button>
+                        </div>
+                    </div>`;
+            });
+
+            const ship = 2.5;
+            const total = subtotal + (currency === 'EUR' ? ship : ship * t);
+            document.getElementById('total-val').innerText = total.toLocaleString() + (currency==='EUR'?' €':' DA');
+        }
 
         function show(n) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             document.getElementById('p'+n).classList.add('active');
             document.getElementById('n'+n).classList.add('active');
-            window.scrollTo(0,0);
         }
 
-        function render() {
-            const search = document.getElementById('search').value.toLowerCase();
-            ['femme', 'homme', 'enfant', 'luxury', 'prestige'].forEach(cat => {
-                const box = document.getElementById('list-'+cat);
-                box.innerHTML = '';
-                const filtered = products.filter(p => p.c === cat && (p.n.toLowerCase().includes(search) || p.id.includes(search)));
-                
-                filtered.forEach(p => {
-                    let btns = p.f.map(format => `<button onclick="add('${p.id}', '${p.n}', '${format.v}', ${format.p})" class="btn-format">${format.v}<br>${format.p.toFixed(2)}€</button>`).join('');
-                    box.innerHTML += `<div class="card"><div class="text-[8px] text-zinc-500 font-bold mb-1 uppercase tracking-widest">Réf: ${p.id}</div><div class="text-[11px] font-bold uppercase mb-4 text-white">Inspiré de : ${p.n}</div><div class="grid grid-cols-3 gap-2">${btns}</div></div>`;
-                });
-            });
+        function send() {
+            if(!cart.length) return alert("Panier vide !");
+            let m = `*NOUVELLE COMMANDE CHOGAN*\n\n`;
+            cart.forEach(i => m += `• ${i.n} (#${i.id})\n`);
+            m += `\n*TOTAL : ${document.getElementById('total-val').innerText}*`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(m)}`);
         }
 
-        function add(id, n, v, p) {
-            cart.push({ id, n, v, p });
-            localStorage.setItem('chogan_cart', JSON.stringify(cart));
-            updateCart();
-            // Feedback visuel discret
-            const btn = event.currentTarget;
-            const original = btn.innerHTML;
-            btn.innerHTML = "AJOUTÉ !";
-            setTimeout(() => btn.innerHTML = original, 800);
-        }
-
-        function updateCart() {
-            const list = document.getElementById('cart-content');
-            list.innerHTML = cart.length ? '' : '<p class="text-center text-zinc-600 py-10">Votre panier est vide</p>';
-            cart.forEach((item, i) => {
-                list.innerHTML += `<div class="flex justify-between items-center bg-zinc-900 p-4 rounded-lg border border-zinc-800">
-                    <span class="w-2/3 uppercase">${item.id} - ${item.n} (${item.v})</span>
-                    <span class="gold-text font-bold">${item.p.toFixed(2)}€</span>
-                    <button onclick="remove(${i})" class="text-red-500 text-xl ml-2">×</button>
-                </div>`;
-            });
-            const total = cart.reduce((sum, i) => sum + i.p, 0);
-            document.getElementById('total-price').innerText = total.toFixed(2) + " €";
-        }
-
-        function remove(i) { 
-            cart.splice(i, 1); 
-            localStorage.setItem('chogan_cart', JSON.stringify(cart));
-            updateCart(); 
-        }
-
-        function clearCart() {
-            if(confirm("Vider le panier ?")) {
-                cart = [];
-                localStorage.removeItem('chogan_cart');
-                updateCart();
-            }
-        }
-
-        function sendWhatsApp() {
-            if(!cart.length) return alert("Le panier est vide");
-            let msg = "*COMMANDE CHOGAN - MARIE*\n\n";
-            cart.forEach(i => msg += `• ${i.id} - ${i.n} (${i.v}) : ${i.p.toFixed(2)}€\n`);
-            msg += `\n*TOTAL : ${document.getElementById('total-price').innerText}*`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
-        }
-
-        render();
-        updateCart();
+        renderProducts();
     </script>
 </body>
 </html>
