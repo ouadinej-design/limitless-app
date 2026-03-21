@@ -1,4 +1,27 @@
-import { useState, useRef } from "react";
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <meta name="theme-color" content="#07070f"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <title>✦ Chogan Elite</title>
+  <link rel="manifest" href="/manifest.json"/>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body,#root{background:#07070f;min-height:100vh;overflow-x:hidden;}
+    body{-webkit-tap-highlight-color:transparent;}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+const { useState, useRef } = React;
+
 
 // ── THEME ─────────────────────────────────────────────────────────
 const G = "#c9a84c";
@@ -809,7 +832,7 @@ function CataloguesView() {
 
 // ── MAIN APP ──────────────────────────────────────────────────────
 
-export default function ChoganApp() {
+function ChoganApp() {
   const [tab, setTab] = useState("accueil");
   const [started, setStarted] = useState(false);
   const [perfumes, setPerfumes] = useState(DEMO_PERFUMES);
@@ -860,3 +883,9 @@ export default function ChoganApp() {
     </>
   );
 }
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<ChoganApp />);
+  </script>
+</body>
+</html>
