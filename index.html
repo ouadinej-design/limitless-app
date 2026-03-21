@@ -970,7 +970,7 @@ function KitDemarrageView() {
     <div className="fi">
       <div className="sh"><span className="shtitle">Kit de démarrage</span></div>
       <div className="ftabs">
-        {[["familles","🌸 Familles"],["liste","📋 Liste PDF"],["pays","🌍 Pays"],["parrainage","🔗 Parrainage"]].map(([v,l])=>(
+        {[["familles","🌸 Familles"],["liste","📋 Liste PDF"],["pays","🌍 Pays"],["parrainage","🔗 Parrainage"],["mallette","👜 Mallette"]].map(([v,l])=>(
           <button key={v} className={`ftab ${sub===v?"on":""}`} onClick={()=>setSub(v)}>{l}</button>
         ))}
       </div>
@@ -993,6 +993,25 @@ function KitDemarrageView() {
             <p style={{ fontSize:10, color:MU, textAlign:"center", fontStyle:"italic" }}>
               📌 Pour afficher le PDF, dépose <strong style={{color:G}}>liste-inspirations.pdf</strong> à la racine de ton repo GitHub
             </p>
+          </div>
+        </div>
+      )}
+
+      {sub === "mallette" && (
+        <div className="sb">
+          <div className="cardg" style={{ marginBottom:14 }}>
+            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>👜 La Mallette</p>
+            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Tout ce que tu dois savoir sur ta mallette de démarrage Chogan.</p>
+          </div>
+          <div style={{ borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)", background:"#000" }}>
+            <video
+              controls
+              playsInline
+              style={{ width:"100%", display:"block", maxHeight:340 }}
+              src="/mallette.mp4"
+            >
+              Votre navigateur ne supporte pas la lecture vidéo.
+            </video>
           </div>
         </div>
       )}
