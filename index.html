@@ -1196,6 +1196,196 @@ function KitDemarrageView() {
   );
 }
 
+// ── BON DE COMMANDE VIEW ─────────────────────────────────────────
+function BonCommandeView({ perfumes }) {
+  const [pays, setPays] = useState("fr");
+  const [taux, setTaux] = useState("245");
+  const [frais, setFrais] = useState("500");
+  const [cart, setCart] = useState([]);
+  const [srch, setSrch] = useState("");
+  const [showCart, setShowCart] = useState(false);
+  const [nomClient, setNomClient] = useState("");
+  const [exported, setExported] = useState(false);
+
+  const filtered = perfumes.filter(p => {
+    if (!srch) return true;
+    const q = srch.toLowerCase();
+    return p.name.toLowerCase().includes(q) || (p.brand||"").toLowerCase().includes(q) || (p.ref||"").includes(srch);
+  });
+
+  const addToCart = (p, size) => {
+    const key = `${p.id}-${size}`;
+    setCart(prev => {
+      const ex = prev.find(c=>c.key===key);
+      if (ex) return prev.map(c=>c.key===key?{...c,qty:c.qty+1}:c);
+      return [...prev, { key, id:p.id, name:p.name, ref:p.ref, brand:p.brand, size, price:p.prices?.[size]||35, qty:1 }];
+    });
+  };
+
+  const removeFromCart = key => setCart(prev=>prev.filter(c=>c.key!==key));
+  const updateQty = (key, delta) => setCart(prev=>prev.map(c=>c.key===key?{...c,qty:Math.max(1,c.qty+delta)}:c).filter(c=>c.qty>0));
+
+  const totalEur = cart.reduce((s,c)=>s+c.price*c.qty, 0);
+  const tauxN = parseFloat(taux)||245;
+  const fraisN = parseFloat(frais)||0;
+  const totalDzd = Math.round(totalEur * tauxN + (pays==="dz"?fraisN:0));
+  const totalEurFinal = totalEur + (pays==="fr"?fraisN/tauxN:0);
+
+  const exportText = () => {
+    const lines = [`📋 BON DE COMMANDE — CHOGAN`, `👤 Client : ${nomClient||"—"}`, `📅 Date : ${new Date().toLocaleDateString("fr-FR")}`, `🌍 Pays : ${pays==="fr"?"France 🇫🇷":"Algérie 🇩🇿"}`, ``, `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`];
+    cart.forEach(c=>lines.push(`• N°${c.ref} ${c.name} — ${c.size} × ${c.qty} = ${(c.price*c.qty).toFixed(2)}€`));
+    lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    lines.push(`💶 Total produits : ${totalEur.toFixed(2)} €`);
+    if(pays==="dz") { lines.push(`💱 Taux du jour : 1€ = ${taux} DA`); lines.push(`🚚 Frais envoi : ${frais} DA`); lines.push(`💰 TOTAL DZD : ${totalDzd.toLocaleString("fr-FR")} DA`); }
+    if(pays==="fr") lines.push(`🚚 Frais de port : ${fraisN} €`);
+    navigator.clipboard?.writeText(lines.join("
+")).then(()=>setExported(true));
+    setTimeout(()=>setExported(false), 3000);
+  };
+
+  const gc2 = g => g==="homme"?"#d4d4e2":g==="femme"?"#f4a0b5":"#7ec89a";
+
+  if (showCart) return (
+    <div className="fi">
+      <div className="sh" style={{ alignItems:"center" }}>
+        <button onClick={()=>setShowCart(false)} style={{ background:"none", border:"none", color:G, cursor:"pointer", fontSize:18, marginRight:10, padding:0 }}>←</button>
+        <span className="shtitle">Récapitulatif</span>
+        <button className="btn-d" onClick={()=>setCart([])}>Vider</button>
+      </div>
+      <div className="sb">
+        {/* Pays selector */}
+        <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+          {[["fr","🇫🇷 France"],["dz","🇩🇿 Algérie"]].map(([v,l])=>(
+            <button key={v} onClick={()=>setPays(v)} style={{ flex:1, padding:"10px", borderRadius:10, border:`1.5px solid ${pays===v?G:"rgba(255,255,255,.1)"}`, background:pays===v?"rgba(201,168,76,.1)":"transparent", color:pays===v?G:MU, fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600, cursor:"pointer" }}>{l}</button>
+          ))}
+        </div>
+
+        {/* Taux + frais */}
+        {pays==="dz" && (
+          <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+            <div style={{ flex:1 }}>
+              <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>💱 Taux du jour (1€ = ? DA)</label>
+              <input className="inp" type="number" value={taux} onChange={e=>setTaux(e.target.value)} placeholder="245" />
+            </div>
+            <div style={{ flex:1 }}>
+              <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>🚚 Frais envoi (DA)</label>
+              <input className="inp" type="number" value={frais} onChange={e=>setFrais(e.target.value)} placeholder="500" />
+            </div>
+          </div>
+        )}
+        {pays==="fr" && (
+          <div style={{ marginBottom:14 }}>
+            <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>🚚 Frais de port (€)</label>
+            <input className="inp" type="number" value={frais} onChange={e=>setFrais(e.target.value)} placeholder="2.5" />
+          </div>
+        )}
+
+        {/* Nom client */}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>👤 Nom du client (optionnel)</label>
+          <input className="inp" placeholder="Prénom Nom…" value={nomClient} onChange={e=>setNomClient(e.target.value)} />
+        </div>
+
+        {cart.length===0
+          ? <div style={{ textAlign:"center", padding:32, color:MU }}>
+              <p style={{ fontSize:28, marginBottom:8 }}>🛒</p>
+              <p style={{ fontSize:13 }}>Aucun produit sélectionné</p>
+            </div>
+          : <>
+              {cart.map(c=>(
+                <div key={c.key} className="card" style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", marginBottom:7 }}>
+                  <div style={{ flex:1 }}>
+                    <p style={{ fontSize:12, fontWeight:600 }}>{c.name}</p>
+                    <p style={{ fontSize:10, color:MU }}>Réf. {c.ref} · {c.size}</p>
+                    <p style={{ fontSize:11, color:G, fontWeight:600, marginTop:2 }}>{(c.price*c.qty).toFixed(2)} €{pays==="dz"?` = ${Math.round(c.price*c.qty*tauxN).toLocaleString("fr-FR")} DA`:""}</p>
+                  </div>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <button onClick={()=>updateQty(c.key,-1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.07)", border:"none", color:TX, cursor:"pointer", fontSize:16 }}>−</button>
+                    <span style={{ fontSize:13, fontWeight:600, minWidth:16, textAlign:"center" }}>{c.qty}</span>
+                    <button onClick={()=>updateQty(c.key,1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(201,168,76,.15)", border:"none", color:G, cursor:"pointer", fontSize:16 }}>+</button>
+                    <button onClick={()=>removeFromCart(c.key)} style={{ width:26, height:26, borderRadius:6, background:"rgba(224,80,80,.1)", border:"none", color:RD, cursor:"pointer", fontSize:14 }}>×</button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Totaux */}
+              <div className="cardg" style={{ marginTop:10 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                  <span style={{ fontSize:12, color:MU }}>Total produits</span>
+                  <span style={{ fontSize:13, fontWeight:600 }}>{totalEur.toFixed(2)} €</span>
+                </div>
+                {pays==="fr" && (
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                    <span style={{ fontSize:12, color:MU }}>Frais de port</span>
+                    <span style={{ fontSize:13, fontWeight:600 }}>{parseFloat(frais)||0} €</span>
+                  </div>
+                )}
+                {pays==="dz" && (
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                    <span style={{ fontSize:12, color:MU }}>Frais d'envoi</span>
+                    <span style={{ fontSize:13, fontWeight:600 }}>{parseFloat(frais)||0} DA</span>
+                  </div>
+                )}
+                <div style={{ height:"0.5px", background:"rgba(201,168,76,.2)", margin:"8px 0" }} />
+                {pays==="fr" && (
+                  <div style={{ display:"flex", justifyContent:"space-between" }}>
+                    <span style={{ fontSize:13, fontWeight:600 }}>TOTAL</span>
+                    <span style={{ fontSize:22, fontWeight:700, color:G }}>{(totalEur+(parseFloat(frais)||0)).toFixed(2)} €</span>
+                  </div>
+                )}
+                {pays==="dz" && (
+                  <>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                      <span style={{ fontSize:11, color:MU }}>Taux : 1€ = {taux} DA</span>
+                      <span style={{ fontSize:11, color:MU }}>{totalEur.toFixed(2)}€ × {taux}</span>
+                    </div>
+                    <div style={{ display:"flex", justifyContent:"space-between" }}>
+                      <span style={{ fontSize:13, fontWeight:600 }}>TOTAL DZD</span>
+                      <span style={{ fontSize:22, fontWeight:700, color:G }}>{totalDzd.toLocaleString("fr-FR")} DA</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <button className="btn-p" style={{ width:"100%", marginTop:12 }} onClick={exportText}>
+                {exported ? "✅ Copié dans le presse-papier !" : "📋 Copier le bon de commande"}
+              </button>
+            </>
+        }
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="fi">
+      <div className="sh" style={{ alignItems:"center" }}>
+        <span className="shtitle">Bon de Commande</span>
+        <button className="btn-p" style={{ padding:"6px 14px", fontSize:11, position:"relative" }} onClick={()=>setShowCart(true)}>
+          🛒 {cart.length>0&&<span style={{ position:"absolute", top:-6, right:-6, background:RD, color:"#fff", borderRadius:"50%", width:18, height:18, fontSize:10, display:"flex", alignItems:"center", justifyContent:"center" }}>{cart.reduce((s,c)=>s+c.qty,0)}</span>}
+          Panier {cart.length>0?`(${cart.reduce((s,c)=>s+c.qty,0)})` : ""}
+        </button>
+      </div>
+      <div style={{ padding:"8px 18px 4px" }}>
+        <input className="srch" style={{ width:"100%", margin:0 }} placeholder="🔍 Rechercher un parfum…" value={srch} onChange={e=>setSrch(e.target.value)} />
+      </div>
+      <div className="pgrid">
+        {filtered.map(p=>(
+          <div key={p.id} className="pcrd" style={{ borderLeftColor:gc2(p.gender) }}>
+            <p style={{ fontSize:11, fontWeight:700, color:gc2(p.gender), lineHeight:1.3, marginBottom:2 }}>{p.name}</p>
+            <p style={{ fontSize:9, color:MU, marginBottom:6 }}>{p.brand} · Réf.{p.ref}</p>
+            {(p.sizes||[]).map(s=>(
+              <button key={s} onClick={()=>addToCart(p,s)} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", width:"100%", padding:"4px 7px", marginBottom:3, borderRadius:6, background:"rgba(201,168,76,.06)", border:"0.5px solid rgba(201,168,76,.2)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                <span style={{ fontSize:10, color:MU }}>{s}</span>
+                <span style={{ fontSize:10, color:G, fontWeight:600 }}>{p.prices?.[s]?.toFixed(2)||"35.00"}€ +</span>
+              </button>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── MAIN APP ──────────────────────────────────────────────────────
 
 function ChoganApp() {
@@ -1208,6 +1398,7 @@ function ChoganApp() {
   const TABS = [
     { id:"accueil",    lbl:"Accueil",    ic:"🏠" },
     { id:"catalogue",  lbl:"Inspirations", ic:"🌸" },
+    { id:"commande",   lbl:"Commande",   ic:"🛒" },
     { id:"kit",        lbl:"Kit",        ic:"🎓" },
     { id:"catalogues", lbl:"Catalogues", ic:"📖" },
     { id:"checklist",  lbl:"Checklist",  ic:"✅" },
@@ -1230,6 +1421,7 @@ function ChoganApp() {
             : <>
                 {tab==="accueil"    && <AccueilView   started={started} setStarted={setStarted} />}
                 {tab==="catalogue"  && <CatalogueView perfumes={perfumes} setPerfumes={setPerfumes} />}
+                {tab==="commande"   && <BonCommandeView perfumes={perfumes} />}
                 {tab==="kit"        && <KitDemarrageView />}
                 {tab==="catalogues" && <CataloguesView />}
                 {tab==="checklist"  && <ChecklistView checklist={checklist} setChecklist={setChecklist} />}
