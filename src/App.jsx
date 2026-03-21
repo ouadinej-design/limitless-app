@@ -980,6 +980,14 @@ function KitDemarrageView() {
               📌 Pour afficher le PDF, dépose <strong style={{color:G}}>liste-inspirations.pdf</strong> à la racine de ton repo GitHub
             </p>
           </div>
+          <a href="https://drive.google.com/file/d/1d952VZyjBs6XM7rVmpr1K07GnP0is1U2/view" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(66,133,244,.06)", borderColor:"rgba(66,133,244,.22)", marginTop:10 }}>
+            <span style={{ fontSize:26 }}>🌟</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>Programme Ambassadeur</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>Ouvrir via Google Drive</p>
+            </div>
+            <span style={{ color:"#4285f4", fontSize:16 }}>↗</span>
+          </a>
         </div>
       )}
 
