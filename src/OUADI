@@ -323,7 +323,7 @@ function BienvenueView({ onBack }) {
   );
 }
 
-function RessourcesView({ onOpenBienvenue }) {
+function RessourcesView({ onOpenBienvenue, onOpenPromo }) {
   return (
     <div className="fi">
       <div className="sh"><span className="shtitle">Ressources</span></div>
@@ -351,6 +351,14 @@ function RessourcesView({ onOpenBienvenue }) {
           </div>
           <span style={{ color:G, fontSize:16 }}>↗</span>
         </a>
+        <div className="rlink" style={{ background:"rgba(74,222,128,.05)", borderColor:"rgba(74,222,128,.2)", cursor:"pointer" }} onClick={onOpenPromo}>
+          <span style={{ fontSize:22 }}>🏷</span>
+          <div style={{ flex:1 }}>
+            <p style={{ fontSize:13, fontWeight:600, color:"#4ade80" }}>Calculateur Promo</p>
+            <p style={{ fontSize:11, color:MU, marginTop:2 }}>Prix de revient · marges · calculs DZD automatiques</p>
+          </div>
+          <span style={{ color:"#4ade80", fontSize:16 }}>→</span>
+        </div>
 
         <div className="div" style={{ margin:"14px 0" }} />
         <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🔗 Liens utiles</p>
@@ -1367,6 +1375,154 @@ function BonCommandeView({ perfumes }) {
   );
 }
 
+// ── PROMO VIEW ────────────────────────────────────────────────────
+const PRODUITS_PROMO = [
+  { id:"etuis",  nom:"Étuis Simple",  prixEur:9.10,  transport:1.80, emballage:0 },
+  { id:"cuir",   nom:"Étui Cuir",     prixEur:10.50, transport:1.80, emballage:0 },
+  { id:"15ml",   nom:"15 ML",         prixEur:5.95,  transport:1.80, emballage:0.48 },
+  { id:"30ml",   nom:"30 ML",         prixEur:9.00,  transport:1.80, emballage:0.48 },
+  { id:"70ml",   nom:"70 ML",         prixEur:18.00, transport:1.80, emballage:0.48 },
+  { id:"lux1",   nom:"Luxury 22,50€", prixEur:22.50, transport:1.80, emballage:0.48 },
+  { id:"lux2",   nom:"Luxury 23€",    prixEur:23.00, transport:1.80, emballage:0.48 },
+  { id:"lux3",   nom:"Luxury 24€",    prixEur:24.00, transport:1.80, emballage:0.48 },
+  { id:"lux4",   nom:"Luxury 26€",    prixEur:26.00, transport:1.80, emballage:0.48 },
+  { id:"lux5",   nom:"Luxury 28,50€", prixEur:28.50, transport:1.80, emballage:0.48 },
+  { id:"lux6",   nom:"Luxury 32,50€", prixEur:32.50, transport:1.80, emballage:0.48 },
+  { id:"lux7",   nom:"Luxury 35,50€", prixEur:35.50, transport:1.80, emballage:0.48 },
+  { id:"lux8",   nom:"Luxury 38,75€", prixEur:38.75, transport:1.80, emballage:0.48 },
+];
+
+function PromoView({ onBack }) {
+  const [txDA, setTxDA] = useState("290");
+  const [promos, setPromos] = useState({});
+  const [qtes, setQtes] = useState({});
+  const [mode, setMode] = useState("dzd");
+
+  const tx = parseFloat(txDA) || 290;
+
+  const calc = (p) => {
+    const totalEur = p.prixEur + p.transport + p.emballage;
+    const prixDA   = Math.round(totalEur * tx);
+    const venteDA  = Math.round(prixDA * 1.04);
+    const minDA    = Math.round(venteDA * 1.0);
+    const promoDA  = parseFloat(promos[p.id]) || 0;
+    const qte      = parseInt(qtes[p.id]) || 0;
+    const margePromo = promoDA > 0 ? Math.round((promoDA - prixDA) * qte) : 0;
+    return { totalEur, prixDA, venteDA, minDA, promoDA, qte, margePromo };
+  };
+
+  return (
+    <div className="fi">
+      <div className="sh" style={{ alignItems:"center" }}>
+        {onBack && <button onClick={onBack} style={{ background:"none", border:"none", color:G, cursor:"pointer", fontSize:18, marginRight:10, padding:0 }}>←</button>}
+        <span className="shtitle">Calculateur Promo</span>
+      </div>
+      <div className="sb">
+
+        {/* Taux + mode */}
+        <div style={{ display:"flex", gap:8, marginBottom:14, alignItems:"flex-end" }}>
+          <div style={{ flex:1 }}>
+            <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>💱 TX DA (taux du jour)</label>
+            <input className="inp" type="number" value={txDA} onChange={e=>setTxDA(e.target.value)} placeholder="290" />
+          </div>
+          <div style={{ display:"flex", gap:6 }}>
+            {[["eur","€ Euros"],["dzd","DA Dinars"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setMode(v)} style={{ padding:"9px 12px", borderRadius:8, border:"0.5px solid " + (mode===v?G:"rgba(255,255,255,.1)"), background:mode===v?"rgba(201,168,76,.1)":"transparent", color:mode===v?G:MU, fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, cursor:"pointer" }}>{l}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tableau */}
+        {mode === "eur" ? (
+          <>
+            <div className="cardg" style={{ marginBottom:10 }}>
+              <p style={{ fontSize:11, color:G, fontWeight:600, marginBottom:8 }}>Prix de revient en Euros</p>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr auto auto auto auto", gap:"4px 8px", fontSize:10 }}>
+                <span style={{ color:MU, fontWeight:600 }}>Produit</span>
+                <span style={{ color:MU, fontWeight:600, textAlign:"right" }}>Achat</span>
+                <span style={{ color:MU, fontWeight:600, textAlign:"right" }}>Transport</span>
+                <span style={{ color:MU, fontWeight:600, textAlign:"right" }}>Emball.</span>
+                <span style={{ color:G, fontWeight:600, textAlign:"right" }}>TOTAL</span>
+                {PRODUITS_PROMO.map(p => {
+                  const c = calc(p);
+                  return [
+                    <span key={p.id+"n"} style={{ color:TX, paddingTop:4, borderTop:"0.5px solid rgba(255,255,255,.05)" }}>{p.nom}</span>,
+                    <span key={p.id+"a"} style={{ color:MU, textAlign:"right", paddingTop:4, borderTop:"0.5px solid rgba(255,255,255,.05)" }}>{p.prixEur.toFixed(2)}€</span>,
+                    <span key={p.id+"t"} style={{ color:MU, textAlign:"right", paddingTop:4, borderTop:"0.5px solid rgba(255,255,255,.05)" }}>{p.transport.toFixed(2)}€</span>,
+                    <span key={p.id+"e"} style={{ color:MU, textAlign:"right", paddingTop:4, borderTop:"0.5px solid rgba(255,255,255,.05)" }}>{p.emballage > 0 ? p.emballage.toFixed(2)+"€" : "—"}</span>,
+                    <span key={p.id+"tot"} style={{ color:G, fontWeight:700, textAlign:"right", paddingTop:4, borderTop:"0.5px solid rgba(255,255,255,.05)" }}>{c.totalEur.toFixed(2)}€</span>,
+                  ];
+                })}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="cardg" style={{ marginBottom:10 }}>
+              <p style={{ fontSize:11, color:G, fontWeight:600, marginBottom:2 }}>Calcul Promo — Algérie (DA)</p>
+              <p style={{ fontSize:10, color:MU, marginBottom:10 }}>Saisis ton prix promo et la quantité pour voir la marge générée.</p>
+
+              {/* Header */}
+              <div style={{ display:"grid", gridTemplateColumns:"1fr auto auto auto auto auto", gap:"3px 6px", fontSize:9, marginBottom:6 }}>
+                <span style={{ color:MU, fontWeight:600 }}>Produit</span>
+                <span style={{ color:MU, fontWeight:600, textAlign:"right" }}>PA DA</span>
+                <span style={{ color:"#4ade80", fontWeight:600, textAlign:"right" }}>Min DA</span>
+                <span style={{ color:FC, fontWeight:600, textAlign:"center" }}>Promo DA</span>
+                <span style={{ color:MU, fontWeight:600, textAlign:"center" }}>Qté</span>
+                <span style={{ color:G, fontWeight:600, textAlign:"right" }}>Marge</span>
+              </div>
+
+              {PRODUITS_PROMO.map(p => {
+                const c = calc(p);
+                return (
+                  <div key={p.id} style={{ display:"grid", gridTemplateColumns:"1fr auto auto auto auto auto", gap:"3px 6px", alignItems:"center", padding:"5px 0", borderTop:"0.5px solid rgba(255,255,255,.05)" }}>
+                    <span style={{ fontSize:10, color:TX }}>{p.nom}</span>
+                    <span style={{ fontSize:10, color:MU, textAlign:"right" }}>{c.prixDA.toLocaleString("fr-FR")}</span>
+                    <span style={{ fontSize:10, color:"#4ade80", fontWeight:700, textAlign:"right" }}>{c.minDA.toLocaleString("fr-FR")}</span>
+                    <input
+                      type="number"
+                      placeholder="—"
+                      value={promos[p.id]||""}
+                      onChange={e=>setPromos(prev=>({...prev,[p.id]:e.target.value}))}
+                      style={{ width:64, padding:"3px 6px", borderRadius:6, background:"rgba(244,160,181,.08)", border:"0.5px solid rgba(244,160,181,.3)", color:FC, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"center" }}
+                    />
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={qtes[p.id]||""}
+                      onChange={e=>setQtes(prev=>({...prev,[p.id]:e.target.value}))}
+                      style={{ width:40, padding:"3px 6px", borderRadius:6, background:"rgba(255,255,255,.05)", border:"0.5px solid rgba(255,255,255,.1)", color:TX, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"center" }}
+                    />
+                    <span style={{ fontSize:10, fontWeight:700, textAlign:"right", color:c.margePromo>0?G:MU }}>{c.margePromo>0?c.margePromo.toLocaleString("fr-FR")+" DA":"—"}</span>
+                  </div>
+                );
+              })}
+
+              {/* Total marge */}
+              {Object.keys(promos).length > 0 && (
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12, paddingTop:10, borderTop:"0.5px solid rgba(201,168,76,.3)" }}>
+                  <span style={{ fontSize:12, fontWeight:600 }}>Total marge promo</span>
+                  <span style={{ fontSize:18, fontWeight:700, color:G }}>
+                    {PRODUITS_PROMO.reduce((s,p)=>s+calc(p).margePromo,0).toLocaleString("fr-FR")} DA
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div style={{ background:"rgba(74,222,128,.07)", border:"0.5px solid rgba(74,222,128,.25)", borderRadius:10, padding:"10px 13px" }}>
+              <p style={{ fontSize:11, color:"#4ade80", lineHeight:1.6 }}>
+                💡 <strong>Prix Min DA</strong> = prix de revient × 1,04 (marge minimale de 4%). Ne descends jamais en dessous lors d'une promo.
+              </p>
+            </div>
+          </>
+        )}
+
+        <button className="btn-d" style={{ width:"100%", marginTop:12 }} onClick={()=>{ setPromos({}); setQtes({}); }}>↺ Réinitialiser</button>
+      </div>
+    </div>
+  );
+}
+
 // ── MAIN APP ──────────────────────────────────────────────────────
 
 export default function ChoganApp() {
@@ -1375,6 +1531,7 @@ export default function ChoganApp() {
   const [perfumes, setPerfumes] = useState(DEMO_PERFUMES);
   const [checklist, setChecklist] = useState(CHECKLIST0);
   const [showBienvenue, setShowBienvenue] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
 
   const TABS = [
     { id:"accueil",    lbl:"Accueil",    ic:"🏠" },
@@ -1399,6 +1556,8 @@ export default function ChoganApp() {
         <main className="main">
           {showBienvenue
             ? <BienvenueView onBack={()=>setShowBienvenue(false)} />
+            : showPromo
+            ? <PromoView onBack={()=>setShowPromo(false)} />
             : <>
                 {tab==="accueil"    && <AccueilView   started={started} setStarted={setStarted} />}
                 {tab==="catalogue"  && <CatalogueView perfumes={perfumes} setPerfumes={setPerfumes} />}
@@ -1407,7 +1566,7 @@ export default function ChoganApp() {
                 {tab==="catalogues" && <CataloguesView />}
                 {tab==="checklist"  && <ChecklistView checklist={checklist} setChecklist={setChecklist} />}
                 {tab==="formation"  && <FormationView />}
-                {tab==="ressources" && <RessourcesView onOpenBienvenue={()=>setShowBienvenue(true)} />}
+                {tab==="ressources" && <RessourcesView onOpenBienvenue={()=>setShowBienvenue(true)} onOpenPromo={()=>setShowPromo(true)} />}
               </>
           }
         </main>
