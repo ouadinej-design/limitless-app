@@ -1144,26 +1144,30 @@ function KitDemarrageView() {
                     <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.pourQui}</p>
                   </div>
                   <p style={{ fontSize:10, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Sous-familles</p>
-                  {f.sousFamilles.map((sf,si) => (
+                  {f.sousFamilles.map((sf,si) => {
+                    const subKey = f.id + "-" + si;
+                    const isOpen = openSub === subKey;
+                    return (
                     <div key={si} style={{ marginBottom:6 }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
                         background:"rgba(255,255,255,.04)", borderRadius:8, padding:"8px 12px", cursor:"pointer",
-                        border:`0.5px solid ${openSub===`${f.id}-${si}`?f.couleur:"transparent"}` }}
-                        onClick={()=>setOpenSub(openSub===`${f.id}-${si}`?null:`${f.id}-${si}`)}>
-                        <p style={{ fontSize:12, fontWeight:500, color:openSub===`${f.id}-${si}`?f.couleur:TX }}>{sf.n}</p>
+                        border:"0.5px solid " + (isOpen ? f.couleur : "transparent") }}
+                        onClick={()=>setOpenSub(isOpen ? null : subKey)}>
+                        <p style={{ fontSize:12, fontWeight:500, color:isOpen ? f.couleur : TX }}>{sf.n}</p>
                         <span style={{ fontSize:10, color:MU }}>{sf.refs.length} réf.</span>
                       </div>
-                      {openSub===`${f.id}-${si}` && (
+                      {isOpen && (
                         <div style={{ padding:"8px 12px", background:"rgba(255,255,255,.02)", borderRadius:"0 0 8px 8px", marginTop:-4 }}>
                           {sf.refs.map((r,ri)=>(
                             <span key={ri} style={{ display:"inline-block", fontSize:10, padding:"2px 8px", margin:"2px 3px",
-                              background:`rgba(${f.couleur==="#c97c3a"?"201,124,58":f.couleur==="#d45c8a"?"212,92,138":f.couleur==="#8b6242"?"139,98,66":f.couleur==="#5a8a5a"?"90,138,90":f.couleur==="#4a7a4a"?"74,122,74":f.couleur==="#b8a030"?"184,160,48":"106,106,186"},.15)`,
+                              background:"rgba(120,120,120,.15)",
                               borderRadius:20, color:"#ccc" }}>{r}</span>
                           ))}
                         </div>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
