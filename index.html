@@ -7,7 +7,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <title>✦ Chogan Elite</title>
-  <link rel="manifest" href="/manifest.json"/>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -366,21 +365,21 @@ function RessourcesView({ onOpenBienvenue }) {
             <span style={{ color:G, fontSize:16 }}>↓</span>
           </div>
         ))}
-        <div className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)", cursor:"pointer" }} onClick={onOpenBienvenue}>
+        <a href="/bienvenue-chogan.pdf" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)" }}>
           <span style={{ fontSize:22 }}>👋</span>
           <div style={{ flex:1 }}>
             <p style={{ fontSize:13, fontWeight:600, color:G }}>PDF Bienvenue chez Chogan</p>
-            <p style={{ fontSize:11, color:MU, marginTop:2 }}>Guide complet d'onboarding — lire dans l'app</p>
+            <p style={{ fontSize:11, color:MU, marginTop:2 }}>Guide complet d'onboarding — appuie pour ouvrir</p>
           </div>
-          <span style={{ color:G, fontSize:16 }}>→</span>
-        </div>
+          <span style={{ color:G, fontSize:16 }}>↗</span>
+        </a>
 
         <div className="div" style={{ margin:"14px 0" }} />
         <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🔗 Liens utiles</p>
         {[
           { ic:"📱", t:"Groupe Telegram Équipe",  d:"Rejoindre le groupe de support" },
           { ic:"🎨", t:"Modèles Canva",           d:"Stories et posts Instagram prêts à personnaliser" },
-          { ic:"🔓", t:"Limitless – Formation",   d:"Plateforme de formation complète" },
+          { ic:"🔓", t:"Limitless – Formation",   d:"Plateforme de formation complète", url:"https://mylimitless.be/" },
           { ic:"🌐", t:"Site Chogan Officiel",    d:"chogan.eu — espace consultant & commandes" },
         ].map((r,i) => (
           <div key={i} className="rlink">
