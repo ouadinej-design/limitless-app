@@ -1396,21 +1396,108 @@ function PromoView({ onBack }) {
   const [txDA, setTxDA] = useState("290");
   const [promos, setPromos] = useState({});
   const [qtes, setQtes] = useState({});
-  const [mode, setMode] = useState("dzd");
+  const [selected, setSelected] = useState(null);
 
   const tx = parseFloat(txDA) || 290;
 
   const calc = (p) => {
-    const totalEur = p.prixEur + p.transport + p.emballage;
-    const prixDA   = Math.round(totalEur * tx);
-    const venteDA  = Math.round(prixDA * 1.04);
-    const minDA    = Math.round(venteDA * 1.0);
-    const promoDA  = parseFloat(promos[p.id]) || 0;
-    const qte      = parseInt(qtes[p.id]) || 0;
-    const margePromo = promoDA > 0 ? Math.round((promoDA - prixDA) * qte) : 0;
-    return { totalEur, prixDA, venteDA, minDA, promoDA, qte, margePromo };
+    const totalEur  = p.prixEur + p.transport + p.emballage;
+    const prixDA    = Math.round(totalEur * tx);
+    const minDA     = Math.round(prixDA * 1.04);
+    const promoDA   = parseFloat(promos[p.id]) || 0;
+    const qte       = parseInt(qtes[p.id]) || 0;
+    const marge     = promoDA > 0 && promoDA >= minDA ? Math.round((promoDA - prixDA) * qte) : 0;
+    const ok        = promoDA >= minDA;
+    return { totalEur, prixDA, minDA, promoDA, qte, marge, ok };
   };
 
+  const totalMarge = PRODUITS_PROMO.reduce((s,p) => {
+    const c = calc(p);
+    return s + c.marge;
+  }, 0);
+
+  const produitActif = selected ? PRODUITS_PROMO.find(p=>p.id===selected) : null;
+  const calcActif = produitActif ? calc(produitActif) : null;
+
+  // Vue détail produit
+  if (produitActif && calcActif) return (
+    <div className="fi">
+      <div className="sh" style={{ alignItems:"center" }}>
+        <button onClick={()=>setSelected(null)} style={{ background:"none", border:"none", color:G, cursor:"pointer", fontSize:18, marginRight:10, padding:0 }}>←</button>
+        <span className="shtitle">{produitActif.nom}</span>
+      </div>
+      <div className="sb">
+
+        {/* Prix de revient */}
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📦 Prix de revient</p>
+        <div className="card" style={{ marginBottom:14 }}>
+          {[
+            ["Prix d'achat", produitActif.prixEur.toFixed(2)+"€"],
+            ["Transport",    produitActif.transport.toFixed(2)+"€"],
+            ["Emballage",    produitActif.emballage>0?produitActif.emballage.toFixed(2)+"€":"Inclus"],
+          ].map(([l,v],i)=>(
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:"0.5px solid rgba(255,255,255,.05)" }}>
+              <span style={{ fontSize:12, color:MU }}>{l}</span>
+              <span style={{ fontSize:12, color:TX }}>{v}</span>
+            </div>
+          ))}
+          <div style={{ display:"flex", justifyContent:"space-between", padding:"10px 0 4px" }}>
+            <span style={{ fontSize:13, fontWeight:600 }}>Total PA (€)</span>
+            <span style={{ fontSize:16, fontWeight:700, color:G }}>{calcActif.totalEur.toFixed(2)} €</span>
+          </div>
+          <div style={{ display:"flex", justifyContent:"space-between", padding:"4px 0" }}>
+            <span style={{ fontSize:13, fontWeight:600 }}>Total PA (DA)</span>
+            <span style={{ fontSize:16, fontWeight:700, color:G }}>{calcActif.prixDA.toLocaleString("fr-FR")} DA</span>
+          </div>
+        </div>
+
+        {/* Prix minimum */}
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🚫 Prix minimum (à ne pas dépasser vers le bas)</p>
+        <div style={{ background:"rgba(74,222,128,.08)", border:"1.5px solid #4ade80", borderRadius:12, padding:"14px 16px", marginBottom:14, textAlign:"center" }}>
+          <p style={{ fontSize:11, color:"#4ade80", marginBottom:4 }}>PA DA × 1,04 = marge minimale 4%</p>
+          <p style={{ fontSize:30, fontWeight:700, color:"#4ade80" }}>{calcActif.minDA.toLocaleString("fr-FR")} DA</p>
+          <p style={{ fontSize:10, color:"rgba(74,222,128,.7)", marginTop:4 }}>En dessous de ce prix = perte</p>
+        </div>
+
+        {/* Simulateur promo */}
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🏷 Simuler une promo</p>
+        <div className="card" style={{ marginBottom:14 }}>
+          <div style={{ marginBottom:12 }}>
+            <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>Mon prix promo (DA)</label>
+            <input className="inp" type="number"
+              placeholder={"Min : " + calcActif.minDA.toLocaleString("fr-FR") + " DA"}
+              value={promos[produitActif.id]||""}
+              onChange={e=>setPromos(p=>({...p,[produitActif.id]:e.target.value}))}
+              style={{ borderColor: calcActif.promoDA > 0 ? (calcActif.ok?"#4ade80":"#e05050") : "rgba(255,255,255,.09)" }}
+            />
+            {calcActif.promoDA > 0 && !calcActif.ok && (
+              <p style={{ fontSize:11, color:RD, marginTop:5 }}>⚠️ Prix trop bas ! Minimum : {calcActif.minDA.toLocaleString("fr-FR")} DA</p>
+            )}
+            {calcActif.promoDA > 0 && calcActif.ok && (
+              <p style={{ fontSize:11, color:"#4ade80", marginTop:5 }}>✅ Prix valide</p>
+            )}
+          </div>
+          <div>
+            <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>Quantité vendue</label>
+            <input className="inp" type="number" placeholder="0"
+              value={qtes[produitActif.id]||""}
+              onChange={e=>setQtes(p=>({...p,[produitActif.id]:e.target.value}))}
+            />
+          </div>
+        </div>
+
+        {calcActif.promoDA > 0 && calcActif.ok && calcActif.qte > 0 && (
+          <div style={{ background:"rgba(201,168,76,.1)", border:"1.5px solid " + G, borderRadius:12, padding:"14px 16px", textAlign:"center" }}>
+            <p style={{ fontSize:12, color:MU, marginBottom:4 }}>({calcActif.promoDA.toLocaleString("fr-FR")} − {calcActif.prixDA.toLocaleString("fr-FR")}) × {calcActif.qte}</p>
+            <p style={{ fontSize:28, fontWeight:700, color:G }}>{calcActif.marge.toLocaleString("fr-FR")} DA</p>
+            <p style={{ fontSize:11, color:MU, marginTop:4 }}>Marge générée sur cette promo</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Vue liste principale
   return (
     <div className="fi">
       <div className="sh" style={{ alignItems:"center" }}>
@@ -1419,105 +1506,49 @@ function PromoView({ onBack }) {
       </div>
       <div className="sb">
 
-        {/* Taux + mode */}
-        <div style={{ display:"flex", gap:8, marginBottom:14, alignItems:"flex-end" }}>
-          <div style={{ flex:1 }}>
-            <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>💱 TX DA (taux du jour)</label>
-            <input className="inp" type="number" value={txDA} onChange={e=>setTxDA(e.target.value)} placeholder="290" />
-          </div>
-          <div style={{ display:"flex", gap:6 }}>
-            {[["eur","€ Euros"],["dzd","DA Dinars"]].map(([v,l])=>(
-              <button key={v} onClick={()=>setMode(v)} style={{ padding:"9px 12px", borderRadius:8, border:"0.5px solid " + (mode===v?G:"rgba(255,255,255,.1)"), background:mode===v?"rgba(201,168,76,.1)":"transparent", color:mode===v?G:MU, fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, cursor:"pointer" }}>{l}</button>
-            ))}
-          </div>
+        {/* Taux DA */}
+        <div className="cardg" style={{ marginBottom:16 }}>
+          <label style={{ fontSize:11, color:G, fontWeight:600, display:"block", marginBottom:8 }}>💱 Taux du jour (1€ = ? DA)</label>
+          <input className="inp" type="number" value={txDA} onChange={e=>setTxDA(e.target.value)} placeholder="290" style={{ fontSize:18, fontWeight:700, textAlign:"center" }} />
         </div>
 
-        {/* Tableau */}
-        {mode === "eur" ? (
-          <>
-            <div className="cardg" style={{ marginBottom:10 }}>
-              <p style={{ fontSize:11, color:G, fontWeight:600, marginBottom:8 }}>Prix de revient en Euros</p>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr auto auto auto auto", gap:"4px 8px", fontSize:10 }}>
-                <span style={{ color:MU, fontWeight:600 }}>Produit</span>
-                <span style={{ color:MU, fontWeight:600, textAlign:"right" }}>Achat</span>
-                <span style={{ color:MU, fontWeight:600, textAlign:"right" }}>Transport</span>
-                <span style={{ color:MU, fontWeight:600, textAlign:"right" }}>Emball.</span>
-                <span style={{ color:G, fontWeight:600, textAlign:"right" }}>TOTAL</span>
-                {PRODUITS_PROMO.map(p => {
-                  const c = calc(p);
-                  return [
-                    <span key={p.id+"n"} style={{ color:TX, paddingTop:4, borderTop:"0.5px solid rgba(255,255,255,.05)" }}>{p.nom}</span>,
-                    <span key={p.id+"a"} style={{ color:MU, textAlign:"right", paddingTop:4, borderTop:"0.5px solid rgba(255,255,255,.05)" }}>{p.prixEur.toFixed(2)}€</span>,
-                    <span key={p.id+"t"} style={{ color:MU, textAlign:"right", paddingTop:4, borderTop:"0.5px solid rgba(255,255,255,.05)" }}>{p.transport.toFixed(2)}€</span>,
-                    <span key={p.id+"e"} style={{ color:MU, textAlign:"right", paddingTop:4, borderTop:"0.5px solid rgba(255,255,255,.05)" }}>{p.emballage > 0 ? p.emballage.toFixed(2)+"€" : "—"}</span>,
-                    <span key={p.id+"tot"} style={{ color:G, fontWeight:700, textAlign:"right", paddingTop:4, borderTop:"0.5px solid rgba(255,255,255,.05)" }}>{c.totalEur.toFixed(2)}€</span>,
-                  ];
-                })}
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="cardg" style={{ marginBottom:10 }}>
-              <p style={{ fontSize:11, color:G, fontWeight:600, marginBottom:2 }}>Calcul Promo — Algérie (DA)</p>
-              <p style={{ fontSize:10, color:MU, marginBottom:10 }}>Saisis ton prix promo et la quantité pour voir la marge générée.</p>
-
-              {/* Header */}
-              <div style={{ display:"grid", gridTemplateColumns:"1fr auto auto auto auto auto", gap:"3px 6px", fontSize:9, marginBottom:6 }}>
-                <span style={{ color:MU, fontWeight:600 }}>Produit</span>
-                <span style={{ color:MU, fontWeight:600, textAlign:"right" }}>PA DA</span>
-                <span style={{ color:"#4ade80", fontWeight:600, textAlign:"right" }}>Min DA</span>
-                <span style={{ color:FC, fontWeight:600, textAlign:"center" }}>Promo DA</span>
-                <span style={{ color:MU, fontWeight:600, textAlign:"center" }}>Qté</span>
-                <span style={{ color:G, fontWeight:600, textAlign:"right" }}>Marge</span>
-              </div>
-
-              {PRODUITS_PROMO.map(p => {
-                const c = calc(p);
-                return (
-                  <div key={p.id} style={{ display:"grid", gridTemplateColumns:"1fr auto auto auto auto auto", gap:"3px 6px", alignItems:"center", padding:"5px 0", borderTop:"0.5px solid rgba(255,255,255,.05)" }}>
-                    <span style={{ fontSize:10, color:TX }}>{p.nom}</span>
-                    <span style={{ fontSize:10, color:MU, textAlign:"right" }}>{c.prixDA.toLocaleString("fr-FR")}</span>
-                    <span style={{ fontSize:10, color:"#4ade80", fontWeight:700, textAlign:"right" }}>{c.minDA.toLocaleString("fr-FR")}</span>
-                    <input
-                      type="number"
-                      placeholder="—"
-                      value={promos[p.id]||""}
-                      onChange={e=>setPromos(prev=>({...prev,[p.id]:e.target.value}))}
-                      style={{ width:64, padding:"3px 6px", borderRadius:6, background:"rgba(244,160,181,.08)", border:"0.5px solid rgba(244,160,181,.3)", color:FC, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"center" }}
-                    />
-                    <input
-                      type="number"
-                      placeholder="0"
-                      value={qtes[p.id]||""}
-                      onChange={e=>setQtes(prev=>({...prev,[p.id]:e.target.value}))}
-                      style={{ width:40, padding:"3px 6px", borderRadius:6, background:"rgba(255,255,255,.05)", border:"0.5px solid rgba(255,255,255,.1)", color:TX, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"center" }}
-                    />
-                    <span style={{ fontSize:10, fontWeight:700, textAlign:"right", color:c.margePromo>0?G:MU }}>{c.margePromo>0?c.margePromo.toLocaleString("fr-FR")+" DA":"—"}</span>
-                  </div>
-                );
-              })}
-
-              {/* Total marge */}
-              {Object.keys(promos).length > 0 && (
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12, paddingTop:10, borderTop:"0.5px solid rgba(201,168,76,.3)" }}>
-                  <span style={{ fontSize:12, fontWeight:600 }}>Total marge promo</span>
-                  <span style={{ fontSize:18, fontWeight:700, color:G }}>
-                    {PRODUITS_PROMO.reduce((s,p)=>s+calc(p).margePromo,0).toLocaleString("fr-FR")} DA
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div style={{ background:"rgba(74,222,128,.07)", border:"0.5px solid rgba(74,222,128,.25)", borderRadius:10, padding:"10px 13px" }}>
-              <p style={{ fontSize:11, color:"#4ade80", lineHeight:1.6 }}>
-                💡 <strong>Prix Min DA</strong> = prix de revient × 1,04 (marge minimale de 4%). Ne descends jamais en dessous lors d'une promo.
-              </p>
-            </div>
-          </>
+        {/* Total marge si des promos saisies */}
+        {totalMarge > 0 && (
+          <div style={{ background:"rgba(201,168,76,.1)", border:"1px solid "+G, borderRadius:12, padding:"12px 16px", marginBottom:14, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <span style={{ fontSize:12, color:MU }}>Total marge promo</span>
+            <span style={{ fontSize:20, fontWeight:700, color:G }}>{totalMarge.toLocaleString("fr-FR")} DA</span>
+          </div>
         )}
 
-        <button className="btn-d" style={{ width:"100%", marginTop:12 }} onClick={()=>{ setPromos({}); setQtes({}); }}>↺ Réinitialiser</button>
+        {/* Liste produits */}
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>
+          Appuie sur un produit pour simuler
+        </p>
+        {PRODUITS_PROMO.map(p => {
+          const c = calc(p);
+          return (
+            <div key={p.id} onClick={()=>setSelected(p.id)}
+              className="card"
+              style={{ display:"flex", alignItems:"center", gap:12, cursor:"pointer", marginBottom:8,
+                borderLeft: c.marge > 0 ? "3px solid " + G : "3px solid rgba(255,255,255,.1)" }}>
+              <div style={{ flex:1 }}>
+                <p style={{ fontSize:13, fontWeight:600 }}>{p.nom}</p>
+                <div style={{ display:"flex", gap:12, marginTop:3 }}>
+                  <span style={{ fontSize:11, color:MU }}>PA : {c.prixDA.toLocaleString("fr-FR")} DA</span>
+                  <span style={{ fontSize:11, color:"#4ade80" }}>Min : {c.minDA.toLocaleString("fr-FR")} DA</span>
+                </div>
+                {c.marge > 0 && (
+                  <p style={{ fontSize:11, color:G, fontWeight:600, marginTop:3 }}>
+                    Marge : {c.marge.toLocaleString("fr-FR")} DA ({c.qte} pcs)
+                  </p>
+                )}
+              </div>
+              <span style={{ color:G, fontSize:18 }}>›</span>
+            </div>
+          );
+        })}
+
+        <button className="btn-d" style={{ width:"100%", marginTop:8 }} onClick={()=>{ setPromos({}); setQtes({}); }}>↺ Tout réinitialiser</button>
       </div>
     </div>
   );
