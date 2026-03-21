@@ -18,8 +18,8 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel">
-const { useState, useRef } = React;
+  <!-- Pure data — compiled as plain JS, NOT by Babel -->
+  <script>
 
 
 // ── THEME ─────────────────────────────────────────────────────────
@@ -227,6 +227,120 @@ const QUIZ = [
   { id:10, q:"1ère étape après ton inscription ?",                   opts:["Recruter","Commander mallette","Vidéo bienvenue","Créer réseaux"], correct:2 },
 ];
 
+// ── HELPERS ───────────────────────────────────────────────────────
+const gc = g => g === "homme" ? HC : g === "femme" ? FC : MC;
+const gl = g => g === "homme" ? "♂ Homme" : g === "femme" ? "♀ Femme" : "⚧ Mixte";
+
+// ── CSS ───────────────────────────────────────────────────────────
+const CATALOGUES = [
+  { ic:"🌸", titre:"Parfums",                url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1739360788_documents",  desc:"Collection complète 15ml · 30ml · 50ml · 70ml" },
+  { ic:"🏠", titre:"Parfums d'ambiance",     url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1736340849_documents",  desc:"Diffuseurs & senteurs maison" },
+  { ic:"💧", titre:"Les Huiles",             url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1732103472_documents",  desc:"Huiles essentielles & concentrées" },
+  { ic:"🌿", titre:"LOLUM (huiles)",         url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1728551530_documents",  desc:"Gamme huiles LOLUM" },
+  { ic:"💄", titre:"Maquillage",             url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1741095206_documents",  desc:"Rouge à lèvres, fond de teint, yeux…" },
+  { ic:"🕶", titre:"Lunettes de soleil",     url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1740996419_documents",  desc:"Collection lunettes tendance" },
+  { ic:"🧹", titre:"Produits ménagers",      url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1738679717_documents",  desc:"Nettoyants & entretien maison" },
+  { ic:"🌱", titre:"Bien-être (Aurodhea)",   url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1736256904_documents",  desc:"Compléments & soins bien-être" },
+  { ic:"💊", titre:"Peptilux",               url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1740410027_documents",  desc:"Gamme Peptilux" },
+  { ic:"💪", titre:"Supplefit",              url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1733905272_documents",  desc:"Nutrition sportive & forme" },
+];
+
+function CataloguesView() {
+  return (
+    <div className="fi">
+      <div className="sh"><span className="shtitle">Catalogues</span></div>
+      <div className="sb">
+        <div className="cardg" style={{ marginBottom:16 }}>
+          <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:3 }}>📖 Catalogues officiels Chogan</p>
+          <p style={{ fontSize:11, color:MU, lineHeight:1.6 }}>Appuie sur un catalogue pour l'ouvrir directement sur le site officiel Chogan.</p>
+        </div>
+        {CATALOGUES.map((c,i)=>(
+          <a key={i} className="rlink" href={c.url} target="_blank" rel="noreferrer">
+            <span style={{ fontSize:26, flexShrink:0 }}>{c.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600 }}>{c.titre}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{c.desc}</p>
+            </div>
+            <span style={{ color:G, fontSize:16, flexShrink:0 }}>↗</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── KIT DE DÉMARRAGE VIEW ─────────────────────────────────────────
+
+const FAMILLES = [
+  { id:"ambree", emoji:"🟠", nom:"Ambrée / Orientale", couleur:"#c97c3a", style:"CHAUD · SENSUEL · ENVOÛTANT",
+    notes:"Vanille, ambroxan, amande, patchouli, benjoin, résines…",
+    pourQui:"Toute personne qui aime séduire, plaire, laisser un sillage. Donne de l'assurance, de l'audace.",
+    sousFamilles:[
+      { n:"Ambré Épicé",       refs:["6 – Opium","33 – Black Code","117 – Tobacco Vanille"] },
+      { n:"Ambré Aquatique",   refs:["130 – Megamare"] },
+      { n:"Ambré Boisé",       refs:["10 – Alien","15 – Roma","30 – Black XS","37 – Man","48 – Allure","72 – Patchouli","73 – Himalaya","102 – Velvet Amber Sun","114 – Ombre Nomade","127 – Oud Wood","141 – Turath"] },
+      { n:"Ambré",             refs:["83 – Uomo","101 – Velvet Amber Skin","124 – Zeta","129 – Erba Pura"] },
+      { n:"Ambré Floral",      refs:["13 – Guilty","14 – Manifesto","26 – Flower","27 – Trésor","41 – Chloé","47 – Crystal Noir","51 – Coco Mademoiselle","56 – Ange ou Démon","64 – Omnia Indian Garnet","67 – Olympéa","70 – The One","81 – Classique Essence"] },
+      { n:"Oriental Vanillé",  refs:["23 – Hypnotic Poison","28 – Angel","40 – Hypnose","55 – Black Opium","71 – Allure","90 – Poison Girl","97 – Amo","105 – Intense Café","109 – J'Adore l'Or","111 – Lost Cherry","116 – Yes I Am","118 – Baccarat Rouge","121 – L'Interdit","126 – Soleil Blanc","128 – Vanille Fatale","131 – Good Girl","133 – Paradoxe","134 – Bitter Peach","139 – Les Sables Roses","143 – Vanilla Powder","144 – Bianco Latte","54 – Black Orchid","88 – Man in Black"] },
+    ]},
+  { id:"fleurie", emoji:"🌸", nom:"Fleurie", couleur:"#d45c8a", style:"ÉLÉGANCE · FÉMINITÉ",
+    notes:"Rose, jasmin, fleur d'oranger, tubéreuse, géranium…",
+    pourQui:"Principalement pour les femmes, féminines, élégantes, appréciant la délicatesse et la finesse.",
+    sousFamilles:[
+      { n:"Floral Aldéhydé",     refs:["24 – Chanel N°5"] },
+      { n:"Floral Boisé Musqué", refs:["25 – For Her","43 – Love Chloé","53 – Narciso","57 – Omnia Améthyste","98 – Joy","100 – White Aoud"] },
+      { n:"Floral",              refs:["49 – Dolce","77 – Flora","96 – Gabrielle","132 – My Way"] },
+      { n:"Floral Fruité",       refs:["7 – J'Adore","11 – Light Blue","19 – Lady Million","42 – La Vie est Belle","82 – Signorina","95 – Burberry","120 – La Petite Robe Noire","123 – Good Girl Gone Bad"] },
+      { n:"Floral Aquatique",    refs:["29 – Eau d'Issey","76 – Acqua di Gioia"] },
+    ]},
+  { id:"boisee", emoji:"🪵", nom:"Boisée", couleur:"#8b6242", style:"LUXUEUX · CHALEUREUX · PRÉCIEUX",
+    notes:"Essences, mousses de bois, cèdre, bois de santal, bois de gaïac, tabac…",
+    pourQui:"Principalement des hommes, sûrs d'eux, ayant une certaine maturité.",
+    sousFamilles:[
+      { n:"Boisé Aromatique",    refs:["17 – Guilty","38 – Bleu","50 – Burberry for Men","52 – Pasha","62 – Intenso","74 – Black Afgano"] },
+      { n:"Boisé Floral Musqué", refs:["3 – Fahrenheit","18 – Déclaration","136 – Dior Homme Intense"] },
+      { n:"Boisé",               refs:["138 – Wood Whisper"] },
+      { n:"Boisé Épicé",         refs:["1 – One Million","4 – The One","20 – La Nuit de l'Homme","22 – Terre d'Hermès","32 – Spice Bomb","87 – Wanted"] },
+      { n:"Boisé Chypré",        refs:["135 – Bois d'Argent"] },
+      { n:"Boisé Aquatique",     refs:["61 – Invictus","69 – Acqua di Sale"] },
+    ]},
+  { id:"aromatique", emoji:"🌿", nom:"Aromatique", couleur:"#5a8a5a", style:"SOBRE · VIF · MASCULIN",
+    notes:"Sauge, laurier, lavande, romarin, menthe…",
+    pourQui:"Femmes dynamiques/sportives. Hommes charismatiques, actifs, entreprenants.",
+    sousFamilles:[
+      { n:"Aromatique Fougère",   refs:["140 – Éros"] },
+      { n:"Aromatique Vert",      refs:["63 – Hugo femme","5 – Hugo homme"] },
+      { n:"Aromatique",           refs:["44 – Silver Mountain Water"] },
+      { n:"Aromatique Épicé",     refs:["65 – The Scent","137 – XJ 1861 Naxos"] },
+      { n:"Aromatique Aquatique", refs:["2 – Acqua di Gio"] },
+    ]},
+  { id:"chypree", emoji:"🍃", nom:"Chyprée", couleur:"#4a7a4a", style:"CHARISMATIQUE · AFFIRMÉ · CARACTÈRE",
+    notes:"Bergamote, jasmin, mousse de chêne, patchouli…",
+    pourQui:"Femmes et hommes avec de forte personnalité, à la recherche de parfums singuliers.",
+    sousFamilles:[
+      { n:"Chypré Fruité", refs:["39 – Miss Dior Chérie","68 – Aventus","80 – Si","93 – Aventus for Her","110 – Kirké"] },
+      { n:"Chypré Floral", refs:["85 – Chance","89 – Mon Paris","115 – Idôle","119 – Scandal"] },
+    ]},
+  { id:"hesperidee", emoji:"🍋", nom:"Hespéridée", couleur:"#b8a030", style:"FRAIS · LÉGER · FRUITÉ",
+    notes:"Agrumes, citron, mandarine, orange, bergamote…",
+    pourQui:"Personnes de tout âge en quête de fraîcheur et de légèreté, appréciant le côté tonifiant.",
+    sousFamilles:[
+      { n:"Hespéridés Aromatiques", refs:["12 – Eau Sauvage","21 – Light Blue","46 – CK One","91 – Chrome","99 – Mandarino di Amalfi","112 – Néroli Portofino","113 – Sur la Route"] },
+      { n:"Hespéridés",             refs:["125 – Sole di Positano"] },
+    ]},
+  { id:"fougere", emoji:"🫧", nom:"Fougère", couleur:"#6a6aba", style:"VIRIL · PUISSANT · VIVIFIANT",
+    notes:"Lavande, géranium, mousse de chêne, labdanum, vétiver…",
+    pourQui:"Des hommes essentiellement, dégageant une certaine virilité, une vigueur, souvent rassurant.",
+    sousFamilles:[
+      { n:"Fougère Ambré/Oriental", refs:["16 – Le Mâle","75 – X for Men","122 – Libre"] },
+      { n:"Fougère Aromatique",     refs:["84 – Blue Dylan","86 – Legend","94 – Sauvage"] },
+      { n:"Cuiré",                  refs:["106 – Fucking Fabulous","142 – Ombré Leather"] },
+    ]},
+];
+  </script>
+  <!-- JSX components — compiled by Babel -->
+  <script type="text/babel">
+const { useState, useRef } = React;
 // ── HELPERS ───────────────────────────────────────────────────────
 const gc = g => g === "homme" ? HC : g === "femme" ? FC : MC;
 const gl = g => g === "homme" ? "♂ Homme" : g === "femme" ? "♀ Femme" : "⚧ Mixte";
@@ -837,113 +951,6 @@ function AccueilView({ started, setStarted }) {
 }
 
 // ── CATALOGUES VIEW ───────────────────────────────────────────────
-
-const CATALOGUES = [
-  { ic:"🌸", titre:"Parfums",                url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1739360788_documents",  desc:"Collection complète 15ml · 30ml · 50ml · 70ml" },
-  { ic:"🏠", titre:"Parfums d'ambiance",     url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1736340849_documents",  desc:"Diffuseurs & senteurs maison" },
-  { ic:"💧", titre:"Les Huiles",             url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1732103472_documents",  desc:"Huiles essentielles & concentrées" },
-  { ic:"🌿", titre:"LOLUM (huiles)",         url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1728551530_documents",  desc:"Gamme huiles LOLUM" },
-  { ic:"💄", titre:"Maquillage",             url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1741095206_documents",  desc:"Rouge à lèvres, fond de teint, yeux…" },
-  { ic:"🕶", titre:"Lunettes de soleil",     url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1740996419_documents",  desc:"Collection lunettes tendance" },
-  { ic:"🧹", titre:"Produits ménagers",      url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1738679717_documents",  desc:"Nettoyants & entretien maison" },
-  { ic:"🌱", titre:"Bien-être (Aurodhea)",   url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1736256904_documents",  desc:"Compléments & soins bien-être" },
-  { ic:"💊", titre:"Peptilux",               url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1740410027_documents",  desc:"Gamme Peptilux" },
-  { ic:"💪", titre:"Supplefit",              url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1733905272_documents",  desc:"Nutrition sportive & forme" },
-];
-
-function CataloguesView() {
-  return (
-    <div className="fi">
-      <div className="sh"><span className="shtitle">Catalogues</span></div>
-      <div className="sb">
-        <div className="cardg" style={{ marginBottom:16 }}>
-          <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:3 }}>📖 Catalogues officiels Chogan</p>
-          <p style={{ fontSize:11, color:MU, lineHeight:1.6 }}>Appuie sur un catalogue pour l'ouvrir directement sur le site officiel Chogan.</p>
-        </div>
-        {CATALOGUES.map((c,i)=>(
-          <a key={i} className="rlink" href={c.url} target="_blank" rel="noreferrer">
-            <span style={{ fontSize:26, flexShrink:0 }}>{c.ic}</span>
-            <div style={{ flex:1 }}>
-              <p style={{ fontSize:13, fontWeight:600 }}>{c.titre}</p>
-              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{c.desc}</p>
-            </div>
-            <span style={{ color:G, fontSize:16, flexShrink:0 }}>↗</span>
-          </a>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── KIT DE DÉMARRAGE VIEW ─────────────────────────────────────────
-
-const FAMILLES = [
-  { id:"ambree", emoji:"🟠", nom:"Ambrée / Orientale", couleur:"#c97c3a", style:"CHAUD · SENSUEL · ENVOÛTANT",
-    notes:"Vanille, ambroxan, amande, patchouli, benjoin, résines…",
-    pourQui:"Toute personne qui aime séduire, plaire, laisser un sillage. Donne de l'assurance, de l'audace.",
-    sousFamilles:[
-      { n:"Ambré Épicé",       refs:["6 – Opium","33 – Black Code","117 – Tobacco Vanille"] },
-      { n:"Ambré Aquatique",   refs:["130 – Megamare"] },
-      { n:"Ambré Boisé",       refs:["10 – Alien","15 – Roma","30 – Black XS","37 – Man","48 – Allure","72 – Patchouli","73 – Himalaya","102 – Velvet Amber Sun","114 – Ombre Nomade","127 – Oud Wood","141 – Turath"] },
-      { n:"Ambré",             refs:["83 – Uomo","101 – Velvet Amber Skin","124 – Zeta","129 – Erba Pura"] },
-      { n:"Ambré Floral",      refs:["13 – Guilty","14 – Manifesto","26 – Flower","27 – Trésor","41 – Chloé","47 – Crystal Noir","51 – Coco Mademoiselle","56 – Ange ou Démon","64 – Omnia Indian Garnet","67 – Olympéa","70 – The One","81 – Classique Essence"] },
-      { n:"Oriental Vanillé",  refs:["23 – Hypnotic Poison","28 – Angel","40 – Hypnose","55 – Black Opium","71 – Allure","90 – Poison Girl","97 – Amo","105 – Intense Café","109 – J'Adore l'Or","111 – Lost Cherry","116 – Yes I Am","118 – Baccarat Rouge","121 – L'Interdit","126 – Soleil Blanc","128 – Vanille Fatale","131 – Good Girl","133 – Paradoxe","134 – Bitter Peach","139 – Les Sables Roses","143 – Vanilla Powder","144 – Bianco Latte","54 – Black Orchid","88 – Man in Black"] },
-    ]},
-  { id:"fleurie", emoji:"🌸", nom:"Fleurie", couleur:"#d45c8a", style:"ÉLÉGANCE · FÉMINITÉ",
-    notes:"Rose, jasmin, fleur d'oranger, tubéreuse, géranium…",
-    pourQui:"Principalement pour les femmes, féminines, élégantes, appréciant la délicatesse et la finesse.",
-    sousFamilles:[
-      { n:"Floral Aldéhydé",     refs:["24 – Chanel N°5"] },
-      { n:"Floral Boisé Musqué", refs:["25 – For Her","43 – Love Chloé","53 – Narciso","57 – Omnia Améthyste","98 – Joy","100 – White Aoud"] },
-      { n:"Floral",              refs:["49 – Dolce","77 – Flora","96 – Gabrielle","132 – My Way"] },
-      { n:"Floral Fruité",       refs:["7 – J'Adore","11 – Light Blue","19 – Lady Million","42 – La Vie est Belle","82 – Signorina","95 – Burberry","120 – La Petite Robe Noire","123 – Good Girl Gone Bad"] },
-      { n:"Floral Aquatique",    refs:["29 – Eau d'Issey","76 – Acqua di Gioia"] },
-    ]},
-  { id:"boisee", emoji:"🪵", nom:"Boisée", couleur:"#8b6242", style:"LUXUEUX · CHALEUREUX · PRÉCIEUX",
-    notes:"Essences, mousses de bois, cèdre, bois de santal, bois de gaïac, tabac…",
-    pourQui:"Principalement des hommes, sûrs d'eux, ayant une certaine maturité.",
-    sousFamilles:[
-      { n:"Boisé Aromatique",    refs:["17 – Guilty","38 – Bleu","50 – Burberry for Men","52 – Pasha","62 – Intenso","74 – Black Afgano"] },
-      { n:"Boisé Floral Musqué", refs:["3 – Fahrenheit","18 – Déclaration","136 – Dior Homme Intense"] },
-      { n:"Boisé",               refs:["138 – Wood Whisper"] },
-      { n:"Boisé Épicé",         refs:["1 – One Million","4 – The One","20 – La Nuit de l'Homme","22 – Terre d'Hermès","32 – Spice Bomb","87 – Wanted"] },
-      { n:"Boisé Chypré",        refs:["135 – Bois d'Argent"] },
-      { n:"Boisé Aquatique",     refs:["61 – Invictus","69 – Acqua di Sale"] },
-    ]},
-  { id:"aromatique", emoji:"🌿", nom:"Aromatique", couleur:"#5a8a5a", style:"SOBRE · VIF · MASCULIN",
-    notes:"Sauge, laurier, lavande, romarin, menthe…",
-    pourQui:"Femmes dynamiques/sportives. Hommes charismatiques, actifs, entreprenants.",
-    sousFamilles:[
-      { n:"Aromatique Fougère",   refs:["140 – Éros"] },
-      { n:"Aromatique Vert",      refs:["63 – Hugo femme","5 – Hugo homme"] },
-      { n:"Aromatique",           refs:["44 – Silver Mountain Water"] },
-      { n:"Aromatique Épicé",     refs:["65 – The Scent","137 – XJ 1861 Naxos"] },
-      { n:"Aromatique Aquatique", refs:["2 – Acqua di Gio"] },
-    ]},
-  { id:"chypree", emoji:"🍃", nom:"Chyprée", couleur:"#4a7a4a", style:"CHARISMATIQUE · AFFIRMÉ · CARACTÈRE",
-    notes:"Bergamote, jasmin, mousse de chêne, patchouli…",
-    pourQui:"Femmes et hommes avec de forte personnalité, à la recherche de parfums singuliers.",
-    sousFamilles:[
-      { n:"Chypré Fruité", refs:["39 – Miss Dior Chérie","68 – Aventus","80 – Si","93 – Aventus for Her","110 – Kirké"] },
-      { n:"Chypré Floral", refs:["85 – Chance","89 – Mon Paris","115 – Idôle","119 – Scandal"] },
-    ]},
-  { id:"hesperidee", emoji:"🍋", nom:"Hespéridée", couleur:"#b8a030", style:"FRAIS · LÉGER · FRUITÉ",
-    notes:"Agrumes, citron, mandarine, orange, bergamote…",
-    pourQui:"Personnes de tout âge en quête de fraîcheur et de légèreté, appréciant le côté tonifiant.",
-    sousFamilles:[
-      { n:"Hespéridés Aromatiques", refs:["12 – Eau Sauvage","21 – Light Blue","46 – CK One","91 – Chrome","99 – Mandarino di Amalfi","112 – Néroli Portofino","113 – Sur la Route"] },
-      { n:"Hespéridés",             refs:["125 – Sole di Positano"] },
-    ]},
-  { id:"fougere", emoji:"🫧", nom:"Fougère", couleur:"#6a6aba", style:"VIRIL · PUISSANT · VIVIFIANT",
-    notes:"Lavande, géranium, mousse de chêne, labdanum, vétiver…",
-    pourQui:"Des hommes essentiellement, dégageant une certaine virilité, une vigueur, souvent rassurant.",
-    sousFamilles:[
-      { n:"Fougère Ambré/Oriental", refs:["16 – Le Mâle","75 – X for Men","122 – Libre"] },
-      { n:"Fougère Aromatique",     refs:["84 – Blue Dylan","86 – Legend","94 – Sauvage"] },
-      { n:"Cuiré",                  refs:["106 – Fucking Fabulous","142 – Ombré Leather"] },
-    ]},
-];
-
 function KitDemarrageView() {
   const [sub, setSub] = useState("familles");
   const [openFam, setOpenFam] = useState(null);
