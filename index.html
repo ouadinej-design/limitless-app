@@ -970,7 +970,7 @@ function KitDemarrageView() {
     <div className="fi">
       <div className="sh"><span className="shtitle">Kit de démarrage</span></div>
       <div className="ftabs">
-        {[["familles","🌸 Familles Olfactives"],["liste","📋 Liste PDF"]].map(([v,l])=>(
+        {[["familles","🌸 Familles"],["liste","📋 Liste PDF"],["pays","🌍 Pays"],["parrainage","🔗 Parrainage"]].map(([v,l])=>(
           <button key={v} className={`ftab ${sub===v?"on":""}`} onClick={()=>setSub(v)}>{l}</button>
         ))}
       </div>
@@ -997,7 +997,128 @@ function KitDemarrageView() {
         </div>
       )}
 
-      {sub === "familles" && (
+      {sub === "parrainage" && (
+        <div className="sb">
+          <div className="cardg" style={{ marginBottom:14 }}>
+            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🔗 Comment envoyer son lien de parrainage client</p>
+            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Regarde cette vidéo pour apprendre à envoyer ton lien de parrainage à tes clients.</p>
+          </div>
+          <div style={{ borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)", background:"#000", marginBottom:12 }}>
+            <video
+              controls
+              playsInline
+              style={{ width:"100%", display:"block", maxHeight:340 }}
+              src="/parrainage-client.mp4"
+            >
+              Votre navigateur ne supporte pas la lecture vidéo.
+            </video>
+          </div>
+          <div style={{ background:"rgba(255,255,255,.03)", border:"0.5px solid rgba(255,255,255,.06)", borderRadius:10, padding:"12px 14px" }}>
+            <p style={{ fontSize:11, color:MU, marginBottom:6, textTransform:"uppercase", letterSpacing:1 }}>💡 Rappel étapes clés</p>
+            {["Connecte-toi à ton espace consultant sur chogan.eu","Va dans «Mon compte» → «Mes liens»","Copie ton lien de parrainage CLIENT (pas consultant)","Envoie-le à ta cliente par WhatsApp, SMS ou Instagram","Ta cliente commande via ton lien → tu génères des CP automatiquement"].map((t,i)=>(
+              <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", marginBottom:8 }}>
+                <span style={{ background:G, color:"#07070f", borderRadius:"50%", width:18, height:18, fontSize:10, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
+                <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{t}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {sub === "pays" && (
+        <div className="sb">
+          <div className="cardg" style={{ marginBottom:14 }}>
+            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🌍 Pays ouverts Chogan</p>
+            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Livraison disponible dans ces pays. Les pays "en phase de test" nécessitent une autorisation du Leader Emerald+.</p>
+          </div>
+          <div style={{ background:"rgba(224,80,80,.07)", border:"0.5px solid rgba(224,80,80,.25)", borderRadius:10, padding:"10px 13px", marginBottom:14 }}>
+            <p style={{ fontSize:12, color:RD, lineHeight:1.5 }}>⚠️ Pays en phase de test : ne pas utiliser sans autorisation du Leader Emerald+ pour envoi de colis.</p>
+          </div>
+          {[
+            { flag:"🇦🇱", name:"Albanie" },
+            { flag:"🇩🇿", name:"Algérie" },
+            { flag:"🇦🇴", name:"Angola", test:true },
+            { flag:"🇦🇺", name:"Australie", test:true },
+            { flag:"🇦🇹", name:"Autriche" },
+            { flag:"🇵🇹", name:"Açores" },
+            { flag:"🇧🇪", name:"Belgique" },
+            { flag:"🇧🇬", name:"Bulgarie" },
+            { flag:"🇨🇦", name:"Canada", test:true },
+            { flag:"🇪🇸", name:"Ceuta", test:true },
+            { flag:"🇨🇾", name:"Chypre" },
+            { flag:"🇬🇷", name:"Corfou" },
+            { flag:"🇭🇷", name:"Croatie" },
+            { flag:"🇩🇰", name:"Danemark" },
+            { flag:"🇪🇬", name:"Égypte", test:true },
+            { flag:"🇪🇪", name:"Estonie" },
+            { flag:"🇫🇮", name:"Finlande" },
+            { flag:"🇫🇷", name:"France" },
+            { flag:"🇬🇪", name:"Géorgie" },
+            { flag:"🇩🇪", name:"Allemagne" },
+            { flag:"🇬🇷", name:"Grèce" },
+            { flag:"🇫🇷", name:"Guadeloupe" },
+            { flag:"🇬🇬", name:"Guernsey" },
+            { flag:"🇮🇳", name:"Inde", test:true },
+            { flag:"🇮🇶", name:"Iraq", test:true },
+            { flag:"🇮🇪", name:"Irlande" },
+            { flag:"🇮🇸", name:"Islande", test:true },
+            { flag:"🇫🇮", name:"Îles Aland" },
+            { flag:"🇪🇸", name:"Îles Canaries" },
+            { flag:"🇬🇷", name:"Îles Grecques" },
+            { flag:"🇮🇹", name:"Italie" },
+            { flag:"🇯🇪", name:"Jersey" },
+            { flag:"🇰🇿", name:"Kazakhstan", test:true },
+            { flag:"🇽🇰", name:"Kosovo" },
+            { flag:"🇱🇻", name:"Lettonie" },
+            { flag:"🇱🇧", name:"Libano", test:true },
+            { flag:"🇱🇾", name:"Libye", test:true },
+            { flag:"🇱🇮", name:"Liechtenstein" },
+            { flag:"🇱🇹", name:"Lituanie" },
+            { flag:"🇱🇺", name:"Luxembourg" },
+            { flag:"🇲🇰", name:"Macédoine du Nord" },
+            { flag:"🇵🇹", name:"Madeira" },
+            { flag:"🇲🇹", name:"Malte" },
+            { flag:"🇫🇷", name:"Martinique" },
+            { flag:"🇫🇷", name:"Mayotte" },
+            { flag:"🇪🇸", name:"Melilla", test:true },
+            { flag:"🇲🇽", name:"Messico", test:true },
+            { flag:"🇲🇩", name:"Moldova" },
+            { flag:"🇲🇪", name:"Monténégro", test:true },
+            { flag:"🇳🇴", name:"Norvège" },
+            { flag:"🇫🇷", name:"Nouvelle Calédonie" },
+            { flag:"🇳🇱", name:"Pays-Bas" },
+            { flag:"🇵🇱", name:"Pologne" },
+            { flag:"🇵🇹", name:"Portugal" },
+            { flag:"🇬🇧", name:"Royaume-Uni" },
+            { flag:"🇨🇿", name:"République Tchèque" },
+            { flag:"🇩🇴", name:"République Dominicaine", test:true },
+            { flag:"🇫🇷", name:"Réunion" },
+            { flag:"🇷🇴", name:"Roumanie" },
+            { flag:"🇫🇷", name:"Saint-Barthélemy" },
+            { flag:"🇫🇷", name:"Saint-Martin" },
+            { flag:"🇫🇷", name:"Saint-Pierre et Miquelon" },
+            { flag:"🇸🇲", name:"San Marino" },
+            { flag:"🇸🇬", name:"Singapour", test:true },
+            { flag:"🇸🇰", name:"Slovacchia" },
+            { flag:"🇸🇮", name:"Slovénie" },
+            { flag:"🇪🇸", name:"Espagne" },
+            { flag:"🇸🇪", name:"Suède" },
+            { flag:"🇨🇭", name:"Suisse" },
+            { flag:"🇹🇭", name:"Thaïlande", test:true },
+            { flag:"🇭🇺", name:"Hongrie" },
+            { flag:"🇻🇳", name:"Viêt Nam", test:true },
+          ].map((p,i)=>(
+            <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"9px 12px",
+              background: p.test ? "rgba(224,80,80,.04)" : "rgba(255,255,255,.03)",
+              borderRadius:8, marginBottom:5,
+              border: `0.5px solid ${p.test ? "rgba(224,80,80,.15)" : "rgba(255,255,255,.05)"}` }}>
+              <span style={{ fontSize:20 }}>{p.flag}</span>
+              <span style={{ fontSize:13, flex:1, color: p.test ? MU : TX }}>{p.name}</span>
+              {p.test && <span style={{ fontSize:9, color:RD, border:"0.5px solid rgba(224,80,80,.35)", borderRadius:10, padding:"1px 7px", whiteSpace:"nowrap" }}>phase de test</span>}
+            </div>
+          ))}
+        </div>
+      )}
         <div className="sb">
           <div className="cardg" style={{ marginBottom:14 }}>
             <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🌸 Les 7 Familles Olfactives</p>
