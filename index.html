@@ -393,6 +393,26 @@ function RessourcesView({ onOpenBienvenue }) {
 
         <div className="div" style={{ margin:"14px 0" }} />
         <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📲 Canaux Telegram</p>
+        {[
+          { ic:"📸", t:"Story",         d:"Templates et idées de stories",          url:"https://t.me/+FlsHgrOtL64wOGFk" },
+          { ic:"📅", t:"Calendly",      d:"Outils de prise de rendez-vous",         url:"https://t.me/+ICxJuEEFHg04MzJk" },
+          { ic:"🖼", t:"Pictures",      d:"Photos et visuels prêts à publier",      url:"https://t.me/+1zWQawmuayo0ZTc0" },
+          { ic:"🗓", t:"90 Jours",      d:"Plan d'action 90 jours",                 url:"https://t.me/+AAX6DoGpg48wZTdk" },
+          { ic:"💰", t:"Pro Vente",     d:"Scripts et techniques de vente",         url:"https://t.me/+akYPbYLQ3kcxYzdk" },
+          { ic:"🏆", t:"Preuve Sociale",d:"Témoignages et preuves clients",         url:"https://t.me/+Ylo19O_dBQ01ODE0" },
+        ].map((r,i) => (
+          <a key={i} className="rlink" href={r.url} target="_blank" rel="noreferrer">
+            <span style={{ fontSize:22 }}>{r.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:500 }}>{r.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{r.d}</p>
+            </div>
+            <span style={{ fontSize:16, color:"#2AABEE" }}>✈</span>
+          </a>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📲 Canaux Telegram</p>
         <div className="cardg" style={{ marginBottom:12 }}>
           <p style={{ fontSize:12, color:"#ccc", lineHeight:1.7 }}>
             Pour finir, je t'ai transmis tous les canaux Telegram qui te permettront d'accéder aux informations importantes : actualités, retours de clientes et de consultantes avec preuves sociales, nouveautés, etc.<br/><br/>
@@ -855,6 +875,187 @@ function CataloguesView() {
   );
 }
 
+// ── KIT DE DÉMARRAGE VIEW ─────────────────────────────────────────
+
+const FAMILLES = [
+  { id:"ambree", emoji:"🟠", nom:"Ambrée / Orientale", couleur:"#c97c3a", style:"CHAUD · SENSUEL · ENVOÛTANT",
+    notes:"Vanille, ambroxan, amande, patchouli, benjoin, résines…",
+    pourQui:"Toute personne qui aime séduire, plaire, laisser un sillage. Donne de l'assurance, de l'audace.",
+    sousFamilles:[
+      { n:"Ambré Épicé",       refs:["6 – Opium","33 – Black Code","117 – Tobacco Vanille"] },
+      { n:"Ambré Aquatique",   refs:["130 – Megamare"] },
+      { n:"Ambré Boisé",       refs:["10 – Alien","15 – Roma","30 – Black XS","37 – Man","48 – Allure","72 – Patchouli","73 – Himalaya","102 – Velvet Amber Sun","114 – Ombre Nomade","127 – Oud Wood","141 – Turath"] },
+      { n:"Ambré",             refs:["83 – Uomo","101 – Velvet Amber Skin","124 – Zeta","129 – Erba Pura"] },
+      { n:"Ambré Floral",      refs:["13 – Guilty","14 – Manifesto","26 – Flower","27 – Trésor","41 – Chloé","47 – Crystal Noir","51 – Coco Mademoiselle","56 – Ange ou Démon","64 – Omnia Indian Garnet","67 – Olympéa","70 – The One","81 – Classique Essence"] },
+      { n:"Oriental Vanillé",  refs:["23 – Hypnotic Poison","28 – Angel","40 – Hypnose","55 – Black Opium","71 – Allure","90 – Poison Girl","97 – Amo","105 – Intense Café","109 – J'Adore l'Or","111 – Lost Cherry","116 – Yes I Am","118 – Baccarat Rouge","121 – L'Interdit","126 – Soleil Blanc","128 – Vanille Fatale","131 – Good Girl","133 – Paradoxe","134 – Bitter Peach","139 – Les Sables Roses","143 – Vanilla Powder","144 – Bianco Latte","54 – Black Orchid","88 – Man in Black"] },
+    ]},
+  { id:"fleurie", emoji:"🌸", nom:"Fleurie", couleur:"#d45c8a", style:"ÉLÉGANCE · FÉMINITÉ",
+    notes:"Rose, jasmin, fleur d'oranger, tubéreuse, géranium…",
+    pourQui:"Principalement pour les femmes, féminines, élégantes, appréciant la délicatesse et la finesse.",
+    sousFamilles:[
+      { n:"Floral Aldéhydé",     refs:["24 – Chanel N°5"] },
+      { n:"Floral Boisé Musqué", refs:["25 – For Her","43 – Love Chloé","53 – Narciso","57 – Omnia Améthyste","98 – Joy","100 – White Aoud"] },
+      { n:"Floral",              refs:["49 – Dolce","77 – Flora","96 – Gabrielle","132 – My Way"] },
+      { n:"Floral Fruité",       refs:["7 – J'Adore","11 – Light Blue","19 – Lady Million","42 – La Vie est Belle","82 – Signorina","95 – Burberry","120 – La Petite Robe Noire","123 – Good Girl Gone Bad"] },
+      { n:"Floral Aquatique",    refs:["29 – Eau d'Issey","76 – Acqua di Gioia"] },
+    ]},
+  { id:"boisee", emoji:"🪵", nom:"Boisée", couleur:"#8b6242", style:"LUXUEUX · CHALEUREUX · PRÉCIEUX",
+    notes:"Essences, mousses de bois, cèdre, bois de santal, bois de gaïac, tabac…",
+    pourQui:"Principalement des hommes, sûrs d'eux, ayant une certaine maturité.",
+    sousFamilles:[
+      { n:"Boisé Aromatique",    refs:["17 – Guilty","38 – Bleu","50 – Burberry for Men","52 – Pasha","62 – Intenso","74 – Black Afgano"] },
+      { n:"Boisé Floral Musqué", refs:["3 – Fahrenheit","18 – Déclaration","136 – Dior Homme Intense"] },
+      { n:"Boisé",               refs:["138 – Wood Whisper"] },
+      { n:"Boisé Épicé",         refs:["1 – One Million","4 – The One","20 – La Nuit de l'Homme","22 – Terre d'Hermès","32 – Spice Bomb","87 – Wanted"] },
+      { n:"Boisé Chypré",        refs:["135 – Bois d'Argent"] },
+      { n:"Boisé Aquatique",     refs:["61 – Invictus","69 – Acqua di Sale"] },
+    ]},
+  { id:"aromatique", emoji:"🌿", nom:"Aromatique", couleur:"#5a8a5a", style:"SOBRE · VIF · MASCULIN",
+    notes:"Sauge, laurier, lavande, romarin, menthe…",
+    pourQui:"Femmes dynamiques/sportives. Hommes charismatiques, actifs, entreprenants.",
+    sousFamilles:[
+      { n:"Aromatique Fougère",   refs:["140 – Éros"] },
+      { n:"Aromatique Vert",      refs:["63 – Hugo femme","5 – Hugo homme"] },
+      { n:"Aromatique",           refs:["44 – Silver Mountain Water"] },
+      { n:"Aromatique Épicé",     refs:["65 – The Scent","137 – XJ 1861 Naxos"] },
+      { n:"Aromatique Aquatique", refs:["2 – Acqua di Gio"] },
+    ]},
+  { id:"chypree", emoji:"🍃", nom:"Chyprée", couleur:"#4a7a4a", style:"CHARISMATIQUE · AFFIRMÉ · CARACTÈRE",
+    notes:"Bergamote, jasmin, mousse de chêne, patchouli…",
+    pourQui:"Femmes et hommes avec de forte personnalité, à la recherche de parfums singuliers.",
+    sousFamilles:[
+      { n:"Chypré Fruité", refs:["39 – Miss Dior Chérie","68 – Aventus","80 – Si","93 – Aventus for Her","110 – Kirké"] },
+      { n:"Chypré Floral", refs:["85 – Chance","89 – Mon Paris","115 – Idôle","119 – Scandal"] },
+    ]},
+  { id:"hesperidee", emoji:"🍋", nom:"Hespéridée", couleur:"#b8a030", style:"FRAIS · LÉGER · FRUITÉ",
+    notes:"Agrumes, citron, mandarine, orange, bergamote…",
+    pourQui:"Personnes de tout âge en quête de fraîcheur et de légèreté, appréciant le côté tonifiant.",
+    sousFamilles:[
+      { n:"Hespéridés Aromatiques", refs:["12 – Eau Sauvage","21 – Light Blue","46 – CK One","91 – Chrome","99 – Mandarino di Amalfi","112 – Néroli Portofino","113 – Sur la Route"] },
+      { n:"Hespéridés",             refs:["125 – Sole di Positano"] },
+    ]},
+  { id:"fougere", emoji:"🫧", nom:"Fougère", couleur:"#6a6aba", style:"VIRIL · PUISSANT · VIVIFIANT",
+    notes:"Lavande, géranium, mousse de chêne, labdanum, vétiver…",
+    pourQui:"Des hommes essentiellement, dégageant une certaine virilité, une vigueur, souvent rassurant.",
+    sousFamilles:[
+      { n:"Fougère Ambré/Oriental", refs:["16 – Le Mâle","75 – X for Men","122 – Libre"] },
+      { n:"Fougère Aromatique",     refs:["84 – Blue Dylan","86 – Legend","94 – Sauvage"] },
+      { n:"Cuiré",                  refs:["106 – Fucking Fabulous","142 – Ombré Leather"] },
+    ]},
+];
+
+function KitDemarrageView() {
+  const [sub, setSub] = useState("familles");
+  const [openFam, setOpenFam] = useState(null);
+  const [openSub, setOpenSub] = useState(null);
+  const [showPdf, setShowPdf] = useState(false);
+
+  if (showPdf) return (
+    <div className="fi" style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 130px)" }}>
+      <div className="sh" style={{ alignItems:"center", flexShrink:0 }}>
+        <button onClick={()=>setShowPdf(false)} style={{ background:"none", border:"none", color:G, cursor:"pointer", fontSize:18, marginRight:10, padding:0 }}>←</button>
+        <span className="shtitle">Liste Inspirations</span>
+      </div>
+      <div style={{ flex:1, margin:"10px 18px 0", borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)" }}>
+        <iframe src="/liste-inspirations.pdf" style={{ width:"100%", height:"100%", border:"none", background:"#fff" }} title="Liste Inspirations" />
+      </div>
+      <div style={{ padding:"12px 18px", display:"flex", gap:8 }}>
+        <a href="/liste-inspirations.pdf" download style={{ flex:1, textAlign:"center" }} className="btn-o">↓ Télécharger</a>
+        <button className="btn-o" onClick={()=>setShowPdf(false)}>← Retour</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="fi">
+      <div className="sh"><span className="shtitle">Kit de démarrage</span></div>
+      <div className="ftabs">
+        {[["familles","🌸 Familles Olfactives"],["liste","📋 Liste PDF"]].map(([v,l])=>(
+          <button key={v} className={`ftab ${sub===v?"on":""}`} onClick={()=>setSub(v)}>{l}</button>
+        ))}
+      </div>
+
+      {sub === "liste" && (
+        <div className="sb">
+          <div className="cardg" style={{ marginBottom:14 }}>
+            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>📋 Liste complète des inspirations</p>
+            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Toutes les références avec marque, taille et prix — idéal à montrer à tes clientes.</p>
+          </div>
+          <div className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)", cursor:"pointer" }} onClick={()=>setShowPdf(true)}>
+            <span style={{ fontSize:26 }}>📋</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600, color:G }}>Liste des Inspirations Chogan</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>132 références · prix · tailles — ouvrir le PDF</p>
+            </div>
+            <span style={{ color:G, fontSize:16 }}>→</span>
+          </div>
+          <div style={{ marginTop:8 }}>
+            <p style={{ fontSize:10, color:MU, textAlign:"center", fontStyle:"italic" }}>
+              📌 Pour afficher le PDF, dépose <strong style={{color:G}}>liste-inspirations.pdf</strong> à la racine de ton repo GitHub
+            </p>
+          </div>
+        </div>
+      )}
+
+      {sub === "familles" && (
+        <div className="sb">
+          <div className="cardg" style={{ marginBottom:14 }}>
+            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🌸 Les 7 Familles Olfactives</p>
+            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Guide complet pour orienter tes clientes vers le parfum qui leur correspond. Appuie sur une famille pour explorer ses sous-familles.</p>
+          </div>
+          {FAMILLES.map(f => (
+            <div key={f.id} className="scrd" style={{ borderLeft:`3px solid ${f.couleur}` }}>
+              <div className="shdr" onClick={()=>{ setOpenFam(openFam===f.id?null:f.id); setOpenSub(null); }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ fontSize:22 }}>{f.emoji}</span>
+                  <div>
+                    <p style={{ fontSize:13, fontWeight:600, color:f.couleur }}>{f.nom}</p>
+                    <p style={{ fontSize:10, color:MU, marginTop:1, letterSpacing:.5 }}>{f.style}</p>
+                  </div>
+                </div>
+                <span style={{ color:f.couleur }}>{openFam===f.id?"▲":"▼"}</span>
+              </div>
+              {openFam===f.id && (
+                <div style={{ padding:"0 14px 14px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
+                  <div style={{ background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px", margin:"10px 0" }}>
+                    <p style={{ fontSize:11, color:MU, marginBottom:3 }}>🎵 Notes</p>
+                    <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.notes}</p>
+                  </div>
+                  <div style={{ background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px", marginBottom:12 }}>
+                    <p style={{ fontSize:11, color:MU, marginBottom:3 }}>👤 Pour qui</p>
+                    <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.pourQui}</p>
+                  </div>
+                  <p style={{ fontSize:10, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Sous-familles</p>
+                  {f.sousFamilles.map((sf,si) => (
+                    <div key={si} style={{ marginBottom:6 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+                        background:"rgba(255,255,255,.04)", borderRadius:8, padding:"8px 12px", cursor:"pointer",
+                        border:`0.5px solid ${openSub===`${f.id}-${si}`?f.couleur:"transparent"}` }}
+                        onClick={()=>setOpenSub(openSub===`${f.id}-${si}`?null:`${f.id}-${si}`)}>
+                        <p style={{ fontSize:12, fontWeight:500, color:openSub===`${f.id}-${si}`?f.couleur:TX }}>{sf.n}</p>
+                        <span style={{ fontSize:10, color:MU }}>{sf.refs.length} réf.</span>
+                      </div>
+                      {openSub===`${f.id}-${si}` && (
+                        <div style={{ padding:"8px 12px", background:"rgba(255,255,255,.02)", borderRadius:"0 0 8px 8px", marginTop:-4 }}>
+                          {sf.refs.map((r,ri)=>(
+                            <span key={ri} style={{ display:"inline-block", fontSize:10, padding:"2px 8px", margin:"2px 3px",
+                              background:`rgba(${f.couleur==="#c97c3a"?"201,124,58":f.couleur==="#d45c8a"?"212,92,138":f.couleur==="#8b6242"?"139,98,66":f.couleur==="#5a8a5a"?"90,138,90":f.couleur==="#4a7a4a"?"74,122,74":f.couleur==="#b8a030"?"184,160,48":"106,106,186"},.15)`,
+                              borderRadius:20, color:"#ccc" }}>{r}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── MAIN APP ──────────────────────────────────────────────────────
 
 function ChoganApp() {
@@ -867,9 +1068,10 @@ function ChoganApp() {
   const TABS = [
     { id:"accueil",    lbl:"Accueil",    ic:"🏠" },
     { id:"catalogue",  lbl:"Inspirations", ic:"🌸" },
+    { id:"kit",        lbl:"Kit",        ic:"🎓" },
     { id:"catalogues", lbl:"Catalogues", ic:"📖" },
     { id:"checklist",  lbl:"Checklist",  ic:"✅" },
-    { id:"formation",  lbl:"Formation",  ic:"🎓" },
+    { id:"formation",  lbl:"Formation",  ic:"📚" },
     { id:"ressources", lbl:"Ressources", ic:"📁" },
   ];
 
@@ -888,6 +1090,7 @@ function ChoganApp() {
             : <>
                 {tab==="accueil"    && <AccueilView   started={started} setStarted={setStarted} />}
                 {tab==="catalogue"  && <CatalogueView perfumes={perfumes} setPerfumes={setPerfumes} />}
+                {tab==="kit"        && <KitDemarrageView />}
                 {tab==="catalogues" && <CataloguesView />}
                 {tab==="checklist"  && <ChecklistView checklist={checklist} setChecklist={setChecklist} />}
                 {tab==="formation"  && <FormationView />}
