@@ -943,7 +943,7 @@ function KitDemarrageView() {
       <div className="sb">
 
         <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📋 Documents</p>
-        <a href="/Liste%20inspirations.pdf" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)" }}>
+        <a href="https://raw.githubusercontent.com/ouadinej-design/limitless-app/main/Liste%20inspirations.pdf" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)" }}>
           <span style={{ fontSize:22 }}>📋</span>
           <div style={{ flex:1 }}>
             <p style={{ fontSize:13, fontWeight:600, color:G }}>Liste des Inspirations</p>
