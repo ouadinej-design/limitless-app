@@ -1,173 +1,862 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CHOGAN ELITE - MARIE</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
-        body { font-family: 'Montserrat', sans-serif; background: #fff; color: #000; padding-bottom: 110px; }
-        .gold-text { color: #C5A059; }
-        .page { display: none; }
-        .page.active { display: block; }
-        .nav-bar { background: #fff; border-top: 1px solid #eee; height: 85px; position: fixed; bottom: 0; width: 100%; display: flex; z-index: 1000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: #bbb; font-weight: bold; text-transform: uppercase; border: none; background: none; }
-        .nav-item.active { color: #C5A059; }
-        .card-perf { border: 1px solid #eee; border-radius: 20px; text-align: center; padding: 15px; position: relative; }
-        .recap-box { border: 3px solid #000; border-radius: 20px; padding: 20px; box-shadow: 5px 5px 0px #000; }
-        .btn-currency { border: 1px solid #eee; border-radius: 25px; padding: 8px 15px; font-weight: bold; font-size: 10px; }
-        .btn-currency.active { background: #000; color: #fff; }
-    </style>
-</head>
-<body>
+import { useState, useRef } from "react";
 
-    <header class="p-6 flex justify-between items-center bg-white sticky top-0 z-50">
-        <div>
-            <h1 class="text-2xl font-black">CHOGAN</h1>
-            <p class="text-[10px] gold-text font-bold uppercase tracking-widest">Elite Marie</p>
-        </div>
-        <div class="bg-black text-white p-2 rounded-xl text-center shadow-lg">
-            <p class="text-[8px] uppercase font-bold text-zinc-400">Taux DA</p>
-            <input type="number" id="taux-input" value="245" onchange="updateAll()" class="bg-transparent text-center text-lg font-black w-12 outline-none border-b border-zinc-700">
-        </div>
-    </header>
+// ── THEME ─────────────────────────────────────────────────────────
+const G = "#c9a84c";
+const GL = "#e8d48a";
+const BG = "#07070f";
+const S1 = "#0f0f1e";
+const S2 = "#17172a";
+const TX = "#f0ede8";
+const MU = "#787896";
+const HC = "#d4d4e2";
+const FC = "#f4a0b5";
+const MC = "#7ec89a";
+const RD = "#e05050";
 
-    <div id="p1" class="page active p-4">
-        <div class="flex justify-center gap-2 mb-6">
-            <button onclick="setCurrency('EUR')" id="btn-eur" class="btn-currency active">EUROS (€)</button>
-            <button onclick="setCurrency('DA')" id="btn-da" class="btn-currency">DINARS (DA)</button>
+// ── DATA ──────────────────────────────────────────────────────────
+// ── LISTE COMPLÈTE 132 INSPIRATIONS CHOGAN (source PDF officiel) ──
+// Couleur texte PDF : NOIR = homme | ROSE = femme | VERT = mixte
+// prices : prix par taille en €
+const DEMO_PERFUMES = [
+  // ── Page 1 ───────────────────────────────────────────────────────
+  { id:1,   name:"One Million",          brand:"P. Rabanne",          ref:"001", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:2,   name:"Acqua Di Gio",         brand:"G. Armani",           ref:"002", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:3,   name:"Fahrenheit",           brand:"C. Dior",             ref:"003", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:4,   name:"The One",              brand:"D&G",                 ref:"004", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:5,   name:"Opium",                brand:"Y. Saint Laurent",    ref:"006", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:6,   name:"J'Adore",              brand:"C. Dior",             ref:"007", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:7,   name:"Alien",                brand:"T. Mugler",           ref:"010", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:8,   name:"Light Blue femme",     brand:"D&G",                 ref:"011", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:9,   name:"Eau Sauvage",          brand:"C. Dior",             ref:"012", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:10,  name:"Manifesto",            brand:"Y. Saint Laurent",    ref:"014", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:11,  name:"Roma",                 brand:"L. Biagiotti",        ref:"015", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:12,  name:"Le Mâle",              brand:"JP. Gaultier",        ref:"016", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:13,  name:"Déclaration",          brand:"Cartier",             ref:"018", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:14,  name:"Lady Million",         brand:"P. Rabanne",          ref:"019", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:15,  name:"La Nuit de l'Homme",   brand:"Y. Saint Laurent",    ref:"020", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:16,  name:"Light Blue homme",     brand:"D&G",                 ref:"021", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:17,  name:"Terre d'Hermès",       brand:"Hermès",              ref:"022", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:18,  name:"Hypnotic Poison",      brand:"C. Dior",             ref:"023", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:19,  name:"Chanel n°5",           brand:"Chanel",              ref:"024", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:20,  name:"For Her",              brand:"N. Rodriguez",        ref:"025", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:21,  name:"Flower",               brand:"Kenzo",               ref:"026", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:22,  name:"Trésor",               brand:"Lancôme",             ref:"027", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:23,  name:"Angel",                brand:"T. Mugler",           ref:"028", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  // ✅ CORRIGÉ : ref 029 → ROSE = femme
+  { id:24,  name:"Eau D'Issey",          brand:"I. Miyake",           ref:"029", gender:"femme", sizes:["100ml","30ml","15ml"],prices:{"100ml":35,"30ml":18,"15ml":11.90} },
+  // ── Page 2 ───────────────────────────────────────────────────────
+  { id:25,  name:"Black XS",             brand:"P. Rabanne",          ref:"030", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:26,  name:"Spice Bomb",           brand:"Viktor & Rolf",       ref:"032", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:27,  name:"Black Code",           brand:"G. Armani",           ref:"033", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:28,  name:"Man",                  brand:"Bvlgari",             ref:"037", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:29,  name:"Bleu",                 brand:"Chanel",              ref:"038", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:30,  name:"Miss Dior Chérie",     brand:"C. Dior",             ref:"039", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:31,  name:"Hypnose",              brand:"Lancôme",             ref:"040", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:32,  name:"La Vie est Belle",     brand:"Lancôme",             ref:"042", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:33,  name:"Silver Montain Water", brand:"Creed",               ref:"044", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:34,  name:"Crystal Noir",         brand:"Versace",             ref:"047", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:35,  name:"Allure homme",         brand:"Chanel",              ref:"048", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:36,  name:"Dolce",                brand:"D&G",                 ref:"049", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:37,  name:"Coco Mademoiselle",    brand:"Chanel",              ref:"051", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:38,  name:"Pasha 150",            brand:"Cartier",             ref:"052", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:39,  name:"Narciso",              brand:"N. Rodriguez",        ref:"053", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:40,  name:"Black Orchid",         brand:"T. Ford",             ref:"054", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:41,  name:"Black Opium",          brand:"Y. Saint Laurent",    ref:"055", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:42,  name:"Ange ou Démon",        brand:"Givenchy",            ref:"056", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:43,  name:"Omnia Améthyste",      brand:"Bvlgari",             ref:"057", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:44,  name:"Invictus",             brand:"P. Rabanne",          ref:"061", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:45,  name:"Intenso",              brand:"D&G",                 ref:"062", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:46,  name:"Omnia Indian Garnet",  brand:"Bvlgari",             ref:"064", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:47,  name:"Olympéa",              brand:"P. Rabanne",          ref:"067", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:48,  name:"Aventus",              brand:"Creed",               ref:"068", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":57,"30ml":29.50,"15ml":17.90} },
+  // ── Page 3 ───────────────────────────────────────────────────────
+  // ✅ CORRIGÉ : ref 069 → NOIR = homme
+  { id:49,  name:"Acqua di Sale",        brand:"P. Roma",             ref:"069", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:50,  name:"The One femme",        brand:"D&G",                 ref:"070", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:51,  name:"Allure femme",         brand:"Chanel",              ref:"071", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:52,  name:"Patchouli",            brand:"Reminiscence",        ref:"072", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:53,  name:"Himalaya",             brand:"Creed",               ref:"073", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:54,  name:"Black Afgano",         brand:"Nasomatto",           ref:"074", gender:"homme", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:55,  name:"\"X\" for Men",        brand:"Clive Christian",     ref:"075", gender:"homme", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:56,  name:"Acqua di Gioia",       brand:"G. Armani",           ref:"076", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:57,  name:"Myslf",                brand:"Y. Saint Laurent",    ref:"079", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:58,  name:"Si",                   brand:"G. Armani",           ref:"080", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:59,  name:"Classique Essence",    brand:"JP. Gaultier",        ref:"081", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:60,  name:"Signorina",            brand:"S. Ferragamo",        ref:"082", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:61,  name:"Dylan Blue",           brand:"Versace",             ref:"084", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:62,  name:"Chance",               brand:"Chanel",              ref:"085", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:63,  name:"Legend",               brand:"Mont Blanc",          ref:"086", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:64,  name:"Wanted",               brand:"Azzaro",              ref:"087", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:65,  name:"Man in Black",         brand:"Bvlgari",             ref:"088", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:66,  name:"Mon Paris",            brand:"Y. Saint Laurent",    ref:"089", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:67,  name:"Poison Girl",          brand:"C. Dior",             ref:"090", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:68,  name:"Chrome",               brand:"Azzaro",              ref:"091", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:69,  name:"Aventus for Her",      brand:"Creed",               ref:"093", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":57,"30ml":29.50,"15ml":17.90} },
+  { id:70,  name:"Sauvage",              brand:"C. Dior",             ref:"094", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:71,  name:"Gabrielle",            brand:"Chanel",              ref:"095", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:72,  name:"Amo Ferragamo",        brand:"S. Ferragamo",        ref:"097", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  // ── Page 4 ───────────────────────────────────────────────────────
+  { id:73,  name:"Joy",                  brand:"C. Dior",             ref:"098", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:74,  name:"Mandarino di Amalfi",  brand:"T. Ford",             ref:"099", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":45,"30ml":23.50,"15ml":13.90} },
+  { id:75,  name:"White Aoud",           brand:"Montale",             ref:"100", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:76,  name:"Velvet Amber Skin",    brand:"D&G",                 ref:"101", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:77,  name:"Velvet Amber Sun",     brand:"D&G",                 ref:"102", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:78,  name:"Intense Café",         brand:"Montale",             ref:"105", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:79,  name:"Fucking Fabulous",     brand:"T. Ford",             ref:"106", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:80,  name:"J'Adore l'Or",         brand:"C. Dior",             ref:"109", gender:"femme", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:81,  name:"Kirké",                brand:"T. Terenzi",          ref:"110", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:82,  name:"Lost Cherry",          brand:"T. Ford",             ref:"111", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:83,  name:"Neroli Portofino",     brand:"T. Ford",             ref:"112", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:84,  name:"Sur la Route",         brand:"L. Vuitton",          ref:"113", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":57,"30ml":29.50,"15ml":17.90} },
+  { id:85,  name:"Ombre Nomade",         brand:"L. Vuitton",          ref:"114", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:86,  name:"Idôle",                brand:"Lancôme",             ref:"115", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:87,  name:"Yes I Am",             brand:"Cacharel",            ref:"116", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  // ✅ CORRIGÉ : ref 117 → NOIR = homme
+  { id:88,  name:"Tobacco Vanille",      brand:"T. Ford",             ref:"117", gender:"homme", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:89,  name:"Baccarat Rouge 540",   brand:"Maison Francis K.",   ref:"118", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:90,  name:"Scandal",              brand:"JP. Gaultier",        ref:"119", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:91,  name:"La Petite Robe Noire", brand:"Guerlain",            ref:"120", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:92,  name:"L'Interdit",           brand:"Givenchy",            ref:"121", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:93,  name:"Libre",                brand:"Y. Saint Laurent",    ref:"122", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:94,  name:"Good Girl Gone Bad",   brand:"Kilian",              ref:"123", gender:"femme", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:95,  name:"Zeta",                 brand:"Morph",               ref:"124", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:96,  name:"Sole di Positano Aqua",brand:"T. Ford",             ref:"125", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  // ── Page 5 ───────────────────────────────────────────────────────
+  { id:97,  name:"Soleil Blanc",         brand:"T. Ford",             ref:"126", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:98,  name:"Oud Wood",             brand:"T. Ford",             ref:"127", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:99,  name:"Vanille Fatale",       brand:"T. Ford",             ref:"128", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:100, name:"Erba Pura",            brand:"Xerjoff",             ref:"129", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:101, name:"Megamare",             brand:"Orto Parisi",         ref:"130", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":65,"15ml":22.90} },
+  { id:102, name:"Good Girl",            brand:"C. Herrera",          ref:"131", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:103, name:"My Way",               brand:"G. Armani",           ref:"132", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":45,"30ml":23.50,"15ml":13.90} },
+  { id:104, name:"Prada Paradoxe",       brand:"Prada",               ref:"133", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:105, name:"Bitter Peach",         brand:"T. Ford",             ref:"134", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  // ✅ CORRIGÉ : ref 135 → VERT = mixte
+  { id:106, name:"Bois d'Argent",        brand:"C. Dior",             ref:"135", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":57,"30ml":29.50,"15ml":17.90} },
+  { id:107, name:"Dior Homme Intense",   brand:"C. Dior",             ref:"136", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":45,"30ml":23.50,"15ml":13.90} },
+  { id:108, name:"XJ 1861 Naxos",        brand:"Xerjoff",             ref:"137", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:109, name:"Whood Whisper",        brand:"Ojar",                ref:"138", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:110, name:"Les Sables Roses",     brand:"Louis Vuitton",       ref:"139", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":65,"15ml":22.90} },
+  { id:111, name:"Éros",                 brand:"Versace",             ref:"140", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:112, name:"Turath",               brand:"The Spirit of Dubaï", ref:"141", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":65,"15ml":22.90} },
+  { id:113, name:"Ombré Leather",        brand:"Tom Ford",            ref:"142", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":57,"30ml":29.50,"15ml":17.90} },
+  { id:114, name:"Vanille Powder",       brand:"Matière Première",    ref:"143", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:115, name:"Bianco Latte",         brand:"Giardini di Toscana", ref:"144", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:116, name:"Dévotion",             brand:"D&G",                 ref:"145", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:117, name:"Rouge",                brand:"Balmain",             ref:"146U",gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:118, name:"BOSS Bottled Absolu",  brand:"H. Boss",             ref:"147M",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:119, name:"Goddess",              brand:"Burberry",            ref:"148W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  // ── Page 6 ───────────────────────────────────────────────────────
+  { id:120, name:"Hugo homme",           brand:"H. Boss",             ref:"150M",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:121, name:"Guilty femme",         brand:"Gucci",               ref:"151W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:122, name:"Guilty homme",         brand:"Gucci",               ref:"152M",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:123, name:"Chloé",                brand:"Chloé",               ref:"153W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:124, name:"Love Chloé",           brand:"Chloé",               ref:"154W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:125, name:"CK One",               brand:"C. Klein",            ref:"155U",gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:126, name:"Hugo femme",           brand:"H. Boss",             ref:"156W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:127, name:"The Scent",            brand:"H. Boss",             ref:"157W",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:128, name:"Flora",                brand:"Gucci",               ref:"158W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:129, name:"Burberry femme",       brand:"Burberry",            ref:"159W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:130, name:"Burberry for Men",     brand:"Burberry",            ref:"160M",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:131, name:"Born In Roma Intense femme",brand:"Valentino",      ref:"161W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:132, name:"Born In Roma Intense homme",brand:"Valentino",      ref:"162M",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+];
+
+const CHECKLIST0 = [
+  { id:1,  text:"Regarder la vidéo de bienvenue de Marie" },
+  { id:2,  text:"Créer ton espace consultant sur chogan.eu" },
+  { id:3,  text:"Commander ta mallette de démarrage" },
+  { id:4,  text:"Rejoindre le groupe Telegram de l'équipe" },
+  { id:5,  text:"Télécharger les modèles Canva" },
+  { id:6,  text:"Créer ta page Instagram / Facebook Chogan" },
+  { id:7,  text:"Publier ta première story de présentation" },
+  { id:8,  text:"Maîtriser le script de contact (Module 2)" },
+  { id:9,  text:"Effectuer ta première vente" },
+  { id:10, text:"Recruter ton premier filleul" },
+  { id:11, text:"Réussir le quiz de certification (8/10 min.)" },
+  { id:12, text:"Atteindre le statut Gold" },
+].map(i => ({ ...i, done: false }));
+
+const SCRIPTS = [
+  { id:1, title:"Contact naturel",         ctx:"Personne que tu connais",
+    text:"Salut [Prénom] ! 😊 J'ai pensé à toi — je viens de commencer quelque chose de super avec les parfums Chogan. Des fragrances de qualité luxe à prix accessible, livrées à domicile. Tu voudrais qu'on en parle 5 min ?",
+    tip:"Toujours personnaliser avec le prénom. Finir par une question ouverte." },
+  { id:2, title:"Relance douce",            ctx:"Prospect sans réponse",
+    text:"Coucou [Prénom] ! Je repasse te voir car j'avais pensé à toi 😊 Est-ce que c'est encore un bon moment pour en parler ? Pas de pression du tout !",
+    tip:"Ne pas relancer plus de 2 fois. Rester léger et bienveillant." },
+  { id:3, title:"Invitation atelier parfum", ctx:"Découverte produit",
+    text:"Hey [Prénom] ! J'organise un petit atelier parfum chez moi [Date]. On teste les fragrances — c'est sympa et sans obligation d'achat. Tu passes ?",
+    tip:"L'atelier crée la confiance et facilite les ventes naturellement." },
+  { id:4, title:"Opportunité business",     ctx:"Recrutement consultant",
+    text:"[Prénom], je sais que tu cherches à arrondir tes fins de mois. Est-ce que tu es ouverte à découvrir comment certaines personnes gagnent 300 à 1 500 €/mois en recommandant des parfums qu'on porte tous les jours ?",
+    tip:"Cibler des profils entrepreneur ou en recherche de revenus complémentaires." },
+];
+
+const QUIZ = [
+  { id:1,  q:"Quelle couleur de texte indique un parfum FEMME ?",   opts:["Noir","Vert","Rose","Bleu"],    correct:2 },
+  { id:2,  q:"Quelle couleur de texte indique un parfum HOMME ?",   opts:["Rouge","Vert","Rose","Noir"],   correct:3 },
+  { id:3,  q:"Quelle couleur de texte indique un parfum MIXTE ?",   opts:["Rose","Vert","Noir","Violet"],  correct:1 },
+  { id:4,  q:"Quelle est la concentration en parfum Chogan ?",       opts:["15%","20%","30%","40%"],        correct:2 },
+  { id:5,  q:"Combien de références au catalogue Chogan ?",          opts:["50+","100+","157+","200+"],     correct:2 },
+  { id:6,  q:"Quel score minimum pour la certification ?",           opts:["6/10","7/10","8/10","10/10"],   correct:2 },
+  { id:7,  q:"Quelle est la plus petite contenance disponible ?",    opts:["10ml","15ml","20ml","25ml"],    correct:1 },
+  { id:8,  q:"Comment contacter le support Gold ?",                  opts:["Email","Formulaire","WhatsApp direct","Telegram"], correct:2 },
+  { id:9,  q:"Quelle plateforme pour les modèles de posts ?",        opts:["Pinterest","Canva","Instagram","Figma"],           correct:1 },
+  { id:10, q:"1ère étape après ton inscription ?",                   opts:["Recruter","Commander mallette","Vidéo bienvenue","Créer réseaux"], correct:2 },
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────
+const gc = g => g === "homme" ? HC : g === "femme" ? FC : MC;
+const gl = g => g === "homme" ? "♂ Homme" : g === "femme" ? "♀ Femme" : "⚧ Mixte";
+
+// ── CSS ───────────────────────────────────────────────────────────
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body,#root{background:${BG};color:${TX};font-family:'DM Sans',system-ui,sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent;}
+.app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;}
+.hdr{background:#0a0a1a;border-bottom:0.5px solid rgba(201,168,76,.18);padding:13px 18px;display:flex;align-items:center;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:700;color:${G};letter-spacing:4px;text-transform:uppercase;}
+.hdr-sub{margin-left:auto;font-size:10px;color:${MU};letter-spacing:2px;text-transform:uppercase;}
+.main{flex:1;padding-bottom:82px;overflow-y:auto;}
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#0a0a1a;border-top:0.5px solid rgba(201,168,76,.12);display:flex;z-index:200;}
+.nb{flex:1;border:none;background:transparent;color:${MU};padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:color .15s;font-family:'DM Sans',sans-serif;}
+.nb.on{color:${G};}
+.nic{font-size:17px;line-height:1;}
+.nlbl{font-size:8px;letter-spacing:.5px;text-transform:uppercase;}
+.card{background:${S1};border:0.5px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;margin-bottom:10px;}
+.cardg{background:${S1};border:0.5px solid rgba(201,168,76,.22);border-radius:12px;padding:14px;margin-bottom:10px;}
+.sh{padding:18px 18px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.shtitle{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:600;color:${G};}
+.sb{padding:12px 18px;}
+.btn-p{background:linear-gradient(135deg,${G},#a8872e);color:#07070f;border:none;border-radius:50px;padding:13px 28px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;letter-spacing:.8px;cursor:pointer;text-transform:uppercase;box-shadow:0 4px 20px rgba(201,168,76,.25);transition:opacity .15s;}
+.btn-p:hover{opacity:.88;}
+.btn-o{background:transparent;color:${G};border:0.5px solid rgba(201,168,76,.4);border-radius:8px;padding:7px 14px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .15s;}
+.btn-o:hover{background:rgba(201,168,76,.07);}
+.btn-d{background:transparent;color:${RD};border:0.5px solid rgba(224,80,80,.28);border-radius:8px;padding:5px 12px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.ftabs{display:flex;gap:6px;padding:10px 18px;overflow-x:auto;scrollbar-width:none;}
+.ftabs::-webkit-scrollbar{display:none;}
+.ftab{background:${S1};border:0.5px solid rgba(255,255,255,.07);color:${MU};border-radius:20px;padding:5px 13px;font-size:12px;white-space:nowrap;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.ftab.on{background:rgba(201,168,76,.1);border-color:${G};color:${G};}
+.srch{width:calc(100% - 36px);margin:0 18px 10px;background:${S1};border:0.5px solid rgba(255,255,255,.07);color:${TX};border-radius:10px;padding:9px 13px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;}
+.srch:focus{border-color:rgba(201,168,76,.32);}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 18px 14px;}
+.pcrd{background:${S1};border-radius:10px;padding:11px;border-left:3px solid;transition:transform .12s;}
+.pcrd:hover{transform:scale(1.015);}
+.ci{display:flex;align-items:flex-start;gap:11px;padding:11px;border-radius:10px;background:${S1};margin-bottom:7px;cursor:pointer;transition:background .12s;}
+.ci:hover{background:${S2};}
+.cbox{width:21px;height:21px;border-radius:6px;border:1.5px solid rgba(201,168,76,.38);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .15s;}
+.cbox.ck{background:${G};border-color:${G};}
+.pbar-w{height:6px;background:rgba(255,255,255,.05);border-radius:10px;overflow:hidden;margin:6px 0;}
+.pbar{height:100%;background:linear-gradient(90deg,${G},${GL});border-radius:10px;transition:width .3s ease;}
+.scrd{background:${S1};border-radius:12px;margin-bottom:9px;border:0.5px solid rgba(255,255,255,.06);overflow:hidden;}
+.shdr{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.upz{margin:0 18px 10px;border:1.5px dashed rgba(201,168,76,.28);border-radius:14px;padding:22px;text-align:center;cursor:pointer;background:rgba(201,168,76,.02);transition:all .15s;}
+.upz:hover{border-color:${G};background:rgba(201,168,76,.05);}
+.qopt{background:${S1};border:0.5px solid rgba(255,255,255,.07);border-radius:8px;padding:9px 13px;margin-bottom:5px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;color:${TX};width:100%;text-align:left;transition:all .12s;}
+.qopt:hover{border-color:rgba(201,168,76,.28);}
+.qopt.sel{border-color:${G};background:rgba(201,168,76,.08);color:${G};}
+.qopt.ok{border-color:${MC};background:rgba(126,200,154,.08);color:${MC};}
+.qopt.ko{border-color:${RD};background:rgba(224,80,80,.07);color:${RD};}
+.div{height:0.5px;background:rgba(255,255,255,.05);margin:4px 0 12px;}
+.inp{background:${S1};border:0.5px solid rgba(255,255,255,.09);color:${TX};border-radius:8px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:100%;}
+.inp:focus{border-color:rgba(201,168,76,.32);}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500;}
+.rlink{display:flex;align-items:center;gap:13px;padding:13px 15px;background:${S1};border-radius:12px;margin-bottom:8px;border:0.5px solid rgba(255,255,255,.06);cursor:pointer;transition:background .12s;color:${TX};text-decoration:none;}
+.rlink:hover{background:${S2};}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.fi{animation:fi .24s ease forwards;}
+`;
+
+// ── SUB-COMPONENTS ────────────────────────────────────────────────
+
+function DZDCalc() {
+  const [eur, setEur] = useState("");
+  const [rate, setRate] = useState("145");
+  const dzd = eur && !isNaN(+eur) ? Math.round(+eur * (+rate || 145)) : null;
+  return (
+    <div className="cardg">
+      <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:12 }}>Convertisseur EUR → DZD</p>
+      <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+        <div style={{ flex:1 }}>
+          <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>Montant (€)</label>
+          <input className="inp" type="number" placeholder="0.00" value={eur} onChange={e=>setEur(e.target.value)} />
         </div>
-        <div class="grid grid-cols-2 gap-4" id="list-container">
-            </div>
+        <div style={{ flex:1 }}>
+          <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>1€ = ? DZD</label>
+          <input className="inp" type="number" placeholder="145" value={rate} onChange={e=>setRate(e.target.value)} />
+        </div>
+      </div>
+      {dzd !== null && (
+        <div style={{ textAlign:"center", padding:"10px 0" }}>
+          <p style={{ fontSize:11, color:MU }}>{eur}€ =</p>
+          <p style={{ fontSize:28, fontWeight:600, color:G }}>{dzd.toLocaleString("fr-FR")} DZD</p>
+        </div>
+      )}
     </div>
+  );
+}
 
-    <div id="p2" class="page p-6">
-        <h2 class="text-xl font-black uppercase mb-6 border-b-4 border-black pb-1 inline-block">Récapitulatif</h2>
-        <div id="order-items" class="space-y-3 mb-6"></div>
-        <div class="recap-box">
-            <div class="flex justify-between items-center font-bold mb-2 uppercase text-xs">
-                <span>Frais de port (<span class="cur-txt">€</span>)</span>
-                <span class="bg-zinc-100 px-3 py-1 border border-black rounded-lg">2,5</span>
+// ── BIENVENUE VIEW — Lecteur PDF intégré ─────────────────────────
+// 👉 Place le fichier PDF dans /public/bienvenue-chogan.pdf sur Vercel
+function BienvenueView({ onBack }) {
+  return (
+    <div className="fi" style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 130px)" }}>
+      <div className="sh" style={{ alignItems:"center", flexShrink:0 }}>
+        <button onClick={onBack} style={{ background:"none", border:"none", color:G, cursor:"pointer", fontSize:18, marginRight:10, padding:0 }}>←</button>
+        <span className="shtitle">Bienvenue chez Chogan</span>
+      </div>
+      <div style={{ flex:1, margin:"10px 18px 0", borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)" }}>
+        <iframe
+          src="/bienvenue-chogan.pdf"
+          style={{ width:"100%", height:"100%", border:"none", background:"#fff" }}
+          title="Bienvenue chez Chogan"
+        />
+      </div>
+      <div style={{ padding:"12px 18px", display:"flex", gap:8 }}>
+        <a href="/bienvenue-chogan.pdf" download style={{ flex:1, textAlign:"center" }} className="btn-o">
+          ↓ Télécharger le PDF
+        </a>
+        <button className="btn-o" onClick={onBack}>← Retour</button>
+      </div>
+    </div>
+  );
+}
+
+function RessourcesView({ onOpenBienvenue }) {
+  return (
+    <div className="fi">
+      <div className="sh"><span className="shtitle">Ressources</span></div>
+      <div className="sb">
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📥 Téléchargements</p>
+        {[
+          { ic:"📄", t:"Bon de commande",        d:"À imprimer pour tes clients",    action:null },
+          { ic:"💲", t:"Liste de prix",           d:"Tarifs consultants et clients",  action:null },
+          { ic:"🗓", t:"Planning mensuel",         d:"Organise ton activité Chogan",   action:null },
+        ].map((r,i) => (
+          <div key={i} className="rlink">
+            <span style={{ fontSize:22 }}>{r.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:500 }}>{r.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{r.d}</p>
             </div>
-            <div class="border-t border-zinc-200 my-4"></div>
-            <div class="flex justify-between items-end">
-                <span class="text-lg font-black">TOTAL :</span>
-                <span class="text-2xl font-black" id="total-val">0.00 €</span>
-            </div>
+            <span style={{ color:G, fontSize:16 }}>↓</span>
+          </div>
+        ))}
+        <div className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)", cursor:"pointer" }} onClick={onOpenBienvenue}>
+          <span style={{ fontSize:22 }}>👋</span>
+          <div style={{ flex:1 }}>
+            <p style={{ fontSize:13, fontWeight:600, color:G }}>PDF Bienvenue chez Chogan</p>
+            <p style={{ fontSize:11, color:MU, marginTop:2 }}>Guide complet d'onboarding — lire dans l'app</p>
+          </div>
+          <span style={{ color:G, fontSize:16 }}>→</span>
         </div>
-        <button onclick="send()" class="w-full bg-black text-white py-5 rounded-2xl mt-8 font-black uppercase flex items-center justify-center gap-3 active:scale-95 transition-all">
-            📤 Envoyer la commande
+
+        <div className="div" style={{ margin:"14px 0" }} />
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🔗 Liens utiles</p>
+        {[
+          { ic:"📱", t:"Groupe Telegram Équipe",  d:"Rejoindre le groupe de support" },
+          { ic:"🎨", t:"Modèles Canva",           d:"Stories et posts Instagram prêts à personnaliser" },
+          { ic:"🔓", t:"Limitless – Formation",   d:"Plateforme de formation complète" },
+          { ic:"🌐", t:"Site Chogan Officiel",    d:"chogan.eu — espace consultant & commandes" },
+        ].map((r,i) => (
+          <div key={i} className="rlink">
+            <span style={{ fontSize:22 }}>{r.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:500 }}>{r.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{r.d}</p>
+            </div>
+            <span style={{ color:G, fontSize:16 }}>↗</span>
+          </div>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🏅 Statuts & Aide</p>
+        {[
+          { ic:"⭐", n:"Standard", b:"FAQ",           d:"Base de connaissances complète", c:MU },
+          { ic:"🥇", n:"Gold",     b:"WhatsApp direct",d:"Support prioritaire via WhatsApp", c:G },
+          { ic:"👑", n:"Admin",    b:"Gestion totale", d:"Gestion complète de l'équipe", c:"#b0a0ff" },
+        ].map((s,i) => (
+          <div key={i} className="card" style={{ borderLeft:`3px solid ${s.c}`, display:"flex", gap:12, alignItems:"center", marginBottom:8 }}>
+            <span style={{ fontSize:22 }}>{s.ic}</span>
+            <div style={{ flex:1 }}>
+              <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:2 }}>
+                <span style={{ fontSize:13, fontWeight:600, color:s.c }}>{s.n}</span>
+                <span className="badge" style={{ background:"rgba(255,255,255,.05)", color:s.c }}>{s.b}</span>
+              </div>
+              <p style={{ fontSize:11, color:MU }}>{s.d}</p>
+            </div>
+          </div>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+        <DZDCalc />
+      </div>
+    </div>
+  );
+}
+
+function FormationView() {
+  const [sub, setSub] = useState("modules");
+  const [openSc, setOpenSc] = useState(null);
+  const [qa, setQa] = useState({});
+  const [qdone, setQdone] = useState(false);
+
+  const score = QUIZ.filter(q => qa[q.id] === q.correct).length;
+
+  return (
+    <div className="fi">
+      <div className="sh">
+        <span className="shtitle">Formation</span>
+        {sub === "quiz" && <button className="btn-d" onClick={()=>{if(window.confirm("Reset quiz ?")){ setQa({}); setQdone(false); }}}>↺ Reset</button>}
+      </div>
+      <div className="ftabs">
+        {[["modules","📚 Modules"],["prospection","💬 Scripts"],["quiz","📝 Quiz"]].map(([v,l])=>(
+          <button key={v} className={`ftab ${sub===v?"on":""}`} onClick={()=>setSub(v)}>{l}</button>
+        ))}
+      </div>
+
+      {sub === "modules" && (
+        <div className="sb">
+          <div className="cardg" style={{ marginBottom:16 }}>
+            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🎬 Académie Chogan</p>
+            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>3 modules vidéos pour maîtriser chaque aspect de ton activité. Complète-les dans l'ordre.</p>
+          </div>
+          {[
+            { ic:"📝", t:"Module 1 – Inscription", d:"Créer ton espace consultant et comprendre la plateforme Chogan" },
+            { ic:"👜", t:"Module 2 – La Mallette",  d:"Présentation des produits et tes premières ventes" },
+            { ic:"💰", t:"Module 3 – La Vente",    d:"Techniques de vente, objections et closing efficace" },
+          ].map((m,i) => (
+            <div key={i} className="rlink">
+              <span style={{ fontSize:22 }}>{m.ic}</span>
+              <div style={{ flex:1 }}>
+                <p style={{ fontSize:13, fontWeight:500 }}>{m.t}</p>
+                <p style={{ fontSize:11, color:MU, marginTop:2, lineHeight:1.4 }}>{m.d}</p>
+              </div>
+              <span style={{ color:G, fontSize:15, flexShrink:0 }}>▶</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {sub === "prospection" && (
+        <div className="sb">
+          <div className="cardg" style={{ marginBottom:14 }}>
+            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>📖 Module 2 – Contacter & Inviter</p>
+            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>4 scripts éprouvés. Personnalise toujours avec le prénom et adapte au contexte.</p>
+          </div>
+          {SCRIPTS.map(s => (
+            <div key={s.id} className="scrd">
+              <div className="shdr" onClick={()=>setOpenSc(openSc===s.id?null:s.id)}>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:600 }}>{s.title}</p>
+                  <p style={{ fontSize:11, color:MU, marginTop:2 }}>{s.ctx}</p>
+                </div>
+                <span style={{ color:G }}>{openSc===s.id?"▲":"▼"}</span>
+              </div>
+              {openSc===s.id && (
+                <div style={{ padding:"0 15px 15px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
+                  <div style={{ background:"rgba(201,168,76,.05)", border:"0.5px solid rgba(201,168,76,.14)", borderRadius:10, padding:13, fontSize:13, lineHeight:1.7, margin:"12px 0", color:"#ddd", fontStyle:"italic" }}>
+                    {s.text}
+                  </div>
+                  <div style={{ fontSize:11, color:MC, padding:"7px 11px", background:"rgba(126,200,154,.07)", borderRadius:8, marginBottom:10 }}>
+                    💡 {s.tip}
+                  </div>
+                  <button className="btn-o" style={{ width:"100%" }}
+                    onClick={()=>navigator.clipboard?.writeText(s.text).then(()=>alert("Script copié ! 📋"))}>
+                    📋 Copier le script
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {sub === "quiz" && (
+        <div className="sb">
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <p style={{ fontSize:13, fontWeight:500 }}>Quiz de Certification</p>
+            <span className="badge" style={{ background:"rgba(201,168,76,.14)", color:G }}>8/10 requis</span>
+          </div>
+
+          {!qdone ? (
+            <>
+              {QUIZ.map((q,qi)=>(
+                <div key={q.id} className="card" style={{ marginBottom:10 }}>
+                  <p style={{ fontSize:13, fontWeight:500, marginBottom:10, lineHeight:1.45 }}>{qi+1}. {q.q}</p>
+                  {q.opts.map((opt,oi)=>(
+                    <button key={oi} className={`qopt ${qa[q.id]===oi?"sel":""}`}
+                      onClick={()=>setQa(p=>({...p,[q.id]:oi}))}>
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              ))}
+              <button className="btn-p" style={{ width:"100%", marginTop:8 }}
+                onClick={()=>{
+                  if(Object.keys(qa).length < QUIZ.length){ alert("Réponds à toutes les questions !"); return; }
+                  setQdone(true);
+                }}>
+                Valider le quiz
+              </button>
+            </>
+          ) : (
+            <>
+              <div className={score>=8?"cardg":"card"} style={{ textAlign:"center", padding:24, marginBottom:16 }}>
+                <p style={{ fontSize:40, marginBottom:8 }}>{score>=8?"🎓":"📚"}</p>
+                <p style={{ fontSize:30, fontWeight:700, color:score>=8?G:RD }}>{score}/10</p>
+                <p style={{ fontSize:13, marginTop:8, color:"#ccc" }}>
+                  {score>=8?"Certification obtenue ! Félicitations ! 🎉":"Score insuffisant — révise et réessaie"}
+                </p>
+              </div>
+              {QUIZ.map((q,qi)=>(
+                <div key={q.id} className="card" style={{ marginBottom:8 }}>
+                  <p style={{ fontSize:12, fontWeight:500, marginBottom:8, lineHeight:1.4 }}>{qi+1}. {q.q}</p>
+                  {q.opts.map((opt,oi)=>(
+                    <button key={oi} className={`qopt ${oi===q.correct?"ok":qa[q.id]===oi&&oi!==q.correct?"ko":""}`}>{opt}</button>
+                  ))}
+                </div>
+              ))}
+              <button className="btn-o" style={{ width:"100%", marginTop:8 }}
+                onClick={()=>{setQa({});setQdone(false);}}>
+                Reprendre le quiz
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChecklistView({ checklist, setChecklist }) {
+  const done = checklist.filter(i=>i.done).length;
+  const pct = Math.round((done/checklist.length)*100);
+  return (
+    <div className="fi">
+      <div className="sh">
+        <span className="shtitle">Checklist</span>
+        <button className="btn-d" onClick={()=>{if(window.confirm("Réinitialiser la checklist ?")) setChecklist(CHECKLIST0);}}>↺ Reset</button>
+      </div>
+      <div className="sb">
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
+          <span style={{ fontSize:12, color:MU }}>{done}/{checklist.length} étapes</span>
+          <span className="badge" style={{ background:pct===100?"rgba(126,200,154,.16)":"rgba(201,168,76,.14)", color:pct===100?MC:G }}>{pct}%</span>
+        </div>
+        <div className="pbar-w"><div className="pbar" style={{ width:`${pct}%` }} /></div>
+        {pct===100&&(
+          <div className="cardg" style={{ textAlign:"center", padding:20, marginTop:12 }}>
+            <p style={{ fontSize:24, marginBottom:6 }}>🎓</p>
+            <p style={{ color:G, fontWeight:600, fontSize:14 }}>Onboarding complété ! Félicitations !</p>
+          </div>
+        )}
+        <div style={{ marginTop:10 }}>
+          {checklist.map(item=>(
+            <div key={item.id} className="ci"
+              onClick={()=>setChecklist(p=>p.map(i=>i.id===item.id?{...i,done:!i.done}:i))}>
+              <div className={`cbox ${item.done?"ck":""}`}>
+                {item.done&&<span style={{ color:"#07070f", fontSize:11, fontWeight:700 }}>✓</span>}
+              </div>
+              <span style={{ fontSize:13, lineHeight:1.4, flex:1, textDecoration:item.done?"line-through":"none", color:item.done?MU:TX }}>
+                {item.text}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CatalogueView({ perfumes, setPerfumes }) {
+  const [sizeF, setSizeF] = useState("tous");
+  const [genF, setGenF] = useState("tous");
+  const [srch, setSrch] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const fref = useRef();
+
+  const filtered = perfumes.filter(p => {
+    if (sizeF !== "tous" && !(p.sizes||[]).includes(sizeF)) return false;
+    if (genF  !== "tous" && p.gender !== genF) return false;
+    if (srch) {
+      const q = srch.toLowerCase();
+      if (!p.name.toLowerCase().includes(q) && !(p.brand||"").toLowerCase().includes(q) && !(p.ref||"").includes(srch)) return false;
+    }
+    return true;
+  });
+
+  const handleFile = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    setUploading(true); setMsg("✨ Extraction IA en cours…");
+    try {
+      const b64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(",")[1]); r.onerror=rej; r.readAsDataURL(file); });
+      const isImg = file.type.startsWith("image/");
+      const resp = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          model:"claude-sonnet-4-20250514", max_tokens:2000,
+          messages:[{ role:"user", content:[
+            { type:isImg?"image":"document", source:{ type:"base64", media_type:file.type, data:b64 }},
+            { type:"text", text:`Extrais TOUS les parfums Chogan visibles dans cette image/PDF.
+Règle couleur du texte : NOIR = homme | ROSE/ROUGE = femme | VERT = mixte
+Chaque parfum peut avoir plusieurs tailles (70ml, 30ml, 50ml, 15ml, 100ml).
+Réponds UNIQUEMENT en JSON valide sans markdown :
+[{"name":"nom du parfum","brand":"marque inspiratrice","ref":"code principal ex:001","gender":"homme|femme|mixte","sizes":["70ml","30ml","15ml"]}]
+Si pas de référence, génère un id court. Inclus TOUTES les entrées visibles.` }
+          ]}]
+        })
+      });
+      const data = await resp.json();
+      const raw = (data.content||[]).map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)&&list.length>0) {
+        setPerfumes(prev=>{
+          const names = new Set(prev.map(p=>p.name.toLowerCase()));
+          const add = list.filter(p=>!names.has((p.name||"").toLowerCase()))
+            .map((p,i)=>({...p, id:Date.now()+i, name:p.name||`Parfum ${i+1}`, gender:p.gender||"mixte", sizes:p.sizes||["70ml","15ml"]}));
+          return [...prev,...add];
+        });
+        setMsg(`✅ ${list.length} inspirations extraites !`);
+      } else { setMsg("⚠️ Aucun parfum détecté. Image plus nette ?"); }
+    } catch(err) { setMsg("❌ Erreur extraction. Réessaie."); }
+    finally { setUploading(false); setTimeout(()=>setMsg(""),5000); e.target.value=""; }
+  };
+
+  return (
+    <div className="fi">
+      <div className="sh">
+        <span className="shtitle">Liste Inspirations</span>
+        <span style={{ fontSize:11, color:MU }}>{perfumes.length} parfums</span>
+      </div>
+
+      <div className="upz" onClick={()=>fref.current.click()}>
+        {uploading
+          ? <p style={{ color:G, fontSize:13 }}>⏳ Analyse IA en cours…</p>
+          : <>
+              <p style={{ fontSize:24, marginBottom:6 }}>📷</p>
+              <p style={{ fontSize:13, color:G, fontWeight:500 }}>Mettre à jour la liste</p>
+              <p style={{ fontSize:11, color:MU, marginTop:3 }}>Upload photo ou PDF → extraction automatique par IA</p>
+            </>
+        }
+      </div>
+      <input ref={fref} type="file" accept="image/*,application/pdf" style={{ display:"none" }} onChange={handleFile} />
+      {msg&&<div style={{ textAlign:"center", fontSize:12, padding:"4px 18px 10px", color:msg.startsWith("✅")?MC:msg.startsWith("❌")?RD:G }}>{msg}</div>}
+
+      <div className="ftabs">
+        {[["tous","Tous"],["homme","♂ Homme"],["femme","♀ Femme"],["mixte","⚧ Mixte"]].map(([v,l])=>(
+          <button key={v} className={`ftab ${genF===v?"on":""}`}
+            style={genF===v&&v!=="tous"?{borderColor:gc(v),color:gc(v)}:{}}
+            onClick={()=>setGenF(v)}>{l}</button>
+        ))}
+      </div>
+      <div className="ftabs" style={{ paddingTop:0 }}>
+        {[["tous","Toutes"],["15ml","15 ml"],["30ml","30 ml"],["50ml","50 ml"],["70ml","70 ml"]].map(([v,l])=>(
+          <button key={v} className={`ftab ${sizeF===v?"on":""}`} onClick={()=>setSizeF(v)}>{l}</button>
+        ))}
+      </div>
+      <input className="srch" placeholder="🔍 Nom, marque ou référence…" value={srch} onChange={e=>setSrch(e.target.value)} />
+
+      <div className="pgrid">
+        {filtered.length===0
+          ? <div style={{ gridColumn:"1/-1", textAlign:"center", padding:36, color:MU }}><p style={{ fontSize:28, marginBottom:8 }}>🌸</p><p style={{ fontSize:13 }}>Aucun parfum trouvé</p></div>
+          : filtered.map(p=>(
+              <div key={p.id} className="pcrd" style={{ borderLeftColor:gc(p.gender) }}>
+                <p style={{ fontSize:12, fontWeight:600, color:gc(p.gender), lineHeight:1.3, marginBottom:2 }}>{p.name}</p>
+                <p style={{ fontSize:10, color:MU, marginBottom:2 }}>{p.brand}</p>
+                <p style={{ fontSize:10, color:MU, marginBottom:7 }}>Réf. {p.ref}</p>
+                <div style={{ display:"flex", flexDirection:"column", gap:3 }}>
+                  {(p.sizes||[]).map(s=>(
+                    <div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+                      padding:"2px 6px", borderRadius:6,
+                      background: sizeF===s ? `rgba(${p.gender==="homme"?"212,212,226":p.gender==="femme"?"244,160,181":"126,200,154"},.15)` : "rgba(255,255,255,.04)",
+                      border: sizeF===s ? `0.5px solid ${gc(p.gender)}` : "0.5px solid transparent"
+                    }}>
+                      <span style={{ fontSize:10, color: sizeF===s ? gc(p.gender) : MU, fontWeight: sizeF===s?600:400 }}>{s}</span>
+                      <span style={{ fontSize:10, color:G, fontWeight:600 }}>{p.prices?.[s] ? `${p.prices[s].toFixed(2).replace(".",",")} €` : "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+        }
+      </div>
+      <div style={{ textAlign:"center", paddingBottom:16 }}>
+        <button className="btn-d" onClick={()=>{if(window.confirm("Réinitialiser la liste ?")) setPerfumes(DEMO_PERFUMES);}}>
+          ↺ Réinitialiser la liste
         </button>
+      </div>
     </div>
+  );
+}
 
-    <div id="p3" class="page p-6 text-center"><h2>Club Diamond</h2></div>
-    <div id="p4" class="page p-6 text-center"><h2>Goal & Stats</h2></div>
-    <div id="p5" class="page p-6 text-center"><h2>Admin Panel</h2></div>
-    <div id="p6" class="page p-6 text-center"><h2>Learn Center</h2></div>
-    <div id="p7" class="page p-6 text-center"><h2>Mon Profil</h2></div>
+function AccueilView({ started, setStarted }) {
+  const [anns, setAnns] = useState([
+    { id:1, text:"🎉 Bienvenue dans l'équipe ! Ton aventure Chogan commence aujourd'hui.", date:new Date().toLocaleDateString("fr-FR") },
+    { id:2, text:"🌸 Promo du mois : -20% sur la gamme 50ml jusqu'à fin du mois !", date:new Date().toLocaleDateString("fr-FR") },
+  ]);
+  const [sucs, setSucs] = useState([
+    { id:1, name:"Amira B.", ach:"Première vente ✨" },
+    { id:2, name:"Nour K.",  ach:"Statut Gold atteint 🥇" },
+  ]);
+  const [newA, setNewA] = useState("");
+  const [newS, setNewS] = useState("");
 
-    <nav class="nav-bar">
-        <button onclick="show(1)" class="nav-item active" id="n1">🛍️<br>Shop</button>
-        <button onclick="show(2)" class="nav-item" id="n2">📜<br>Ordre</button>
-        <button onclick="show(3)" class="nav-item" id="n3">💎<br>Club</button>
-        <button onclick="show(4)" class="nav-item" id="n4">📈<br>Goal</button>
-        <button onclick="show(5)" class="nav-item" id="n5">📢<br>Admin</button>
-        <button onclick="show(6)" class="nav-item" id="n6">🎓<br>Learn</button>
-        <button onclick="show(7)" class="nav-item" id="n7">👤<br>Moi</button>
-    </nav>
+  if (!started) return (
+    <div className="fi" style={{ minHeight:"calc(100vh - 130px)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"32px 22px", textAlign:"center", background:"radial-gradient(ellipse at 50% 25%, rgba(201,168,76,.07) 0%, transparent 65%)" }}>
+      <div style={{ fontSize:44, marginBottom:14 }}>✦</div>
+      <div style={{ fontFamily:"'Cormorant Garamond',Georgia,serif", fontSize:30, fontWeight:700, color:G, lineHeight:1.2, marginBottom:6 }}>Bienvenue chez Chogan</div>
+      <p style={{ fontSize:12, color:MU, marginBottom:22 }}>Ton espace consultant personnel</p>
+      <div style={{ background:"rgba(255,255,255,.025)", border:"0.5px solid rgba(201,168,76,.2)", borderRadius:14, padding:"20px 20px 16px", marginBottom:24, textAlign:"left", position:"relative" }}>
+        <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:56, color:G, opacity:.18, position:"absolute", top:-8, left:12, lineHeight:1 }}>"</div>
+        <p style={{ fontSize:13, lineHeight:1.8, color:"#ccc", paddingTop:14 }}>
+          Chère consultante, je suis tellement heureuse de t'accueillir dans notre équipe ! 🌸<br/><br/>
+          Cette application va t'accompagner pas à pas dans ton aventure Chogan — de ta première vente jusqu'au statut Platinium et au-delà.<br/><br/>
+          Suis ta checklist, explore le catalogue complet, et utilise nos scripts éprouvés pour contacter tes prospects avec confiance.<br/><br/>
+          Tu n'es pas seule — toute l'équipe est là pour toi ! ✨
+        </p>
+        <p style={{ fontSize:13, color:G, fontFamily:"'Cormorant Garamond',serif", fontStyle:"italic", marginTop:12 }}>— Marie</p>
+      </div>
+      <button className="btn-p" onClick={()=>setStarted(true)}>🚀 Démarrer mon aventure</button>
+    </div>
+  );
 
-    <script>
-        let currency = 'EUR';
-        let cart = [];
-        
-        const products = [
-            { id: "007", n: "J'adore", b: "J", p: 18 },
-            { id: "042", n: "La Vie Est Belle", b: "L", p: 18 },
-            { id: "094", n: "Sauvage", b: "S", p: 18 },
-            { id: "118", n: "Baccarat Rouge", b: "B", p: 18 },
-            { id: "068", n: "Aventus", b: "A", p: 18 },
-            { id: "105", n: "Oud Wood", b: "O", p: 52 }
-        ];
+  return (
+    <div className="fi">
+      <div className="sh">
+        <span className="shtitle">Accueil</span>
+        <button className="btn-d" onClick={()=>{if(window.confirm("Réinitialiser l'accueil ?")) setStarted(false);}}>↺ Reset</button>
+      </div>
+      <div className="sb">
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📣 Mur d'Annonces</p>
+        {anns.map(a=>(
+          <div key={a.id} className="cardg" style={{ position:"relative" }}>
+            <p style={{ fontSize:13, lineHeight:1.55 }}>{a.text}</p>
+            <p style={{ fontSize:10, color:MU, marginTop:5 }}>{a.date}</p>
+            <button onClick={()=>setAnns(p=>p.filter(x=>x.id!==a.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>
+          </div>
+        ))}
+        <div style={{ display:"flex", gap:8, marginTop:6 }}>
+          <input className="inp" placeholder="Nouvelle annonce…" value={newA} onChange={e=>setNewA(e.target.value)} style={{ flex:1 }} />
+          <button className="btn-o" onClick={()=>{ if(!newA.trim())return; setAnns(p=>[...p,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}>+</button>
+        </div>
+      </div>
 
-        function setCurrency(c) {
-            currency = c;
-            document.getElementById('btn-eur').classList.toggle('active', c==='EUR');
-            document.getElementById('btn-da').classList.toggle('active', c==='DA');
-            updateAll();
-        }
+      <div className="div" />
 
-        function updateAll() {
-            renderProducts();
-            updateRecap();
-        }
+      <div className="sb">
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🏆 Mur des Succès</p>
+        {sucs.map(s=>(
+          <div key={s.id} className="card" style={{ display:"flex", alignItems:"center", gap:12, position:"relative" }}>
+            <span style={{ fontSize:24 }}>🌟</span>
+            <div><p style={{ fontSize:13, fontWeight:600 }}>{s.name}</p><p style={{ fontSize:12, color:MU }}>{s.ach}</p></div>
+            <button onClick={()=>setSucs(p=>p.filter(x=>x.id!==s.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>
+          </div>
+        ))}
+        <div style={{ display:"flex", gap:8, marginTop:6 }}>
+          <input className="inp" placeholder="Prénom + succès…" value={newS} onChange={e=>setNewS(e.target.value)} style={{ flex:1 }} />
+          <button className="btn-o" onClick={()=>{
+            if(!newS.trim())return;
+            const [name,...rest]=newS.split(" ");
+            setSucs(p=>[...p,{id:Date.now(),name,ach:rest.join(" ")||"Nouveau succès 🎉"}]);
+            setNewS("");
+          }}>+</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        function renderProducts() {
-            const t = parseFloat(document.getElementById('taux-input').value) || 1;
-            const container = document.getElementById('list-container');
-            container.innerHTML = '';
-            products.forEach(p => {
-                const finalPrice = currency === 'EUR' ? p.p : (p.p * t);
-                container.innerHTML += `
-                    <div class="card-perf shadow-sm">
-                        <div class="w-14 h-14 bg-yellow-50 rounded-full flex items-center justify-center text-xl font-bold gold-text mx-auto mb-2">${p.b}</div>
-                        <p class="gold-text text-[8px] font-bold">#${p.id}</p>
-                        <h3 class="font-bold text-[10px] uppercase mb-2 truncate">${p.n}</h3>
-                        <p class="font-black text-sm mb-3">${finalPrice.toLocaleString()} ${currency==='EUR'?'€':'DA'}</p>
-                        <button onclick="add('${p.id}')" class="bg-black text-white w-full py-2 rounded-lg font-bold text-[9px] uppercase">Prendre</button>
-                    </div>`;
-            });
-        }
+// ── CATALOGUES VIEW ───────────────────────────────────────────────
 
-        function add(id) {
-            cart.push(products.find(x => x.id === id));
-            updateRecap();
-            // Petit retour visuel sur l'icône Ordre
-            const ord = document.getElementById('n2');
-            ord.style.transform = "scale(1.2)";
-            setTimeout(() => ord.style.transform = "scale(1)", 200);
-        }
+const CATALOGUES = [
+  { ic:"🌸", titre:"Parfums",                url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1739360788_documents",  desc:"Collection complète 15ml · 30ml · 50ml · 70ml" },
+  { ic:"🏠", titre:"Parfums d'ambiance",     url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1736340849_documents",  desc:"Diffuseurs & senteurs maison" },
+  { ic:"💧", titre:"Les Huiles",             url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1732103472_documents",  desc:"Huiles essentielles & concentrées" },
+  { ic:"🌿", titre:"LOLUM (huiles)",         url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1728551530_documents",  desc:"Gamme huiles LOLUM" },
+  { ic:"💄", titre:"Maquillage",             url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1741095206_documents",  desc:"Rouge à lèvres, fond de teint, yeux…" },
+  { ic:"🕶", titre:"Lunettes de soleil",     url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1740996419_documents",  desc:"Collection lunettes tendance" },
+  { ic:"🧹", titre:"Produits ménagers",      url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1738679717_documents",  desc:"Nettoyants & entretien maison" },
+  { ic:"🌱", titre:"Bien-être (Aurodhea)",   url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1736256904_documents",  desc:"Compléments & soins bien-être" },
+  { ic:"💊", titre:"Peptilux",               url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1740410027_documents",  desc:"Gamme Peptilux" },
+  { ic:"💪", titre:"Supplefit",              url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1733905272_documents",  desc:"Nutrition sportive & forme" },
+];
 
-        function updateRecap() {
-            const t = parseFloat(document.getElementById('taux-input').value) || 1;
-            const list = document.getElementById('order-items');
-            list.innerHTML = '';
-            let subtotal = 0;
+function CataloguesView() {
+  return (
+    <div className="fi">
+      <div className="sh"><span className="shtitle">Catalogues</span></div>
+      <div className="sb">
+        <div className="cardg" style={{ marginBottom:16 }}>
+          <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:3 }}>📖 Catalogues officiels Chogan</p>
+          <p style={{ fontSize:11, color:MU, lineHeight:1.6 }}>Appuie sur un catalogue pour l'ouvrir directement sur le site officiel Chogan.</p>
+        </div>
+        {CATALOGUES.map((c,i)=>(
+          <a key={i} className="rlink" href={c.url} target="_blank" rel="noreferrer">
+            <span style={{ fontSize:26, flexShrink:0 }}>{c.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600 }}>{c.titre}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{c.desc}</p>
+            </div>
+            <span style={{ color:G, fontSize:16, flexShrink:0 }}>↗</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-            cart.forEach((item, i) => {
-                const p = currency === 'EUR' ? item.p : (item.p * t);
-                subtotal += p;
-                list.innerHTML += `
-                    <div class="border-2 border-black rounded-xl p-3 flex justify-between items-center font-bold text-[11px] uppercase">
-                        <span>${item.n}</span>
-                        <div class="flex items-center gap-3">
-                            <span>${p.toLocaleString()} ${currency==='EUR'?'€':'DA'}</span>
-                            <button onclick="cart.splice(${i},1);updateRecap()" class="text-red-500 text-lg">×</button>
-                        </div>
-                    </div>`;
-            });
+// ── MAIN APP ──────────────────────────────────────────────────────
 
-            const ship = 2.5;
-            const total = subtotal + (currency === 'EUR' ? ship : ship * t);
-            document.getElementById('total-val').innerText = total.toLocaleString() + (currency==='EUR'?' €':' DA');
-        }
+export default function ChoganApp() {
+  const [tab, setTab] = useState("accueil");
+  const [started, setStarted] = useState(false);
+  const [perfumes, setPerfumes] = useState(DEMO_PERFUMES);
+  const [checklist, setChecklist] = useState(CHECKLIST0);
+  const [showBienvenue, setShowBienvenue] = useState(false);
 
-        function show(n) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById('p'+n).classList.add('active');
-            document.getElementById('n'+n).classList.add('active');
-        }
+  const TABS = [
+    { id:"accueil",    lbl:"Accueil",    ic:"🏠" },
+    { id:"catalogue",  lbl:"Inspirations", ic:"🌸" },
+    { id:"catalogues", lbl:"Catalogues", ic:"📖" },
+    { id:"checklist",  lbl:"Checklist",  ic:"✅" },
+    { id:"formation",  lbl:"Formation",  ic:"🎓" },
+    { id:"ressources", lbl:"Ressources", ic:"📁" },
+  ];
 
-        function send() {
-            if(!cart.length) return alert("Panier vide !");
-            let m = `*NOUVELLE COMMANDE CHOGAN*\n\n`;
-            cart.forEach(i => m += `• ${i.n} (#${i.id})\n`);
-            m += `\n*TOTAL : ${document.getElementById('total-val').innerText}*`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(m)}`);
-        }
+  return (
+    <>
+      <style>{CSS}</style>
+      <div className="app">
+        <header className="hdr">
+          <span className="logo">✦ Chogan</span>
+          <span className="hdr-sub">{TABS.find(t=>t.id===tab)?.lbl}</span>
+        </header>
 
-        renderProducts();
-    </script>
-</body>
-</html>
+        <main className="main">
+          {showBienvenue
+            ? <BienvenueView onBack={()=>setShowBienvenue(false)} />
+            : <>
+                {tab==="accueil"    && <AccueilView   started={started} setStarted={setStarted} />}
+                {tab==="catalogue"  && <CatalogueView perfumes={perfumes} setPerfumes={setPerfumes} />}
+                {tab==="catalogues" && <CataloguesView />}
+                {tab==="checklist"  && <ChecklistView checklist={checklist} setChecklist={setChecklist} />}
+                {tab==="formation"  && <FormationView />}
+                {tab==="ressources" && <RessourcesView onOpenBienvenue={()=>setShowBienvenue(true)} />}
+              </>
+          }
+        </main>
+
+        <nav className="bnav">
+          {TABS.map(t=>(
+            <button key={t.id} className={`nb ${tab===t.id?"on":""}`} onClick={()=>setTab(t.id)}>
+              <span className="nic">{t.ic}</span>
+              <span className="nlbl">{t.lbl}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+    </>
+  );
+}
