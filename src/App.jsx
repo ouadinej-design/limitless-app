@@ -330,9 +330,8 @@ function RessourcesView({ onOpenBienvenue, onOpenPromo }) {
       <div className="sb">
         <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📥 Téléchargements</p>
         {[
-          { ic:"📄", t:"Bon de commande",        d:"À imprimer pour tes clients",    action:null },
-          { ic:"💲", t:"Liste de prix",           d:"Tarifs consultants et clients",  action:null },
-          { ic:"🗓", t:"Planning mensuel",         d:"Organise ton activité Chogan",   action:null },
+          { ic:"📄", t:"Bon de commande",  d:"À imprimer pour tes clients" },
+          { ic:"🗓", t:"Planning mensuel", d:"Organise ton activité Chogan" },
         ].map((r,i) => (
           <div key={i} className="rlink">
             <span style={{ fontSize:22 }}>{r.ic}</span>
@@ -363,9 +362,9 @@ function RessourcesView({ onOpenBienvenue, onOpenPromo }) {
         <div className="div" style={{ margin:"14px 0" }} />
         <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🔗 Liens utiles</p>
         {[
-          { ic:"🎨", t:"Modèles Canva",           d:"Stories et posts Instagram prêts à personnaliser", url:"#" },
-          { ic:"🔓", t:"Limitless – Formation",   d:"Plateforme de formation complète",         url:"https://mylimitless.be/" },
-          { ic:"🌐", t:"Site Chogan Officiel",    d:"chogan.eu — espace consultant & commandes", url:"https://chogan.eu" },
+          { ic:"🎨", t:"Modèles Canva",       d:"Stories et posts Instagram prêts à personnaliser", url:"#" },
+          { ic:"🔓", t:"Limitless – Formation",d:"Plateforme de formation complète",                url:"https://mylimitless.be/" },
+          { ic:"🌐", t:"Site Chogan Officiel", d:"chogan.eu — espace consultant & commandes",        url:"https://chogan.eu" },
         ].map((r,i) => (
           <a key={i} className="rlink" href={r.url} target="_blank" rel="noreferrer">
             <span style={{ fontSize:22 }}>{r.ic}</span>
@@ -379,40 +378,19 @@ function RessourcesView({ onOpenBienvenue, onOpenPromo }) {
 
         <div className="div" style={{ margin:"14px 0" }} />
         <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📲 Canaux Telegram</p>
-        {[
-          { ic:"📸", t:"Story",         d:"Templates et idées de stories",          url:"https://t.me/+FlsHgrOtL64wOGFk" },
-          { ic:"📅", t:"Calendly",      d:"Outils de prise de rendez-vous",         url:"https://t.me/+ICxJuEEFHg04MzJk" },
-          { ic:"🖼", t:"Pictures",      d:"Photos et visuels prêts à publier",      url:"https://t.me/+1zWQawmuayo0ZTc0" },
-          { ic:"🗓", t:"90 Jours",      d:"Plan d'action 90 jours",                 url:"https://t.me/+AAX6DoGpg48wZTdk" },
-          { ic:"💰", t:"Pro Vente",     d:"Scripts et techniques de vente",         url:"https://t.me/+akYPbYLQ3kcxYzdk" },
-          { ic:"🏆", t:"Preuve Sociale",d:"Témoignages et preuves clients",         url:"https://t.me/+Ylo19O_dBQ01ODE0" },
-        ].map((r,i) => (
-          <a key={i} className="rlink" href={r.url} target="_blank" rel="noreferrer">
-            <span style={{ fontSize:22 }}>{r.ic}</span>
-            <div style={{ flex:1 }}>
-              <p style={{ fontSize:13, fontWeight:500 }}>{r.t}</p>
-              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{r.d}</p>
-            </div>
-            <span style={{ fontSize:16, color:"#2AABEE" }}>✈</span>
-          </a>
-        ))}
-
-        <div className="div" style={{ margin:"14px 0" }} />
-        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📲 Canaux Telegram</p>
         <div className="cardg" style={{ marginBottom:12 }}>
           <p style={{ fontSize:12, color:"#ccc", lineHeight:1.7 }}>
-            Pour finir, je t'ai transmis tous les canaux Telegram qui te permettront d'accéder aux informations importantes : actualités, retours de clientes et de consultantes avec preuves sociales, nouveautés, etc.<br/><br/>
-            Si tu souhaites créer des stories ou du contenu pour les réseaux, tout est déjà à ta disposition 😊
+            Tous les canaux Telegram pour accéder aux informations importantes : actualités, preuves sociales, nouveautés, stories et contenu réseaux 😊
           </p>
           <p style={{ fontSize:12, color:G, fontStyle:"italic", marginTop:8 }}>— Marie</p>
         </div>
         {[
-          { ic:"📸", t:"Story",          d:"Modèles de stories à partager",     url:"https://t.me/+FlsHgrOtL64wOGFk" },
-          { ic:"📅", t:"Calendly",       d:"Prise de rendez-vous",              url:"https://t.me/+ICxJuEEFHg04MzJk" },
-          { ic:"🖼️", t:"Pictures",       d:"Photos & visuels produits",         url:"https://t.me/+1zWQawmuayo0ZTc0" },
-          { ic:"🗓️", t:"90 Jours",       d:"Challenge & suivi 90 jours",        url:"https://t.me/+AAX6DoGpg48wZTdk" },
-          { ic:"💰", t:"Pro Vente",      d:"Scripts et techniques de vente",    url:"https://t.me/+akYPbYLQ3kcxYzdk" },
-          { ic:"⭐", t:"Preuve Sociale", d:"Témoignages & succès de l'équipe",  url:"https://t.me/+Ylo19O_dBQ01ODE0" },
+          { ic:"📸", t:"Story",          d:"Modèles de stories à partager",    url:"https://t.me/+FlsHgrOtL64wOGFk" },
+          { ic:"📅", t:"Calendly",       d:"Prise de rendez-vous",             url:"https://t.me/+ICxJuEEFHg04MzJk" },
+          { ic:"🖼️", t:"Pictures",       d:"Photos & visuels produits",        url:"https://t.me/+1zWQawmuayo0ZTc0" },
+          { ic:"🗓️", t:"90 Jours",       d:"Challenge & suivi 90 jours",       url:"https://t.me/+AAX6DoGpg48wZTdk" },
+          { ic:"💰", t:"Pro Vente",      d:"Scripts et techniques de vente",   url:"https://t.me/+akYPbYLQ3kcxYzdk" },
+          { ic:"⭐", t:"Preuve Sociale", d:"Témoignages & succès de l'équipe", url:"https://t.me/+Ylo19O_dBQ01ODE0" },
         ].map((r,i) => (
           <a key={i} className="rlink" href={r.url} target="_blank" rel="noreferrer">
             <span style={{ fontSize:22 }}>{r.ic}</span>
@@ -427,9 +405,9 @@ function RessourcesView({ onOpenBienvenue, onOpenPromo }) {
         <div className="div" style={{ margin:"14px 0" }} />
         <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🏅 Statuts & Aide</p>
         {[
-          { ic:"⭐", n:"Standard", b:"FAQ",           d:"Base de connaissances complète", c:MU },
+          { ic:"⭐", n:"Standard", b:"FAQ",           d:"Base de connaissances complète",    c:MU },
           { ic:"🥇", n:"Gold",     b:"WhatsApp direct",d:"Support prioritaire via WhatsApp", c:G },
-          { ic:"👑", n:"Admin",    b:"Gestion totale", d:"Gestion complète de l'équipe", c:"#b0a0ff" },
+          { ic:"👑", n:"Admin",    b:"Gestion totale", d:"Gestion complète de l'équipe",     c:"#b0a0ff" },
         ].map((s,i) => (
           <div key={i} className="card" style={{ borderLeft:`3px solid ${s.c}`, display:"flex", gap:12, alignItems:"center", marginBottom:8 }}>
             <span style={{ fontSize:22 }}>{s.ic}</span>
@@ -442,9 +420,6 @@ function RessourcesView({ onOpenBienvenue, onOpenPromo }) {
             </div>
           </div>
         ))}
-
-        <div className="div" style={{ margin:"14px 0" }} />
-        <DZDCalc />
       </div>
     </div>
   );
@@ -931,285 +906,171 @@ const FAMILLES = [
 ];
 
 function KitDemarrageView() {
-  const [sub, setSub] = useState("familles");
   const [openFam, setOpenFam] = useState(null);
   const [openSub, setOpenSub] = useState(null);
-  const [showPdf, setShowPdf] = useState(false);
+  const [openPays, setOpenPays] = useState(false);
 
-  if (showPdf) return (
-    <div className="fi" style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 130px)" }}>
-      <div className="sh" style={{ alignItems:"center", flexShrink:0 }}>
-        <button onClick={()=>setShowPdf(false)} style={{ background:"none", border:"none", color:G, cursor:"pointer", fontSize:18, marginRight:10, padding:0 }}>←</button>
-        <span className="shtitle">Liste Inspirations</span>
-      </div>
-      <div style={{ flex:1, margin:"10px 18px 0", borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)" }}>
-        <iframe src="/Liste%20inspirations.pdf" style={{ width:"100%", height:"100%", border:"none", background:"#fff" }} title="Liste Inspirations" />
-      </div>
-      <div style={{ padding:"12px 18px", display:"flex", gap:8 }}>
-        <a href="/Liste%20inspirations.pdf" download style={{ flex:1, textAlign:"center" }} className="btn-o">↓ Télécharger</a>
-        <button className="btn-o" onClick={()=>setShowPdf(false)}>← Retour</button>
-      </div>
-    </div>
-  );
+  const PAYS_LIST = [
+    {flag:"🇦🇱",name:"Albanie"},{flag:"🇩🇿",name:"Algérie"},{flag:"🇦🇴",name:"Angola",test:true},
+    {flag:"🇦🇺",name:"Australie",test:true},{flag:"🇦🇹",name:"Autriche"},{flag:"🇵🇹",name:"Açores"},
+    {flag:"🇧🇪",name:"Belgique"},{flag:"🇧🇬",name:"Bulgarie"},{flag:"🇨🇦",name:"Canada",test:true},
+    {flag:"🇪🇸",name:"Ceuta",test:true},{flag:"🇨🇾",name:"Chypre"},{flag:"🇬🇷",name:"Corfou"},
+    {flag:"🇭🇷",name:"Croatie"},{flag:"🇩🇰",name:"Danemark"},{flag:"🇪🇬",name:"Égypte",test:true},
+    {flag:"🇪🇪",name:"Estonie"},{flag:"🇫🇮",name:"Finlande"},{flag:"🇫🇷",name:"France"},
+    {flag:"🇬🇪",name:"Géorgie"},{flag:"🇩🇪",name:"Allemagne"},{flag:"🇬🇷",name:"Grèce"},
+    {flag:"🇫🇷",name:"Guadeloupe"},{flag:"🇬🇬",name:"Guernsey"},{flag:"🇮🇳",name:"Inde",test:true},
+    {flag:"🇮🇶",name:"Iraq",test:true},{flag:"🇮🇪",name:"Irlande"},{flag:"🇮🇸",name:"Islande",test:true},
+    {flag:"🇫🇮",name:"Îles Aland"},{flag:"🇪🇸",name:"Îles Canaries"},{flag:"🇬🇷",name:"Îles Grecques"},
+    {flag:"🇮🇹",name:"Italie"},{flag:"🇯🇪",name:"Jersey"},{flag:"🇰🇿",name:"Kazakhstan",test:true},
+    {flag:"🇽🇰",name:"Kosovo"},{flag:"🇱🇻",name:"Lettonie"},{flag:"🇱🇧",name:"Libano",test:true},
+    {flag:"🇱🇾",name:"Libye",test:true},{flag:"🇱🇮",name:"Liechtenstein"},{flag:"🇱🇹",name:"Lituanie"},
+    {flag:"🇱🇺",name:"Luxembourg"},{flag:"🇲🇰",name:"Macédoine du Nord"},{flag:"🇵🇹",name:"Madeira"},
+    {flag:"🇲🇹",name:"Malte"},{flag:"🇫🇷",name:"Martinique"},{flag:"🇫🇷",name:"Mayotte"},
+    {flag:"🇪🇸",name:"Melilla",test:true},{flag:"🇲🇽",name:"Messico",test:true},{flag:"🇲🇩",name:"Moldova"},
+    {flag:"🇲🇪",name:"Monténégro",test:true},{flag:"🇳🇴",name:"Norvège"},{flag:"🇫🇷",name:"Nouvelle Calédonie"},
+    {flag:"🇳🇱",name:"Pays-Bas"},{flag:"🇵🇱",name:"Pologne"},{flag:"🇵🇹",name:"Portugal"},
+    {flag:"🇬🇧",name:"Royaume-Uni"},{flag:"🇨🇿",name:"République Tchèque"},{flag:"🇩🇴",name:"République Dominicaine",test:true},
+    {flag:"🇫🇷",name:"Réunion"},{flag:"🇷🇴",name:"Roumanie"},{flag:"🇫🇷",name:"Saint-Barthélemy"},
+    {flag:"🇫🇷",name:"Saint-Martin"},{flag:"🇫🇷",name:"Saint-Pierre et Miquelon"},{flag:"🇸🇲",name:"San Marino"},
+    {flag:"🇸🇬",name:"Singapour",test:true},{flag:"🇸🇰",name:"Slovacchia"},{flag:"🇸🇮",name:"Slovénie"},
+    {flag:"🇪🇸",name:"Espagne"},{flag:"🇸🇪",name:"Suède"},{flag:"🇨🇭",name:"Suisse"},
+    {flag:"🇹🇭",name:"Thaïlande",test:true},{flag:"🇭🇺",name:"Hongrie"},{flag:"🇻🇳",name:"Viêt Nam",test:true},
+  ];
 
   return (
     <div className="fi">
       <div className="sh"><span className="shtitle">Kit de démarrage</span></div>
-      <div className="ftabs">
-        {[["familles","🌸 Familles"],["liste","📋 Liste PDF"],["pays","🌍 Pays"],["parrainage","🔗 Parrainage"],["mallette","👜 Mallette"]].map(([v,l])=>(
-          <button key={v} className={`ftab ${sub===v?"on":""}`} onClick={()=>setSub(v)}>{l}</button>
+      <div className="sb">
+
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📋 Documents</p>
+        <a href="/Liste%20inspirations.pdf" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)" }}>
+          <span style={{ fontSize:22 }}>📋</span>
+          <div style={{ flex:1 }}>
+            <p style={{ fontSize:13, fontWeight:600, color:G }}>Liste des Inspirations</p>
+            <p style={{ fontSize:11, color:MU, marginTop:2 }}>132 références · prix · tailles</p>
+          </div>
+          <span style={{ color:G, fontSize:16 }}>↗</span>
+        </a>
+        {[
+          { ic:"🌟", t:"Programme Ambassadeur", url:"https://drive.google.com/file/d/1d952VZyjBs6XM7rVmpr1K07GnP0is1U2/view" },
+          { ic:"📖", t:"Book",                  url:"https://drive.google.com/file/d/1wrZCau12O-JQ3Pfkmu2Mu2qHQCP9_cdb/view" },
+          { ic:"📗", t:"Book 2",                url:"https://drive.google.com/file/d/1V4JLCN7rIqWnd7UYTH8MTLzsN0UKybzQ/view" },
+        ].map((r,i)=>(
+          <a key={i} href={r.url} target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(66,133,244,.06)", borderColor:"rgba(66,133,244,.2)" }}>
+            <span style={{ fontSize:22 }}>{r.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>{r.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>Ouvrir via Google Drive</p>
+            </div>
+            <span style={{ color:"#4285f4", fontSize:16 }}>↗</span>
+          </a>
         ))}
-      </div>
 
-      {sub === "liste" && (
-        <div className="sb">
-          <div className="cardg" style={{ marginBottom:14 }}>
-            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>📋 Liste complète des inspirations</p>
-            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Toutes les références avec marque, taille et prix — idéal à montrer à tes clientes.</p>
-          </div>
-          <div className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)", cursor:"pointer" }} onClick={()=>setShowPdf(true)}>
-            <span style={{ fontSize:26 }}>📋</span>
-            <div style={{ flex:1 }}>
-              <p style={{ fontSize:13, fontWeight:600, color:G }}>Liste des Inspirations Chogan</p>
-              <p style={{ fontSize:11, color:MU, marginTop:2 }}>132 références · prix · tailles — ouvrir le PDF</p>
-            </div>
-            <span style={{ color:G, fontSize:16 }}>→</span>
-          </div>
-          <div style={{ marginTop:8 }}>
-            <p style={{ fontSize:10, color:MU, textAlign:"center", fontStyle:"italic" }}>
-              📌 Pour afficher le PDF, dépose <strong style={{color:G}}>liste-inspirations.pdf</strong> à la racine de ton repo GitHub
-            </p>
-          </div>
-          <a href="https://drive.google.com/file/d/1d952VZyjBs6XM7rVmpr1K07GnP0is1U2/view" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(66,133,244,.06)", borderColor:"rgba(66,133,244,.22)", marginTop:10 }}>
-            <span style={{ fontSize:26 }}>🌟</span>
-            <div style={{ flex:1 }}>
-              <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>Programme Ambassadeur</p>
-              <p style={{ fontSize:11, color:MU, marginTop:2 }}>Ouvrir via Google Drive</p>
-            </div>
-            <span style={{ color:"#4285f4", fontSize:16 }}>↗</span>
-          </a>
-          <a href="https://drive.google.com/file/d/1wrZCau12O-JQ3Pfkmu2Mu2qHQCP9_cdb/view" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(66,133,244,.06)", borderColor:"rgba(66,133,244,.22)", marginTop:10 }}>
-            <span style={{ fontSize:26 }}>📖</span>
-            <div style={{ flex:1 }}>
-              <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>Book</p>
-              <p style={{ fontSize:11, color:MU, marginTop:2 }}>Ouvrir via Google Drive</p>
-            </div>
-            <span style={{ color:"#4285f4", fontSize:16 }}>↗</span>
-          </a>
-          <a href="https://drive.google.com/file/d/1V4JLCN7rIqWnd7UYTH8MTLzsN0UKybzQ/view" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(66,133,244,.06)", borderColor:"rgba(66,133,244,.22)", marginTop:10 }}>
-            <span style={{ fontSize:26 }}>📗</span>
-            <div style={{ flex:1 }}>
-              <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>Book 2</p>
-              <p style={{ fontSize:11, color:MU, marginTop:2 }}>Ouvrir via Google Drive</p>
-            </div>
-            <span style={{ color:"#4285f4", fontSize:16 }}>↗</span>
-          </a>
-        </div>
-      )}
+        <div className="div" style={{ margin:"14px 0" }} />
 
-      {sub === "mallette" && (
-        <div className="sb">
-          <div className="cardg" style={{ marginBottom:14 }}>
-            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>👜 La Mallette</p>
-            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Tout ce que tu dois savoir sur ta mallette de démarrage Chogan.</p>
-          </div>
-          <a href="https://drive.google.com/file/d/1s3EKcodYivoV1wVBnkWlG3Uk4gGWkp48/view" target="_blank" rel="noreferrer"
-            style={{ display:"block", borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)", background:"#111", textDecoration:"none" }}>
-            <div style={{ position:"relative", paddingTop:"56.25%", background:"#000", borderRadius:12 }}>
-              <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:10 }}>
-                <div style={{ width:60, height:60, borderRadius:"50%", background:G, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <span style={{ fontSize:24, marginLeft:4 }}>▶</span>
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🎬 Vidéos</p>
+        {[
+          { ic:"👜", t:"La Mallette",              d:"Présentation de ta mallette de démarrage",     url:"https://drive.google.com/file/d/1s3EKcodYivoV1wVBnkWlG3Uk4gGWkp48/view" },
+          { ic:"🔗", t:"Lien de parrainage client", d:"Comment envoyer ton lien à tes clientes",      url:"https://drive.google.com/file/d/1XLsJsyvHPe7GHSrRHvxScbligxILIcvH/view" },
+        ].map((v,i)=>(
+          <a key={i} href={v.url} target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(201,168,76,.04)", borderColor:"rgba(201,168,76,.15)" }}>
+            <div style={{ width:44, height:44, borderRadius:"50%", background:G, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <span style={{ fontSize:18, marginLeft:3 }}>▶</span>
+            </div>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600, color:G }}>{v.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{v.d}</p>
+            </div>
+            <span style={{ color:G, fontSize:16 }}>↗</span>
+          </a>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🌸 Familles Olfactives</p>
+        {FAMILLES.map(f => (
+          <div key={f.id} className="scrd" style={{ borderLeft:"3px solid "+f.couleur }}>
+            <div className="shdr" onClick={()=>{ setOpenFam(openFam===f.id?null:f.id); setOpenSub(null); }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:22 }}>{f.emoji}</span>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:600, color:f.couleur }}>{f.nom}</p>
+                  <p style={{ fontSize:10, color:MU, marginTop:1, letterSpacing:.5 }}>{f.style}</p>
                 </div>
-                <p style={{ color:TX, fontSize:12, fontWeight:500 }}>Appuie pour visionner la vidéo</p>
-                <p style={{ color:MU, fontSize:10 }}>Ouverture via Google Drive</p>
               </div>
+              <span style={{ color:f.couleur }}>{openFam===f.id?"▲":"▼"}</span>
             </div>
-          </a>
-        </div>
-      )}
-
-      {sub === "parrainage" && (
-        <div className="sb">
-          <div className="cardg" style={{ marginBottom:14 }}>
-            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🔗 Comment envoyer son lien de parrainage client</p>
-            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Regarde cette vidéo pour apprendre à envoyer ton lien de parrainage à tes clients.</p>
-          </div>
-          <a href="https://drive.google.com/file/d/1XLsJsyvHPe7GHSrRHvxScbligxILIcvH/view" target="_blank" rel="noreferrer"
-            style={{ display:"block", borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)", background:"#111", marginBottom:12, textDecoration:"none" }}>
-            <div style={{ position:"relative", paddingTop:"56.25%", background:"#000", borderRadius:12 }}>
-              <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:10 }}>
-                <div style={{ width:60, height:60, borderRadius:"50%", background:G, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <span style={{ fontSize:24, marginLeft:4 }}>▶</span>
+            {openFam===f.id && (
+              <div style={{ padding:"0 14px 14px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
+                <div style={{ background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px", margin:"10px 0" }}>
+                  <p style={{ fontSize:11, color:MU, marginBottom:3 }}>🎵 Notes</p>
+                  <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.notes}</p>
                 </div>
-                <p style={{ color:TX, fontSize:12, fontWeight:500 }}>Appuie pour visionner la vidéo</p>
-                <p style={{ color:MU, fontSize:10 }}>Ouverture via Google Drive</p>
-              </div>
-            </div>
-          </a>
-          <div style={{ background:"rgba(255,255,255,.03)", border:"0.5px solid rgba(255,255,255,.06)", borderRadius:10, padding:"12px 14px" }}>
-            <p style={{ fontSize:11, color:MU, marginBottom:6, textTransform:"uppercase", letterSpacing:1 }}>💡 Rappel étapes clés</p>
-            {["Connecte-toi à ton espace consultant sur chogan.eu","Va dans «Mon compte» → «Mes liens»","Copie ton lien de parrainage CLIENT (pas consultant)","Envoie-le à ta cliente par WhatsApp, SMS ou Instagram","Ta cliente commande via ton lien → tu génères des CP automatiquement"].map((t,i)=>(
-              <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", marginBottom:8 }}>
-                <span style={{ background:G, color:"#07070f", borderRadius:"50%", width:18, height:18, fontSize:10, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
-                <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{t}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {sub === "pays" && (
-        <div className="sb">
-          <div className="cardg" style={{ marginBottom:14 }}>
-            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🌍 Pays ouverts Chogan</p>
-            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Livraison disponible dans ces pays. Les pays "en phase de test" nécessitent une autorisation du Leader Emerald+.</p>
-          </div>
-          <div style={{ background:"rgba(224,80,80,.07)", border:"0.5px solid rgba(224,80,80,.25)", borderRadius:10, padding:"10px 13px", marginBottom:14 }}>
-            <p style={{ fontSize:12, color:RD, lineHeight:1.5 }}>⚠️ Pays en phase de test : ne pas utiliser sans autorisation du Leader Emerald+ pour envoi de colis.</p>
-          </div>
-          {[
-            { flag:"🇦🇱", name:"Albanie" },
-            { flag:"🇩🇿", name:"Algérie" },
-            { flag:"🇦🇴", name:"Angola", test:true },
-            { flag:"🇦🇺", name:"Australie", test:true },
-            { flag:"🇦🇹", name:"Autriche" },
-            { flag:"🇵🇹", name:"Açores" },
-            { flag:"🇧🇪", name:"Belgique" },
-            { flag:"🇧🇬", name:"Bulgarie" },
-            { flag:"🇨🇦", name:"Canada", test:true },
-            { flag:"🇪🇸", name:"Ceuta", test:true },
-            { flag:"🇨🇾", name:"Chypre" },
-            { flag:"🇬🇷", name:"Corfou" },
-            { flag:"🇭🇷", name:"Croatie" },
-            { flag:"🇩🇰", name:"Danemark" },
-            { flag:"🇪🇬", name:"Égypte", test:true },
-            { flag:"🇪🇪", name:"Estonie" },
-            { flag:"🇫🇮", name:"Finlande" },
-            { flag:"🇫🇷", name:"France" },
-            { flag:"🇬🇪", name:"Géorgie" },
-            { flag:"🇩🇪", name:"Allemagne" },
-            { flag:"🇬🇷", name:"Grèce" },
-            { flag:"🇫🇷", name:"Guadeloupe" },
-            { flag:"🇬🇬", name:"Guernsey" },
-            { flag:"🇮🇳", name:"Inde", test:true },
-            { flag:"🇮🇶", name:"Iraq", test:true },
-            { flag:"🇮🇪", name:"Irlande" },
-            { flag:"🇮🇸", name:"Islande", test:true },
-            { flag:"🇫🇮", name:"Îles Aland" },
-            { flag:"🇪🇸", name:"Îles Canaries" },
-            { flag:"🇬🇷", name:"Îles Grecques" },
-            { flag:"🇮🇹", name:"Italie" },
-            { flag:"🇯🇪", name:"Jersey" },
-            { flag:"🇰🇿", name:"Kazakhstan", test:true },
-            { flag:"🇽🇰", name:"Kosovo" },
-            { flag:"🇱🇻", name:"Lettonie" },
-            { flag:"🇱🇧", name:"Libano", test:true },
-            { flag:"🇱🇾", name:"Libye", test:true },
-            { flag:"🇱🇮", name:"Liechtenstein" },
-            { flag:"🇱🇹", name:"Lituanie" },
-            { flag:"🇱🇺", name:"Luxembourg" },
-            { flag:"🇲🇰", name:"Macédoine du Nord" },
-            { flag:"🇵🇹", name:"Madeira" },
-            { flag:"🇲🇹", name:"Malte" },
-            { flag:"🇫🇷", name:"Martinique" },
-            { flag:"🇫🇷", name:"Mayotte" },
-            { flag:"🇪🇸", name:"Melilla", test:true },
-            { flag:"🇲🇽", name:"Messico", test:true },
-            { flag:"🇲🇩", name:"Moldova" },
-            { flag:"🇲🇪", name:"Monténégro", test:true },
-            { flag:"🇳🇴", name:"Norvège" },
-            { flag:"🇫🇷", name:"Nouvelle Calédonie" },
-            { flag:"🇳🇱", name:"Pays-Bas" },
-            { flag:"🇵🇱", name:"Pologne" },
-            { flag:"🇵🇹", name:"Portugal" },
-            { flag:"🇬🇧", name:"Royaume-Uni" },
-            { flag:"🇨🇿", name:"République Tchèque" },
-            { flag:"🇩🇴", name:"République Dominicaine", test:true },
-            { flag:"🇫🇷", name:"Réunion" },
-            { flag:"🇷🇴", name:"Roumanie" },
-            { flag:"🇫🇷", name:"Saint-Barthélemy" },
-            { flag:"🇫🇷", name:"Saint-Martin" },
-            { flag:"🇫🇷", name:"Saint-Pierre et Miquelon" },
-            { flag:"🇸🇲", name:"San Marino" },
-            { flag:"🇸🇬", name:"Singapour", test:true },
-            { flag:"🇸🇰", name:"Slovacchia" },
-            { flag:"🇸🇮", name:"Slovénie" },
-            { flag:"🇪🇸", name:"Espagne" },
-            { flag:"🇸🇪", name:"Suède" },
-            { flag:"🇨🇭", name:"Suisse" },
-            { flag:"🇹🇭", name:"Thaïlande", test:true },
-            { flag:"🇭🇺", name:"Hongrie" },
-            { flag:"🇻🇳", name:"Viêt Nam", test:true },
-          ].map((p,i)=>(
-            <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"9px 12px",
-              background: p.test ? "rgba(224,80,80,.04)" : "rgba(255,255,255,.03)",
-              borderRadius:8, marginBottom:5,
-              border: `0.5px solid ${p.test ? "rgba(224,80,80,.15)" : "rgba(255,255,255,.05)"}` }}>
-              <span style={{ fontSize:20 }}>{p.flag}</span>
-              <span style={{ fontSize:13, flex:1, color: p.test ? MU : TX }}>{p.name}</span>
-              {p.test && <span style={{ fontSize:9, color:RD, border:"0.5px solid rgba(224,80,80,.35)", borderRadius:10, padding:"1px 7px", whiteSpace:"nowrap" }}>phase de test</span>}
-            </div>
-          ))}
-        </div>
-      )}
-        <div className="sb">
-          <div className="cardg" style={{ marginBottom:14 }}>
-            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🌸 Les 7 Familles Olfactives</p>
-            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Guide complet pour orienter tes clientes vers le parfum qui leur correspond. Appuie sur une famille pour explorer ses sous-familles.</p>
-          </div>
-          {FAMILLES.map(f => (
-            <div key={f.id} className="scrd" style={{ borderLeft:`3px solid ${f.couleur}` }}>
-              <div className="shdr" onClick={()=>{ setOpenFam(openFam===f.id?null:f.id); setOpenSub(null); }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                  <span style={{ fontSize:22 }}>{f.emoji}</span>
-                  <div>
-                    <p style={{ fontSize:13, fontWeight:600, color:f.couleur }}>{f.nom}</p>
-                    <p style={{ fontSize:10, color:MU, marginTop:1, letterSpacing:.5 }}>{f.style}</p>
-                  </div>
+                <div style={{ background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px", marginBottom:12 }}>
+                  <p style={{ fontSize:11, color:MU, marginBottom:3 }}>👤 Pour qui</p>
+                  <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.pourQui}</p>
                 </div>
-                <span style={{ color:f.couleur }}>{openFam===f.id?"▲":"▼"}</span>
-              </div>
-              {openFam===f.id && (
-                <div style={{ padding:"0 14px 14px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
-                  <div style={{ background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px", margin:"10px 0" }}>
-                    <p style={{ fontSize:11, color:MU, marginBottom:3 }}>🎵 Notes</p>
-                    <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.notes}</p>
-                  </div>
-                  <div style={{ background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px", marginBottom:12 }}>
-                    <p style={{ fontSize:11, color:MU, marginBottom:3 }}>👤 Pour qui</p>
-                    <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.pourQui}</p>
-                  </div>
-                  <p style={{ fontSize:10, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Sous-familles</p>
-                  {f.sousFamilles.map((sf,si) => {
-                    const subKey = f.id + "-" + si;
-                    const isOpen = openSub === subKey;
-                    return (
+                <p style={{ fontSize:10, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Sous-familles</p>
+                {f.sousFamilles.map((sf,si) => {
+                  const subKey = f.id+"-"+si;
+                  const isOpen = openSub===subKey;
+                  return (
                     <div key={si} style={{ marginBottom:6 }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
                         background:"rgba(255,255,255,.04)", borderRadius:8, padding:"8px 12px", cursor:"pointer",
-                        border:"0.5px solid " + (isOpen ? f.couleur : "transparent") }}
-                        onClick={()=>setOpenSub(isOpen ? null : subKey)}>
-                        <p style={{ fontSize:12, fontWeight:500, color:isOpen ? f.couleur : TX }}>{sf.n}</p>
+                        border:"0.5px solid "+(isOpen?f.couleur:"transparent") }}
+                        onClick={()=>setOpenSub(isOpen?null:subKey)}>
+                        <p style={{ fontSize:12, fontWeight:500, color:isOpen?f.couleur:TX }}>{sf.n}</p>
                         <span style={{ fontSize:10, color:MU }}>{sf.refs.length} réf.</span>
                       </div>
                       {isOpen && (
                         <div style={{ padding:"8px 12px", background:"rgba(255,255,255,.02)", borderRadius:"0 0 8px 8px", marginTop:-4 }}>
                           {sf.refs.map((r,ri)=>(
-                            <span key={ri} style={{ display:"inline-block", fontSize:10, padding:"2px 8px", margin:"2px 3px",
-                              background:"rgba(120,120,120,.15)",
-                              borderRadius:20, color:"#ccc" }}>{r}</span>
+                            <span key={ri} style={{ display:"inline-block", fontSize:10, padding:"2px 8px", margin:"2px 3px", background:"rgba(120,120,120,.15)", borderRadius:20, color:"#ccc" }}>{r}</span>
                           ))}
                         </div>
                       )}
                     </div>
-                    );
-                  })}
-                </div>
-              )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+
+        <div className="scrd" style={{ borderLeft:"3px solid #4285f4" }}>
+          <div className="shdr" onClick={()=>setOpenPays(!openPays)}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <span style={{ fontSize:22 }}>🌍</span>
+              <div>
+                <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>Pays ouverts Chogan</p>
+                <p style={{ fontSize:10, color:MU, marginTop:1 }}>{PAYS_LIST.length} pays · {PAYS_LIST.filter(p=>p.test).length} en phase de test</p>
+              </div>
             </div>
-          ))}
+            <span style={{ color:"#4285f4" }}>{openPays?"▲":"▼"}</span>
+          </div>
+          {openPays && (
+            <div style={{ padding:"0 14px 14px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
+              <div style={{ background:"rgba(224,80,80,.07)", border:"0.5px solid rgba(224,80,80,.25)", borderRadius:8, padding:"8px 12px", margin:"10px 0" }}>
+                <p style={{ fontSize:11, color:RD }}>⚠️ Phase de test : autorisation du Leader Emerald+ requise.</p>
+              </div>
+              {PAYS_LIST.map((p,i)=>(
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"7px 8px",
+                  background:p.test?"rgba(224,80,80,.04)":"rgba(255,255,255,.02)",
+                  borderRadius:7, marginBottom:4,
+                  border:"0.5px solid "+(p.test?"rgba(224,80,80,.12)":"rgba(255,255,255,.04)") }}>
+                  <span style={{ fontSize:18 }}>{p.flag}</span>
+                  <span style={{ fontSize:12, flex:1, color:p.test?MU:TX }}>{p.name}</span>
+                  {p.test && <span style={{ fontSize:9, color:RD, border:"0.5px solid rgba(224,80,80,.35)", borderRadius:10, padding:"1px 6px" }}>test</span>}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+
+      </div>
     </div>
   );
 }
