@@ -377,19 +377,19 @@ function RessourcesView({ onOpenBienvenue }) {
         <div className="div" style={{ margin:"14px 0" }} />
         <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🔗 Liens utiles</p>
         {[
-          { ic:"📱", t:"Groupe Telegram Équipe",  d:"Rejoindre le groupe de support" },
-          { ic:"🎨", t:"Modèles Canva",           d:"Stories et posts Instagram prêts à personnaliser" },
-          { ic:"🔓", t:"Limitless – Formation",   d:"Plateforme de formation complète", url:"https://mylimitless.be/" },
-          { ic:"🌐", t:"Site Chogan Officiel",    d:"chogan.eu — espace consultant & commandes" },
+          { ic:"📱", t:"Groupe Telegram Équipe",  d:"Rejoindre le groupe de support",           url:"#" },
+          { ic:"🎨", t:"Modèles Canva",           d:"Stories et posts Instagram prêts à personnaliser", url:"#" },
+          { ic:"🔓", t:"Limitless – Formation",   d:"Plateforme de formation complète",         url:"https://mylimitless.be/" },
+          { ic:"🌐", t:"Site Chogan Officiel",    d:"chogan.eu — espace consultant & commandes", url:"https://chogan.eu" },
         ].map((r,i) => (
-          <div key={i} className="rlink">
+          <a key={i} className="rlink" href={r.url} target="_blank" rel="noreferrer">
             <span style={{ fontSize:22 }}>{r.ic}</span>
             <div style={{ flex:1 }}>
               <p style={{ fontSize:13, fontWeight:500 }}>{r.t}</p>
               <p style={{ fontSize:11, color:MU, marginTop:2 }}>{r.d}</p>
             </div>
             <span style={{ color:G, fontSize:16 }}>↗</span>
-          </div>
+          </a>
         ))}
 
         <div className="div" style={{ margin:"14px 0" }} />
