@@ -988,6 +988,22 @@ function KitDemarrageView() {
             </div>
             <span style={{ color:"#4285f4", fontSize:16 }}>↗</span>
           </a>
+          <a href="https://drive.google.com/file/d/1wrZCau12O-JQ3Pfkmu2Mu2qHQCP9_cdb/view" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(66,133,244,.06)", borderColor:"rgba(66,133,244,.22)", marginTop:10 }}>
+            <span style={{ fontSize:26 }}>📖</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>Book</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>Ouvrir via Google Drive</p>
+            </div>
+            <span style={{ color:"#4285f4", fontSize:16 }}>↗</span>
+          </a>
+          <a href="https://drive.google.com/file/d/1V4JLCN7rIqWnd7UYTH8MTLzsN0UKybzQ/view" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(66,133,244,.06)", borderColor:"rgba(66,133,244,.22)", marginTop:10 }}>
+            <span style={{ fontSize:26 }}>📗</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>Book 2</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>Ouvrir via Google Drive</p>
+            </div>
+            <span style={{ color:"#4285f4", fontSize:16 }}>↗</span>
+          </a>
         </div>
       )}
 
@@ -997,16 +1013,18 @@ function KitDemarrageView() {
             <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>👜 La Mallette</p>
             <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Tout ce que tu dois savoir sur ta mallette de démarrage Chogan.</p>
           </div>
-          <div style={{ borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)", background:"#000" }}>
-            <video
-              controls
-              playsInline
-              style={{ width:"100%", display:"block", maxHeight:340 }}
-              src="/mallette.mp4"
-            >
-              Votre navigateur ne supporte pas la lecture vidéo.
-            </video>
-          </div>
+          <a href="https://drive.google.com/file/d/1s3EKcodYivoV1wVBnkWlG3Uk4gGWkp48/view" target="_blank" rel="noreferrer"
+            style={{ display:"block", borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)", background:"#111", textDecoration:"none" }}>
+            <div style={{ position:"relative", paddingTop:"56.25%", background:"#000", borderRadius:12 }}>
+              <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:10 }}>
+                <div style={{ width:60, height:60, borderRadius:"50%", background:G, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <span style={{ fontSize:24, marginLeft:4 }}>▶</span>
+                </div>
+                <p style={{ color:TX, fontSize:12, fontWeight:500 }}>Appuie pour visionner la vidéo</p>
+                <p style={{ color:MU, fontSize:10 }}>Ouverture via Google Drive</p>
+              </div>
+            </div>
+          </a>
         </div>
       )}
 
@@ -1016,16 +1034,18 @@ function KitDemarrageView() {
             <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🔗 Comment envoyer son lien de parrainage client</p>
             <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Regarde cette vidéo pour apprendre à envoyer ton lien de parrainage à tes clients.</p>
           </div>
-          <div style={{ borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)", background:"#000", marginBottom:12 }}>
-            <video
-              controls
-              playsInline
-              style={{ width:"100%", display:"block", maxHeight:340 }}
-              src="/parrainage-client.mp4"
-            >
-              Votre navigateur ne supporte pas la lecture vidéo.
-            </video>
-          </div>
+          <a href="https://drive.google.com/file/d/1XLsJsyvHPe7GHSrRHvxScbligxILIcvH/view" target="_blank" rel="noreferrer"
+            style={{ display:"block", borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)", background:"#111", marginBottom:12, textDecoration:"none" }}>
+            <div style={{ position:"relative", paddingTop:"56.25%", background:"#000", borderRadius:12 }}>
+              <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:10 }}>
+                <div style={{ width:60, height:60, borderRadius:"50%", background:G, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <span style={{ fontSize:24, marginLeft:4 }}>▶</span>
+                </div>
+                <p style={{ color:TX, fontSize:12, fontWeight:500 }}>Appuie pour visionner la vidéo</p>
+                <p style={{ color:MU, fontSize:10 }}>Ouverture via Google Drive</p>
+              </div>
+            </div>
+          </a>
           <div style={{ background:"rgba(255,255,255,.03)", border:"0.5px solid rgba(255,255,255,.06)", borderRadius:10, padding:"12px 14px" }}>
             <p style={{ fontSize:11, color:MU, marginBottom:6, textTransform:"uppercase", letterSpacing:1 }}>💡 Rappel étapes clés</p>
             {["Connecte-toi à ton espace consultant sur chogan.eu","Va dans «Mon compte» → «Mes liens»","Copie ton lien de parrainage CLIENT (pas consultant)","Envoie-le à ta cliente par WhatsApp, SMS ou Instagram","Ta cliente commande via ton lien → tu génères des CP automatiquement"].map((t,i)=>(
