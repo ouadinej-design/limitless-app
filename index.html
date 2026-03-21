@@ -377,7 +377,6 @@ function RessourcesView({ onOpenBienvenue }) {
         <div className="div" style={{ margin:"14px 0" }} />
         <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🔗 Liens utiles</p>
         {[
-          { ic:"📱", t:"Groupe Telegram Équipe",  d:"Rejoindre le groupe de support",           url:"#" },
           { ic:"🎨", t:"Modèles Canva",           d:"Stories et posts Instagram prêts à personnaliser", url:"#" },
           { ic:"🔓", t:"Limitless – Formation",   d:"Plateforme de formation complète",         url:"https://mylimitless.be/" },
           { ic:"🌐", t:"Site Chogan Officiel",    d:"chogan.eu — espace consultant & commandes", url:"https://chogan.eu" },
@@ -389,6 +388,33 @@ function RessourcesView({ onOpenBienvenue }) {
               <p style={{ fontSize:11, color:MU, marginTop:2 }}>{r.d}</p>
             </div>
             <span style={{ color:G, fontSize:16 }}>↗</span>
+          </a>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📲 Canaux Telegram</p>
+        <div className="cardg" style={{ marginBottom:12 }}>
+          <p style={{ fontSize:12, color:"#ccc", lineHeight:1.7 }}>
+            Pour finir, je t'ai transmis tous les canaux Telegram qui te permettront d'accéder aux informations importantes : actualités, retours de clientes et de consultantes avec preuves sociales, nouveautés, etc.<br/><br/>
+            Si tu souhaites créer des stories ou du contenu pour les réseaux, tout est déjà à ta disposition 😊
+          </p>
+          <p style={{ fontSize:12, color:G, fontStyle:"italic", marginTop:8 }}>— Marie</p>
+        </div>
+        {[
+          { ic:"📸", t:"Story",          d:"Modèles de stories à partager",     url:"https://t.me/+FlsHgrOtL64wOGFk" },
+          { ic:"📅", t:"Calendly",       d:"Prise de rendez-vous",              url:"https://t.me/+ICxJuEEFHg04MzJk" },
+          { ic:"🖼️", t:"Pictures",       d:"Photos & visuels produits",         url:"https://t.me/+1zWQawmuayo0ZTc0" },
+          { ic:"🗓️", t:"90 Jours",       d:"Challenge & suivi 90 jours",        url:"https://t.me/+AAX6DoGpg48wZTdk" },
+          { ic:"💰", t:"Pro Vente",      d:"Scripts et techniques de vente",    url:"https://t.me/+akYPbYLQ3kcxYzdk" },
+          { ic:"⭐", t:"Preuve Sociale", d:"Témoignages & succès de l'équipe",  url:"https://t.me/+Ylo19O_dBQ01ODE0" },
+        ].map((r,i) => (
+          <a key={i} className="rlink" href={r.url} target="_blank" rel="noreferrer">
+            <span style={{ fontSize:22 }}>{r.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:500 }}>{r.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{r.d}</p>
+            </div>
+            <span style={{ color:"#2AABEE", fontSize:16 }}>↗</span>
           </a>
         ))}
 
