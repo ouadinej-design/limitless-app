@@ -820,17 +820,20 @@ function AccueilView({ prenom, isAdmin }) {
           <div key={a.id} className="cardg" style={{ position:"relative" }}>
             <p style={{ fontSize:13, lineHeight:1.55 }}>{a.text}</p>
             <p style={{ fontSize:10, color:MU, marginTop:5 }}>{a.date}</p>
-            <button onClick={()=>setAnns(p=>p.filter(x=>x.id!==a.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>
+            {isAdmin && <button onClick={()=>setAnns(p=>p.filter(x=>x.id!==a.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>}
           </div>
         ))}
-        <div style={{ display:"flex", gap:8, marginTop:8, alignItems:"center" }}>
-          <input className="inp" placeholder="Nouvelle annonce…" value={newA}
-            onChange={e=>setNewA(e.target.value)}
-            onKeyDown={e=>{ if(e.key==="Enter" && newA.trim()){ setAnns(p=>[...p,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}}
-            style={{ flex:1 }} />
-          <button className="btn-o" style={{ flexShrink:0, padding:"9px 16px", fontSize:18 }}
-            onClick={()=>{ if(!newA.trim())return; setAnns(p=>[...p,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}>+</button>
-        </div>
+        {isAdmin && (
+          <div style={{ display:"flex", gap:8, marginTop:8, alignItems:"center" }}>
+            <input className="inp" placeholder="Nouvelle annonce…" value={newA}
+              onChange={e=>setNewA(e.target.value)}
+              onKeyDown={e=>{ if(e.key==="Enter" && newA.trim()){ setAnns(p=>[...p,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}}
+              style={{ flex:1 }} />
+            <button className="btn-o" style={{ flexShrink:0, padding:"9px 16px", fontSize:18 }}
+              onClick={()=>{ if(!newA.trim())return; setAnns(p=>[...p,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}>+</button>
+          </div>
+        )}
+        {!isAdmin && <p style={{ fontSize:10, color:MU, textAlign:"center", fontStyle:"italic", marginTop:6 }}>Seule Marie peut modifier les annonces</p>}
       </div>
 
       <div className="div" />
@@ -841,25 +844,28 @@ function AccueilView({ prenom, isAdmin }) {
           <div key={s.id} className="card" style={{ display:"flex", alignItems:"center", gap:12, position:"relative" }}>
             <span style={{ fontSize:24 }}>🌟</span>
             <div><p style={{ fontSize:13, fontWeight:600 }}>{s.name}</p><p style={{ fontSize:12, color:MU }}>{s.ach}</p></div>
-            <button onClick={()=>setSucs(p=>p.filter(x=>x.id!==s.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>
+            {isAdmin && <button onClick={()=>setSucs(p=>p.filter(x=>x.id!==s.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>}
           </div>
         ))}
-        <div style={{ display:"flex", flexDirection:"column", gap:6, marginTop:8 }}>
-          <input className="inp" placeholder="Prénom de la consultante" value={newSName}
-            onChange={e=>setNewSName(e.target.value)} />
-          <div style={{ display:"flex", gap:8 }}>
-            <input className="inp" placeholder="Son succès (ex: première vente 🎉)" value={newSAch}
-              onChange={e=>setNewSAch(e.target.value)}
-              onKeyDown={e=>{ if(e.key==="Enter" && newSName.trim()){ setSucs(p=>[...p,{id:Date.now(),name:newSName,ach:newSAch||"Nouveau succès 🎉"}]); setNewSName(""); setNewSAch(""); }}}
-              style={{ flex:1 }} />
-            <button className="btn-o" style={{ flexShrink:0, padding:"9px 16px", fontSize:18 }}
-              onClick={()=>{
-                if(!newSName.trim())return;
-                setSucs(p=>[...p,{id:Date.now(),name:newSName,ach:newSAch||"Nouveau succès 🎉"}]);
-                setNewSName(""); setNewSAch("");
-              }}>+</button>
+        {isAdmin && (
+          <div style={{ display:"flex", flexDirection:"column", gap:6, marginTop:8 }}>
+            <input className="inp" placeholder="Prénom de la consultante" value={newSName}
+              onChange={e=>setNewSName(e.target.value)} />
+            <div style={{ display:"flex", gap:8 }}>
+              <input className="inp" placeholder="Son succès (ex: première vente 🎉)" value={newSAch}
+                onChange={e=>setNewSAch(e.target.value)}
+                onKeyDown={e=>{ if(e.key==="Enter" && newSName.trim()){ setSucs(p=>[...p,{id:Date.now(),name:newSName,ach:newSAch||"Nouveau succès 🎉"}]); setNewSName(""); setNewSAch(""); }}}
+                style={{ flex:1 }} />
+              <button className="btn-o" style={{ flexShrink:0, padding:"9px 16px", fontSize:18 }}
+                onClick={()=>{
+                  if(!newSName.trim())return;
+                  setSucs(p=>[...p,{id:Date.now(),name:newSName,ach:newSAch||"Nouveau succès 🎉"}]);
+                  setNewSName(""); setNewSAch("");
+                }}>+</button>
+            </div>
           </div>
-        </div>
+        )}
+        {!isAdmin && <p style={{ fontSize:10, color:MU, textAlign:"center", fontStyle:"italic", marginTop:6 }}>Seule Marie peut modifier les succès</p>}
       </div>
     </div>
   );
@@ -2058,6 +2064,10 @@ export default function ChoganApp() {
             </div>
             <span className="logo">Chogan</span>
             <span className="hdr-sub">{activeLabel}</span>
+            <button onClick={()=>{ if(window.confirm("Se déconnecter ?")) setScreen("login"); }}
+              style={{ marginLeft:"auto", background:"none", border:"0.5px solid rgba(224,80,80,.35)", color:RD, borderRadius:8, padding:"4px 10px", fontSize:10, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", letterSpacing:.5 }}>
+              ⏻ Quitter
+            </button>
           </header>
 
           <main className="main">
