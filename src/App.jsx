@@ -1880,6 +1880,33 @@ function ConvertisseurView() {
   );
 }
 
+// ── CODES ─────────────────────────────────────────────────────────
+// Code admin Marie (secret) : MAR74B59D
+// Code sponsor consultantes : CHOGAN2026
+
+// ── PENDING VIEW ──────────────────────────────────────────────────
+function PendingView({ prenom, nom, onRetry }) {
+  return (
+    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 24px", background:"radial-gradient(ellipse at 50% 20%, rgba(201,168,76,.09) 0%, transparent 65%)", fontFamily:"'DM Sans',sans-serif", textAlign:"center" }}>
+      <div style={{ fontSize:50, marginBottom:16 }}>⏳</div>
+      <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:26, fontWeight:700, color:G, marginBottom:8 }}>Demande envoyée !</div>
+      <div style={{ background:S1, borderRadius:16, padding:"24px 22px", maxWidth:340, width:"100%", border:"0.5px solid rgba(201,168,76,.22)", marginBottom:20 }}>
+        <p style={{ fontSize:13, color:"#ccc", lineHeight:1.8, marginBottom:12 }}>
+          Bonjour <strong style={{color:G}}>{prenom} {nom}</strong> 👋<br/><br/>
+          Ta demande d'accès a bien été envoyée à Marie.<br/>
+          Elle va valider ton accès très prochainement.<br/><br/>
+          <span style={{ fontSize:11, color:MU }}>Une fois autorisée, reviens ici et connecte-toi à nouveau.</span>
+        </p>
+        <div style={{ background:"rgba(201,168,76,.07)", borderRadius:10, padding:"10px 14px" }}>
+          <p style={{ fontSize:11, color:G }}>📧 Marie a reçu une notification et reviendra vers toi.</p>
+        </div>
+      </div>
+      <button className="btn-o" onClick={onRetry}>← Retour à la connexion</button>
+      <p style={{ fontSize:22, color:G, fontFamily:"'Cormorant Garamond',serif", fontStyle:"italic", marginTop:20, fontWeight:600 }}>Marie</p>
+    </div>
+  );
+}
+
 // ── LOGIN VIEW ────────────────────────────────────────────────────
 function LoginView({ onLogin }) {
   const [nom, setNom] = useState("");
@@ -1890,7 +1917,11 @@ function LoginView({ onLogin }) {
   const handleLogin = () => {
     if (!prenom.trim() || !nom.trim()) { setErr("Merci d'entrer ton prénom et nom."); return; }
     if (!code.trim()) { setErr("Merci d'entrer ton code sponsor."); return; }
-    onLogin(prenom.trim(), nom.trim(), code.trim().toUpperCase());
+    const c = code.trim().toUpperCase();
+    const isAdmin = nom.toUpperCase()==="OUADI" && prenom.toUpperCase()==="MARIE" && c==="MAR74B59D";
+    const isConsultant = c==="CHOGAN2026";
+    if (!isAdmin && !isConsultant) { setErr("Code sponsor incorrect. Contacte Marie."); return; }
+    onLogin(prenom.trim(), nom.trim(), c);
   };
 
   return (
@@ -1930,42 +1961,34 @@ function LoginView({ onLogin }) {
 
 // ── MAIN APP ──────────────────────────────────────────────────────
 export default function ChoganApp() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [screen, setScreen] = useState("login"); // "login" | "pending" | "app"
   const [tab, setTab] = useState("accueil");
-  const [started, setStarted] = useState(false);
   const [prenom, setPrenom] = useState("");
   const [nom, setNom] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [perfumes, setPerfumes] = useState(DEMO_PERFUMES);
   const [checklist, setChecklist] = useState(CHECKLIST0);
-  const [showBienvenue, setShowBienvenue] = useState(false);
   const [showPromo, setShowPromo] = useState(false);
 
   const handleLogin = (p, n, code) => {
-    const admin = n.toUpperCase()==="OUADI" && p.toUpperCase()==="MARIE" && code.toUpperCase()==="MAR74B59D";
+    const admin = n.toUpperCase()==="OUADI" && p.toUpperCase()==="MARIE" && code==="MAR74B59D";
     setPrenom(p); setNom(n); setIsAdmin(admin);
-    setLoggedIn(true); setStarted(true);
     const key = "chogan_seen_" + (p+n).toLowerCase().replace(/\s/g,"");
     const isNew = !localStorage.getItem(key);
     if (isNew && !admin) {
       localStorage.setItem(key, new Date().toLocaleDateString("fr-FR"));
       trackAction(p+" "+n, "accueil", "premiere-connexion");
+      setScreen("pending");
     } else {
       trackAction(p+" "+n, "accueil", admin?"connexion-admin":"connexion");
+      setScreen("app");
     }
   };
 
   const changeTab = (newTab) => {
-    setShowBienvenue(false); setShowPromo(false); setTab(newTab);
+    setShowPromo(false); setTab(newTab);
     trackAction(prenom+" "+nom, newTab, "navigation");
   };
-
-  if (!loggedIn) return (
-    <div style={{ background:BG, minHeight:"100vh" }}>
-      <style>{CSS}</style>
-      <LoginView onLogin={handleLogin} />
-    </div>
-  );
 
   const TABS = [
     { id:"accueil",      lbl:"Accueil",      ic:"🏠" },
@@ -1981,13 +2004,28 @@ export default function ChoganApp() {
 
   const activeLabel = TABS.find(t=>t.id===tab)?.lbl || "";
 
+  if (screen==="login") return (
+    <div style={{ background:BG, minHeight:"100vh" }}>
+      <style>{CSS}</style>
+      <LoginView onLogin={handleLogin} />
+    </div>
+  );
+
+  if (screen==="pending") return (
+    <div style={{ background:BG, minHeight:"100vh" }}>
+      <style>{CSS}</style>
+      <PendingView prenom={prenom} nom={nom} onRetry={()=>setScreen("login")} />
+    </div>
+  );
+
   return (
     <div style={{ background:BG, minHeight:"100vh" }}>
       <style>{CSS}</style>
       <div className="app">
-        {/* LEFT SIDEBAR NAV */}
         <nav className="lnav">
-          <div style={{ width:38, height:38, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"1.5px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:10, marginTop:4, flexShrink:0 }}><span style={{ fontFamily:"serif", fontSize:18, color:"#c9a84c", fontWeight:700 }}>C</span></div>
+          <div style={{ width:38, height:38, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"1.5px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:10, marginTop:4, flexShrink:0 }}>
+            <span style={{ fontFamily:"serif", fontSize:18, color:"#c9a84c", fontWeight:700 }}>C</span>
+          </div>
           <div className="lnav-inner">
             {TABS.map(t=>(
               <button key={t.id} className={`nb ${tab===t.id?"on":""}`} onClick={()=>changeTab(t.id)}>
@@ -1998,20 +2036,20 @@ export default function ChoganApp() {
           </div>
         </nav>
 
-        {/* MAIN CONTENT */}
         <div className="content-wrap">
           <header className="hdr">
-            <div style={{ width:30, height:30, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"1.5px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginRight:8, flexShrink:0 }}><span style={{ fontFamily:"serif", fontSize:14, color:"#c9a84c", fontWeight:700 }}>C</span></div><span className="logo">Chogan</span>
+            <div style={{ width:30, height:30, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"1.5px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginRight:8, flexShrink:0 }}>
+              <span style={{ fontFamily:"serif", fontSize:14, color:"#c9a84c", fontWeight:700 }}>C</span>
+            </div>
+            <span className="logo">Chogan</span>
             <span className="hdr-sub">{activeLabel}</span>
           </header>
 
           <main className="main">
-            {showBienvenue
-              ? <BienvenueView onBack={()=>setShowBienvenue(false)} />
-              : showPromo
+            {showPromo
               ? <PromoView onBack={()=>setShowPromo(false)} />
               : <div style={{display:"contents"}}>
-                  {tab==="accueil" && <AccueilView started={started} setStarted={setStarted} prenom={prenom} setPrenom={setPrenom} onTrack={trackAction} isAdmin={isAdmin} />}
+                  {tab==="accueil"       && <AccueilView prenom={prenom} isAdmin={isAdmin} />}
                   {tab==="formation"     && <LancementView />}
                   {tab==="inspirations"  && <CatalogueView perfumes={perfumes} setPerfumes={setPerfumes} />}
                   {tab==="familles"      && <FamilleView />}
