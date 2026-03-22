@@ -1901,6 +1901,7 @@ const CODES_VALIDES = [
   "ADA7DBE89",  // Adam Talmoudi
   "KAR96A897",  // Karim Ayachi
   "MER2105D7",  // Meryem Boukenkoul
+  "NO81BN48",   // Nej Ouadi
 ];
 
 // ── PENDING VIEW ──────────────────────────────────────────────────
@@ -2001,7 +2002,6 @@ export default function ChoganApp() {
       trackAction(p+" "+n, "accueil", admin?"connexion-admin":"connexion");
     }
     setScreen("app");
-  };
   };
 
   const changeTab = (newTab) => {
