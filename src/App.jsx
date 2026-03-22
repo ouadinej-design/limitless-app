@@ -243,11 +243,8 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbzOBoyWxfPgf_8r37SmXA
 
 function trackAction(prenom, onglet, action) {
   try {
-    fetch(SHEET_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prenom: prenom||"Anonyme", onglet, action })
-    });
+    const params = new URLSearchParams({ prenom: prenom||"Anonyme", onglet, action });
+    fetch(SHEET_URL + "?" + params.toString(), { method:"GET", mode:"no-cors" });
   } catch(e) {}
 }
 
@@ -1883,23 +1880,84 @@ function ConvertisseurView() {
   );
 }
 
-// ── MAIN APP ──────────────────────────────────────────────────────
+// ── LOGIN VIEW ────────────────────────────────────────────────────
+function LoginView({ onLogin }) {
+  const [nom, setNom] = useState("");
+  const [prenom, setPrenom] = useState("");
+  const [code, setCode] = useState("");
+  const [err, setErr] = useState("");
 
+  const handleLogin = () => {
+    if (!prenom.trim() || !nom.trim()) { setErr("Merci d'entrer ton prénom et nom."); return; }
+    if (!code.trim()) { setErr("Merci d'entrer ton code sponsor."); return; }
+    onLogin(prenom.trim(), nom.trim(), code.trim().toUpperCase());
+  };
+
+  return (
+    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 24px", background:"radial-gradient(ellipse at 50% 20%, rgba(201,168,76,.09) 0%, transparent 65%)", fontFamily:"'DM Sans',sans-serif" }}>
+      <div style={{ fontSize:44, marginBottom:10 }}>✦</div>
+      <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:700, color:G, marginBottom:4, letterSpacing:2 }}>CHOGAN</div>
+      <p style={{ fontSize:12, color:MU, marginBottom:28, letterSpacing:3, textTransform:"uppercase" }}>Espace Consultant</p>
+
+      <div style={{ width:"100%", maxWidth:340, background:S1, borderRadius:16, padding:"28px 22px", border:"0.5px solid rgba(201,168,76,.22)" }}>
+        <p style={{ fontSize:14, color:G, fontWeight:600, marginBottom:18, textAlign:"center" }}>Connexion à l'application</p>
+
+        <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>Prénom</label>
+        <input className="inp" placeholder="Ton prénom…" value={prenom} onChange={e=>setPrenom(e.target.value)} style={{ marginBottom:12 }} />
+
+        <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>Nom</label>
+        <input className="inp" placeholder="Ton nom…" value={nom} onChange={e=>setNom(e.target.value)} style={{ marginBottom:12 }} />
+
+        <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>Code Sponsor</label>
+        <input className="inp" placeholder="Ex: MAR74B59D" value={code}
+          onChange={e=>setCode(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&handleLogin()}
+          style={{ marginBottom:18, textTransform:"uppercase" }} />
+
+        {err && <p style={{ fontSize:11, color:RD, marginBottom:12, textAlign:"center" }}>{err}</p>}
+
+        <button className="btn-p" style={{ width:"100%" }} onClick={handleLogin}>
+          🚀 Accéder à l'application
+        </button>
+      </div>
+      <p style={{ fontSize:22, color:G, fontFamily:"'Cormorant Garamond',serif", fontStyle:"italic", marginTop:20, fontWeight:600 }}>Marie</p>
+    </div>
+  );
+}
+
+
+
+// ── MAIN APP ──────────────────────────────────────────────────────
 export default function ChoganApp() {
+  const [loggedIn, setLoggedIn] = useState(false);
   const [tab, setTab] = useState("accueil");
   const [started, setStarted] = useState(false);
   const [prenom, setPrenom] = useState("");
+  const [nom, setNom] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [perfumes, setPerfumes] = useState(DEMO_PERFUMES);
   const [checklist, setChecklist] = useState(CHECKLIST0);
   const [showBienvenue, setShowBienvenue] = useState(false);
   const [showPromo, setShowPromo] = useState(false);
 
-  const changeTab = (newTab) => {
-    setShowBienvenue(false);
-    setShowPromo(false);
-    setTab(newTab);
-    trackAction(prenom, newTab, "navigation");
+  const handleLogin = (p, n, code) => {
+    const admin = n.toUpperCase()==="OUADI" && p.toUpperCase()==="MARIE" && code==="MAR74B59D";
+    setPrenom(p); setNom(n); setIsAdmin(admin);
+    setLoggedIn(true); setStarted(true);
+    trackAction(p+" "+n, "accueil", admin?"connexion-admin":"connexion");
   };
+
+  const changeTab = (newTab) => {
+    setShowBienvenue(false); setShowPromo(false); setTab(newTab);
+    trackAction(prenom+" "+nom, newTab, "navigation");
+  };
+
+  if (!loggedIn) return (
+    <>
+      <style>{CSS}</style>
+      <LoginView onLogin={handleLogin} />
+    </>
+  );
 
   const TABS = [
     { id:"accueil",      lbl:"Accueil",      ic:"🏠" },
@@ -1915,9 +1973,6 @@ export default function ChoganApp() {
 
   const activeLabel = TABS.find(t=>t.id===tab)?.lbl || "";
 
-  return (
-    <>
-      <style>{CSS}</style>
       <div className="app">
         {/* LEFT SIDEBAR NAV */}
         <nav className="lnav">
@@ -1945,7 +2000,7 @@ export default function ChoganApp() {
               : showPromo
               ? <PromoView onBack={()=>setShowPromo(false)} />
               : <>
-                  {tab==="accueil"       && <AccueilView started={started} setStarted={setStarted} prenom={prenom} setPrenom={setPrenom} onTrack={trackAction} />}
+                  {tab==="accueil" && <AccueilView started={started} setStarted={setStarted} prenom={prenom} setPrenom={setPrenom} onTrack={trackAction} isAdmin={isAdmin} />}
                   {tab==="formation"     && <LancementView />}
                   {tab==="inspirations"  && <CatalogueView perfumes={perfumes} setPerfumes={setPerfumes} />}
                   {tab==="familles"      && <FamilleView />}
