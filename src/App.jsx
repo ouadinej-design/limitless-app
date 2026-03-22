@@ -765,7 +765,7 @@ Si pas de référence, génère un id court. Inclus TOUTES les entrées visibles
   );
 }
 
-function AccueilView({ started, setStarted, prenom, setPrenom, onTrack, isAdmin }) {
+function AccueilView({ prenom, isAdmin }) {
   const [anns, setAnns] = useState([
     { id:1, text:"🎉 Bienvenue dans l'équipe ! Ton aventure Chogan commence aujourd'hui.", date:new Date().toLocaleDateString("fr-FR") },
     { id:2, text:"🌸 Promo du mois : -20% sur la gamme 50ml jusqu'à fin du mois !", date:new Date().toLocaleDateString("fr-FR") },
@@ -775,42 +775,8 @@ function AccueilView({ started, setStarted, prenom, setPrenom, onTrack, isAdmin 
     { id:2, name:"Nour K.",  ach:"Statut Gold atteint 🥇" },
   ]);
   const [newA, setNewA] = useState("");
-  const [newS, setNewS] = useState("");
   const [newSName, setNewSName] = useState("");
   const [newSAch, setNewSAch] = useState("");
-  const [inputPrenom, setInputPrenom] = useState("");
-
-  if (!started) return (
-    <div className="fi" style={{ minHeight:"calc(100vh - 60px)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 18px", textAlign:"center", background:"radial-gradient(ellipse at 50% 25%, rgba(201,168,76,.07) 0%, transparent 65%)" }}>
-      <div style={{ fontSize:40, marginBottom:12 }}>✦</div>
-      <div style={{ fontFamily:"'Cormorant Garamond',Georgia,serif", fontSize:26, fontWeight:700, color:G, lineHeight:1.2, marginBottom:18 }}>Bienvenue chez Chogan</div>
-      <div style={{ background:"rgba(255,255,255,.025)", border:"0.5px solid rgba(201,168,76,.2)", borderRadius:14, padding:"18px 18px 14px", marginBottom:22, textAlign:"left" }}>
-        <p style={{ fontSize:13, lineHeight:1.85, color:"#ccc", textAlign:"center" }}>
-          ✨ Bienvenue dans ton espace Chogan ✨<br/><br/>
-          Cette application a été pensée pour t'accompagner simplement dans ton activité, du lancement jusqu'à ton évolution au quotidien.<br/><br/>
-          Tu y trouveras tous les outils essentiels pour :<br/>
-          🤍 bien démarrer<br/>
-          🤍 organiser tes ventes<br/>
-          🤍 guider tes clientes plus facilement<br/>
-          🤍 et avancer étape par étape grâce à un suivi structuré<br/><br/>
-          Prends le temps de découvrir chaque rubrique et utilise cet espace comme ton allié au quotidien ✨
-        </p>
-        <p style={{ fontSize:22, color:G, fontFamily:"'Cormorant Garamond',serif", fontStyle:"italic", marginTop:14, textAlign:"center", fontWeight:600 }}>Marie</p>
-      </div>
-      <div style={{ width:"100%", maxWidth:320, marginBottom:16 }}>
-        <label style={{ fontSize:11, color:MU, display:"block", marginBottom:6, textAlign:"left" }}>👤 Ton prénom pour personnaliser l'app</label>
-        <input className="inp" placeholder="Ton prénom…" value={inputPrenom}
-          onChange={e=>setInputPrenom(e.target.value)}
-          style={{ textAlign:"center", fontSize:16 }} />
-      </div>
-      <button className="btn-p" onClick={()=>{
-        const p = inputPrenom.trim() || "Consultante";
-        setPrenom(p);
-        setStarted(true);
-        if(onTrack) onTrack(p, "accueil", "connexion");
-      }}>🚀 Démarrer mon aventure</button>
-    </div>
-  );
 
   return (
     <div className="fi">
