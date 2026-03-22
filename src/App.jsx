@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 
 // ── THEME ─────────────────────────────────────────────────────────
 const G = "#c9a84c";
@@ -555,7 +555,7 @@ function FormationView() {
           </div>
 
           {!qdone ? (
-            <>
+            <React.Fragment>
               {QUIZ.map((q,qi)=>(
                 <div key={q.id} className="card" style={{ marginBottom:10 }}>
                   <p style={{ fontSize:13, fontWeight:500, marginBottom:10, lineHeight:1.45 }}>{qi+1}. {q.q}</p>
@@ -574,9 +574,9 @@ function FormationView() {
                 }}>
                 Valider le quiz
               </button>
-            </>
+            </React.Fragment>
           ) : (
-            <>
+            <React.Fragment>
               <div className={score>=8?"cardg":"card"} style={{ textAlign:"center", padding:24, marginBottom:16 }}>
                 <p style={{ fontSize:40, marginBottom:8 }}>{score>=8?"🎓":"📚"}</p>
                 <p style={{ fontSize:30, fontWeight:700, color:score>=8?G:RD }}>{score}/10</p>
@@ -596,7 +596,7 @@ function FormationView() {
                 onClick={()=>{setQa({});setQdone(false);}}>
                 Reprendre le quiz
               </button>
-            </>
+            </React.Fragment>
           )}
         </div>
       )}
@@ -712,7 +712,7 @@ Si pas de référence, génère un id court. Inclus TOUTES les entrées visibles
               <p style={{ fontSize:24, marginBottom:6 }}>📷</p>
               <p style={{ fontSize:13, color:G, fontWeight:500 }}>Mettre à jour la liste</p>
               <p style={{ fontSize:11, color:MU, marginTop:3 }}>Upload photo ou PDF → extraction automatique par IA</p>
-            </>
+            </React.Fragment>
         }
       </div>
       <input ref={fref} type="file" accept="image/*,application/pdf" style={{ display:"none" }} onChange={handleFile} />
@@ -1298,7 +1298,7 @@ function BonCommandeView({ perfumes }) {
                   </div>
                 )}
                 {pays==="dz" && (
-                  <>
+                  <React.Fragment>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
                       <span style={{ fontSize:11, color:MU }}>Taux : 1€ = {taux} DA</span>
                       <span style={{ fontSize:11, color:MU }}>{totalEur.toFixed(2)}€ × {taux}</span>
@@ -1307,14 +1307,14 @@ function BonCommandeView({ perfumes }) {
                       <span style={{ fontSize:13, fontWeight:600 }}>TOTAL DZD</span>
                       <span style={{ fontSize:22, fontWeight:700, color:G }}>{totalDzd.toLocaleString("fr-FR")} DA</span>
                     </div>
-                  </>
+                  </React.Fragment>
                 )}
               </div>
 
               <button className="btn-p" style={{ width:"100%", marginTop:12 }} onClick={exportText}>
                 {exported ? "✅ Copié dans le presse-papier !" : "📋 Copier le bon de commande"}
               </button>
-            </>
+            </React.Fragment>
           }
       </div>
     </div>
@@ -1727,7 +1727,7 @@ function LancementView() {
             <span className="badge" style={{ background:"rgba(201,168,76,.14)", color:G }}>12/15 requis</span>
           </div>
           {!qdone ? (
-            <>
+            <React.Fragment>
               {QUIZ.map((q,qi)=>(
                 <div key={q.id} className="card" style={{ marginBottom:10 }}>
                   <p style={{ fontSize:13, fontWeight:500, marginBottom:10, lineHeight:1.45 }}>{qi+1}. {q.q}</p>
@@ -1743,9 +1743,9 @@ function LancementView() {
                 onClick={()=>{ if(Object.keys(qa).length<QUIZ.length){alert("Réponds à toutes les questions !");return;} setQdone(true); }}>
                 Valider le quiz
               </button>
-            </>
+            </React.Fragment>
           ) : (
-            <>
+            <React.Fragment>
               <div className={score>=12?"cardg":"card"} style={{ textAlign:"center", padding:24, marginBottom:16 }}>
                 <p style={{ fontSize:40, marginBottom:8 }}>{score>=12?"🎓":"📚"}</p>
                 <p style={{ fontSize:30, fontWeight:700, color:score>=12?G:RD }}>{score}/15</p>
@@ -1764,7 +1764,7 @@ function LancementView() {
               <button className="btn-o" style={{ width:"100%", marginTop:8 }} onClick={()=>{setQa({});setQdone(false);}}>
                 Reprendre le quiz
               </button>
-            </>
+            </React.Fragment>
           )}
         </div>
       )}
@@ -2012,7 +2012,7 @@ export default function ChoganApp() {
                   {tab==="convertisseur" && <ConvertisseurView />}
                   {tab==="checklist"     && <ChecklistView checklist={checklist} setChecklist={setChecklist} />}
                   {tab==="promo"         && <PromoView />}
-                </>
+                </React.Fragment>
             }
           </main>
         </div>
