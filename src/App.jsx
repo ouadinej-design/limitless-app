@@ -1953,10 +1953,10 @@ export default function ChoganApp() {
   };
 
   if (!loggedIn) return (
-    <>
+    <div style={{ background:BG, minHeight:"100vh" }}>
       <style>{CSS}</style>
       <LoginView onLogin={handleLogin} />
-    </>
+    </div>
   );
 
   const TABS = [
@@ -1973,6 +1973,9 @@ export default function ChoganApp() {
 
   const activeLabel = TABS.find(t=>t.id===tab)?.lbl || "";
 
+  return (
+    <div style={{ background:BG, minHeight:"100vh" }}>
+      <style>{CSS}</style>
       <div className="app">
         {/* LEFT SIDEBAR NAV */}
         <nav className="lnav">
@@ -2014,6 +2017,6 @@ export default function ChoganApp() {
           </main>
         </div>
       </div>
-    </>
+    </div>
   );
 }
