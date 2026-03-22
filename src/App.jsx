@@ -248,6 +248,25 @@ function trackAction(prenom, onglet, action) {
   } catch(e) {}
 }
 
+async function getMurs() {
+  try {
+    const res = await fetch(SHEET_URL + "?action=getMurs");
+    const data = await res.json();
+    return data;
+  } catch(e) { return null; }
+}
+
+async function saveMurs(anns, sucs) {
+  try {
+    const params = new URLSearchParams({
+      action: "saveMurs",
+      anns: JSON.stringify(anns),
+      sucs: JSON.stringify(sucs)
+    });
+    fetch(SHEET_URL + "?" + params.toString(), { method:"GET", mode:"no-cors" });
+  } catch(e) {}
+}
+
 
 const gc = g => g === "homme" ? HC : g === "femme" ? FC : MC;
 const gl = g => g === "homme" ? "♂ Homme" : g === "femme" ? "♀ Femme" : "⚧ Mixte";
@@ -768,6 +787,7 @@ Si pas de référence, génère un id court. Inclus TOUTES les entrées visibles
 function AccueilView({ prenom, isAdmin }) {
   const [started, setStarted] = useState(false);
   const [inputPrenom, setInputPrenom] = useState("");
+  const [loading, setLoading] = useState(true);
   const [anns, setAnns] = useState([
     { id:1, text:"🎉 Bienvenue dans l'équipe ! Ton aventure Chogan commence aujourd'hui.", date:new Date().toLocaleDateString("fr-FR") },
     { id:2, text:"🌸 Promo du mois : -20% sur la gamme 50ml jusqu'à fin du mois !", date:new Date().toLocaleDateString("fr-FR") },
@@ -781,6 +801,19 @@ function AccueilView({ prenom, isAdmin }) {
   const [newSAch, setNewSAch] = useState("");
 
   const displayName = inputPrenom.trim() || prenom || "Consultante";
+
+  // Charger les murs partagés au démarrage
+  React.useEffect(() => {
+    getMurs().then(data => {
+      if (data?.anns?.length) setAnns(data.anns);
+      if (data?.sucs?.length) setSucs(data.sucs);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  // Sauvegarder automatiquement quand Marie modifie
+  const updateAnns = (newAnns) => { setAnns(newAnns); if(isAdmin) saveMurs(newAnns, sucs); };
+  const updateSucs = (newSucs) => { setSucs(newSucs); if(isAdmin) saveMurs(anns, newSucs); };
 
   if (!started) return (
     <div className="fi" style={{ minHeight:"calc(100vh - 60px)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 18px", textAlign:"center", background:"radial-gradient(ellipse at 50% 25%, rgba(201,168,76,.07) 0%, transparent 65%)" }}>
@@ -820,17 +853,17 @@ function AccueilView({ prenom, isAdmin }) {
           <div key={a.id} className="cardg" style={{ position:"relative" }}>
             <p style={{ fontSize:13, lineHeight:1.55 }}>{a.text}</p>
             <p style={{ fontSize:10, color:MU, marginTop:5 }}>{a.date}</p>
-            {isAdmin && <button onClick={()=>setAnns(p=>p.filter(x=>x.id!==a.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>}
+            {isAdmin && <button onClick={()=>updateAnns(anns.filter(x=>x.id!==a.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>}
           </div>
         ))}
         {isAdmin && (
           <div style={{ display:"flex", gap:8, marginTop:8, alignItems:"center" }}>
             <input className="inp" placeholder="Nouvelle annonce…" value={newA}
               onChange={e=>setNewA(e.target.value)}
-              onKeyDown={e=>{ if(e.key==="Enter" && newA.trim()){ setAnns(p=>[...p,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}}
+              onKeyDown={e=>{ if(e.key==="Enter" && newA.trim()){ updateAnns([...anns,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}}
               style={{ flex:1 }} />
             <button className="btn-o" style={{ flexShrink:0, padding:"9px 16px", fontSize:18 }}
-              onClick={()=>{ if(!newA.trim())return; setAnns(p=>[...p,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}>+</button>
+              onClick={()=>{ if(!newA.trim())return; updateAnns([...anns,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}>+</button>
           </div>
         )}
         {!isAdmin && <p style={{ fontSize:10, color:MU, textAlign:"center", fontStyle:"italic", marginTop:6 }}>Seule Marie peut modifier les annonces</p>}
@@ -844,7 +877,7 @@ function AccueilView({ prenom, isAdmin }) {
           <div key={s.id} className="card" style={{ display:"flex", alignItems:"center", gap:12, position:"relative" }}>
             <span style={{ fontSize:24 }}>🌟</span>
             <div><p style={{ fontSize:13, fontWeight:600 }}>{s.name}</p><p style={{ fontSize:12, color:MU }}>{s.ach}</p></div>
-            {isAdmin && <button onClick={()=>setSucs(p=>p.filter(x=>x.id!==s.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>}
+            {isAdmin && <button onClick={()=>updateSucs(sucs.filter(x=>x.id!==s.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>}
           </div>
         ))}
         {isAdmin && (
@@ -854,12 +887,12 @@ function AccueilView({ prenom, isAdmin }) {
             <div style={{ display:"flex", gap:8 }}>
               <input className="inp" placeholder="Son succès (ex: première vente 🎉)" value={newSAch}
                 onChange={e=>setNewSAch(e.target.value)}
-                onKeyDown={e=>{ if(e.key==="Enter" && newSName.trim()){ setSucs(p=>[...p,{id:Date.now(),name:newSName,ach:newSAch||"Nouveau succès 🎉"}]); setNewSName(""); setNewSAch(""); }}}
+                onKeyDown={e=>{ if(e.key==="Enter" && newSName.trim()){ updateSucs([...sucs,{id:Date.now(),name:newSName,ach:newSAch||"Nouveau succès 🎉"}]); setNewSName(""); setNewSAch(""); }}}
                 style={{ flex:1 }} />
               <button className="btn-o" style={{ flexShrink:0, padding:"9px 16px", fontSize:18 }}
                 onClick={()=>{
                   if(!newSName.trim())return;
-                  setSucs(p=>[...p,{id:Date.now(),name:newSName,ach:newSAch||"Nouveau succès 🎉"}]);
+                  updateSucs([...sucs,{id:Date.now(),name:newSName,ach:newSAch||"Nouveau succès 🎉"}]);
                   setNewSName(""); setNewSAch("");
                 }}>+</button>
             </div>
