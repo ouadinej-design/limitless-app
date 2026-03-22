@@ -1880,9 +1880,28 @@ function ConvertisseurView() {
   );
 }
 
-// ── CODES ─────────────────────────────────────────────────────────
+// ── CODES CONSULTANTES (codes Chogan officiels) ───────────────────
 // Code admin Marie (secret) : MAR74B59D
-// Code sponsor consultantes : CHOGAN2026
+const CODES_VALIDES = [
+  "SHAC7CB8F",  // Shaïma Khelifi
+  "TRAEB240A",  // Tracy Mafita Kembo
+  "MIL1B11E0",  // Milene Bouguera
+  "SEL2D06DE",  // Selma Merikhi
+  "YASD2F154",  // Yasmine Chemali
+  "ISA98670B",  // Isabelle Bellaha
+  "BLABC677B",  // Blandine Ameur
+  "BAY2CAEB0",  // Baya Sahraoui
+  "SOPB7D832",  // Sophia Necer
+  "NAD7354BF",  // Nadia Nadjem
+  "SAR0E4537",  // Sarah Meziou
+  "NAD93A481",  // Nadia Bendjeddou
+  "MELB42DE5",  // Melissa Zerouk
+  "CAS04EBF2",  // Cassandra Cortezon
+  "SOU36AE1C",  // Soumia Bensaad
+  "ADA7DBE89",  // Adam Talmoudi
+  "KAR96A897",  // Karim Ayachi
+  "MER2105D7",  // Meryem Boukenkoul
+];
 
 // ── PENDING VIEW ──────────────────────────────────────────────────
 function PendingView({ prenom, nom, onRetry }) {
@@ -1919,8 +1938,8 @@ function LoginView({ onLogin }) {
     if (!code.trim()) { setErr("Merci d'entrer ton code sponsor."); return; }
     const c = code.trim().toUpperCase();
     const isAdmin = nom.toUpperCase()==="OUADI" && prenom.toUpperCase()==="MARIE" && c==="MAR74B59D";
-    const isConsultant = c==="CHOGAN2026";
-    if (!isAdmin && !isConsultant) { setErr("Code sponsor incorrect. Contacte Marie."); return; }
+    const isValid = isAdmin || CODES_VALIDES.includes(c);
+    if (!isValid) { setErr("Code sponsor incorrect. Contacte Marie pour obtenir ton code."); return; }
     onLogin(prenom.trim(), nom.trim(), c);
   };
 
@@ -1978,11 +1997,11 @@ export default function ChoganApp() {
     if (isNew && !admin) {
       localStorage.setItem(key, new Date().toLocaleDateString("fr-FR"));
       trackAction(p+" "+n, "accueil", "premiere-connexion");
-      setScreen("pending");
     } else {
       trackAction(p+" "+n, "accueil", admin?"connexion-admin":"connexion");
-      setScreen("app");
     }
+    setScreen("app");
+  };
   };
 
   const changeTab = (newTab) => {
