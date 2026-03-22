@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import logoImg from "../logo.jpeg";
 
 // ── THEME ─────────────────────────────────────────────────────────
 const G = "#c9a84c";
@@ -1316,7 +1315,7 @@ function BonCommandeView({ perfumes }) {
                 {exported ? "✅ Copié dans le presse-papier !" : "📋 Copier le bon de commande"}
               </button>
             </>
-        }
+          }
       </div>
     </div>
   );
@@ -1977,7 +1976,7 @@ export default function ChoganApp() {
       <div className="app">
         {/* LEFT SIDEBAR NAV */}
         <nav className="lnav">
-          <img src={logoImg} style={{ width:38, height:38, borderRadius:"50%", objectFit:"cover", marginBottom:10, marginTop:4, border:"1.5px solid rgba(201,168,76,.3)" }} alt="logo" />
+          <div style={{ width:38, height:38, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"1.5px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:10, marginTop:4, flexShrink:0 }}><span style={{ fontFamily:"serif", fontSize:18, color:"#c9a84c", fontWeight:700 }}>C</span></div>
           <div className="lnav-inner">
             {TABS.map(t=>(
               <button key={t.id} className={`nb ${tab===t.id?"on":""}`} onClick={()=>changeTab(t.id)}>
@@ -1991,7 +1990,7 @@ export default function ChoganApp() {
         {/* MAIN CONTENT */}
         <div className="content-wrap">
           <header className="hdr">
-            <img src={logoImg} style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover", marginRight:8 }} alt="logo" /><span className="logo">Chogan</span>
+            <div style={{ width:30, height:30, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"1.5px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginRight:8, flexShrink:0 }}><span style={{ fontFamily:"serif", fontSize:14, color:"#c9a84c", fontWeight:700 }}>C</span></div><span className="logo">Chogan</span>
             <span className="hdr-sub">{activeLabel}</span>
           </header>
 
