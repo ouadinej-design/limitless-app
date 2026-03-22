@@ -765,7 +765,7 @@ Si pas de référence, génère un id court. Inclus TOUTES les entrées visibles
   );
 }
 
-function AccueilView({ started, setStarted, prenom, setPrenom, onTrack }) {
+function AccueilView({ started, setStarted, prenom, setPrenom, onTrack, isAdmin }) {
   const [anns, setAnns] = useState([
     { id:1, text:"🎉 Bienvenue dans l'équipe ! Ton aventure Chogan commence aujourd'hui.", date:new Date().toLocaleDateString("fr-FR") },
     { id:2, text:"🌸 Promo du mois : -20% sur la gamme 50ml jusqu'à fin du mois !", date:new Date().toLocaleDateString("fr-FR") },
@@ -1909,10 +1909,11 @@ function LoginView({ onLogin }) {
         <input className="inp" placeholder="Ton nom…" value={nom} onChange={e=>setNom(e.target.value)} style={{ marginBottom:12 }} />
 
         <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>Code Sponsor</label>
-        <input className="inp" placeholder="Ex: MAR74B59D" value={code}
+        <input className="inp" placeholder="Code sponsor" value={code}
+          type="password"
           onChange={e=>setCode(e.target.value)}
           onKeyDown={e=>e.key==="Enter"&&handleLogin()}
-          style={{ marginBottom:18, textTransform:"uppercase" }} />
+          style={{ marginBottom:18 }} />
 
         {err && <p style={{ fontSize:11, color:RD, marginBottom:12, textAlign:"center" }}>{err}</p>}
 
@@ -1941,10 +1942,17 @@ export default function ChoganApp() {
   const [showPromo, setShowPromo] = useState(false);
 
   const handleLogin = (p, n, code) => {
-    const admin = n.toUpperCase()==="OUADI" && p.toUpperCase()==="MARIE" && code==="MAR74B59D";
+    const admin = n.toUpperCase()==="OUADI" && p.toUpperCase()==="MARIE" && code.toUpperCase()==="MAR74B59D";
     setPrenom(p); setNom(n); setIsAdmin(admin);
     setLoggedIn(true); setStarted(true);
-    trackAction(p+" "+n, "accueil", admin?"connexion-admin":"connexion");
+    const key = "chogan_seen_" + (p+n).toLowerCase().replace(/\s/g,"");
+    const isNew = !localStorage.getItem(key);
+    if (isNew && !admin) {
+      localStorage.setItem(key, new Date().toLocaleDateString("fr-FR"));
+      trackAction(p+" "+n, "accueil", "premiere-connexion");
+    } else {
+      trackAction(p+" "+n, "accueil", admin?"connexion-admin":"connexion");
+    }
   };
 
   const changeTab = (newTab) => {
