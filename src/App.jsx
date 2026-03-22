@@ -1,5 +1,8 @@
 import React, { useState, useRef } from "react";
 
+// ── VERSION ────────────────────────────────────────────────────────
+const APP_VERSION = "2.1"; // ← changer ce numéro à chaque mise à jour
+
 // ── THEME ─────────────────────────────────────────────────────────
 const G = "#c9a84c";
 const GL = "#e8d48a";
@@ -1962,6 +1965,38 @@ function PendingView({ prenom, nom, onRetry }) {
   );
 }
 
+// ── UPDATE BANNER ─────────────────────────────────────────────────
+function UpdateBanner() {
+  const key = "chogan_version";
+  const seen = localStorage.getItem(key);
+  const [visible, setVisible] = useState(seen !== APP_VERSION);
+
+  if (!visible) return null;
+
+  return (
+    <div style={{
+      position:"fixed", top:0, left:0, right:0, zIndex:9999,
+      background:`linear-gradient(135deg, ${G}, #a8872e)`,
+      padding:"10px 16px", display:"flex", alignItems:"center",
+      justifyContent:"space-between", gap:10, boxShadow:"0 2px 12px rgba(201,168,76,.4)"
+    }}>
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ fontSize:18 }}>✨</span>
+        <div>
+          <p style={{ fontSize:12, fontWeight:700, color:"#07070f" }}>Nouvelle mise à jour disponible !</p>
+          <p style={{ fontSize:10, color:"rgba(0,0,0,.6)" }}>Ferme et rouvre l'app pour en profiter — v{APP_VERSION}</p>
+        </div>
+      </div>
+      <button onClick={()=>{ localStorage.setItem(key, APP_VERSION); setVisible(false); }}
+        style={{ background:"rgba(0,0,0,.15)", border:"none", borderRadius:8,
+          padding:"6px 12px", fontSize:11, fontWeight:600, color:"#07070f",
+          cursor:"pointer", whiteSpace:"nowrap" }}>
+        OK ✓
+      </button>
+    </div>
+  );
+}
+
 // ── LOGIN VIEW ────────────────────────────────────────────────────
 function LoginView({ onLogin }) {
   const [nom, setNom] = useState("");
@@ -2075,6 +2110,7 @@ export default function ChoganApp() {
   return (
     <div style={{ background:BG, minHeight:"100vh" }}>
       <style>{CSS}</style>
+      <UpdateBanner />
       <div className="app">
         <nav className="lnav">
           <div style={{ width:38, height:38, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"1.5px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:10, marginTop:4, flexShrink:0 }}>
