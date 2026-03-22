@@ -766,6 +766,8 @@ Si pas de référence, génère un id court. Inclus TOUTES les entrées visibles
 }
 
 function AccueilView({ prenom, isAdmin }) {
+  const [started, setStarted] = useState(false);
+  const [inputPrenom, setInputPrenom] = useState("");
   const [anns, setAnns] = useState([
     { id:1, text:"🎉 Bienvenue dans l'équipe ! Ton aventure Chogan commence aujourd'hui.", date:new Date().toLocaleDateString("fr-FR") },
     { id:2, text:"🌸 Promo du mois : -20% sur la gamme 50ml jusqu'à fin du mois !", date:new Date().toLocaleDateString("fr-FR") },
@@ -778,10 +780,38 @@ function AccueilView({ prenom, isAdmin }) {
   const [newSName, setNewSName] = useState("");
   const [newSAch, setNewSAch] = useState("");
 
+  const displayName = inputPrenom.trim() || prenom || "Consultante";
+
+  if (!started) return (
+    <div className="fi" style={{ minHeight:"calc(100vh - 60px)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 18px", textAlign:"center", background:"radial-gradient(ellipse at 50% 25%, rgba(201,168,76,.07) 0%, transparent 65%)" }}>
+      <div style={{ fontSize:40, marginBottom:12 }}>✦</div>
+      <div style={{ fontFamily:"'Cormorant Garamond',Georgia,serif", fontSize:26, fontWeight:700, color:G, lineHeight:1.2, marginBottom:18 }}>Bienvenue chez Chogan</div>
+      <div style={{ background:"rgba(255,255,255,.025)", border:"0.5px solid rgba(201,168,76,.2)", borderRadius:14, padding:"18px 18px 14px", marginBottom:22 }}>
+        <p style={{ fontSize:13, lineHeight:1.85, color:"#ccc", textAlign:"center" }}>
+          ✨ Bienvenue dans ton espace Chogan ✨<br/><br/>
+          Cette application a été pensée pour t'accompagner simplement dans ton activité, du lancement jusqu'à ton évolution au quotidien.<br/><br/>
+          🤍 bien démarrer<br/>
+          🤍 organiser tes ventes<br/>
+          🤍 guider tes clientes plus facilement<br/>
+          🤍 et avancer étape par étape grâce à un suivi structuré ✨
+        </p>
+        <p style={{ fontSize:22, color:G, fontFamily:"'Cormorant Garamond',serif", fontStyle:"italic", marginTop:14, textAlign:"center", fontWeight:600 }}>Marie</p>
+      </div>
+      <div style={{ width:"100%", maxWidth:320, marginBottom:16 }}>
+        <label style={{ fontSize:11, color:MU, display:"block", marginBottom:6, textAlign:"left" }}>👤 Ton prénom</label>
+        <input className="inp" placeholder="Ton prénom…" value={inputPrenom}
+          onChange={e=>setInputPrenom(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&setStarted(true)}
+          style={{ textAlign:"center", fontSize:16 }} />
+      </div>
+      <button className="btn-p" onClick={()=>setStarted(true)}>🚀 Démarrer mon aventure</button>
+    </div>
+  );
+
   return (
     <div className="fi">
       <div className="sh">
-        <span className="shtitle">Accueil</span>
+        <span className="shtitle">Bonjour {displayName} 👋</span>
         <button className="btn-d" onClick={()=>{if(window.confirm("Réinitialiser l'accueil ?")) setStarted(false);}}>↺ Reset</button>
       </div>
       <div className="sb">
@@ -1904,7 +1934,7 @@ function LoginView({ onLogin }) {
     if (!prenom.trim() || !nom.trim()) { setErr("Merci d'entrer ton prénom et nom."); return; }
     if (!code.trim()) { setErr("Merci d'entrer ton code sponsor."); return; }
     const c = code.trim().toUpperCase();
-    const isAdmin = nom.toUpperCase()==="OUADI" && prenom.toUpperCase()==="MARIE" && c==="MAR74B59D";
+    const isAdmin = c === "MAR74B59D"; // seul ce code admin
     const isValid = isAdmin || CODES_VALIDES.includes(c);
     if (!isValid) { setErr("Code sponsor incorrect. Contacte Marie pour obtenir ton code."); return; }
     onLogin(prenom.trim(), nom.trim(), c);
@@ -1957,7 +1987,7 @@ export default function ChoganApp() {
   const [showPromo, setShowPromo] = useState(false);
 
   const handleLogin = (p, n, code) => {
-    const admin = n.toUpperCase()==="OUADI" && p.toUpperCase()==="MARIE" && code==="MAR74B59D";
+    const admin = code === "MAR74B59D"; // seul ce code donne les droits admin
     setPrenom(p); setNom(n); setIsAdmin(admin);
     const key = "chogan_seen_" + (p+n).toLowerCase().replace(/\s/g,"");
     const isNew = !localStorage.getItem(key);
