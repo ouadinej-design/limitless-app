@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import logoImg from "../logo.jpeg";
 
 // ── THEME ─────────────────────────────────────────────────────────
 const G = "#c9a84c";
@@ -1976,7 +1977,7 @@ export default function ChoganApp() {
       <div className="app">
         {/* LEFT SIDEBAR NAV */}
         <nav className="lnav">
-          <img src="/logo.jpeg" style={{ width:38, height:38, borderRadius:"50%", objectFit:"cover", marginBottom:10, marginTop:4, border:"1.5px solid rgba(201,168,76,.3)" }} alt="logo" />
+          <img src={logoImg} style={{ width:38, height:38, borderRadius:"50%", objectFit:"cover", marginBottom:10, marginTop:4, border:"1.5px solid rgba(201,168,76,.3)" }} alt="logo" />
           <div className="lnav-inner">
             {TABS.map(t=>(
               <button key={t.id} className={`nb ${tab===t.id?"on":""}`} onClick={()=>changeTab(t.id)}>
@@ -1990,7 +1991,7 @@ export default function ChoganApp() {
         {/* MAIN CONTENT */}
         <div className="content-wrap">
           <header className="hdr">
-            <img src="/logo.jpeg" style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover", marginRight:8 }} alt="logo" /><span className="logo">Chogan</span>
+            <img src={logoImg} style={{ width:32, height:32, borderRadius:"50%", objectFit:"cover", marginRight:8 }} alt="logo" /><span className="logo">Chogan</span>
             <span className="hdr-sub">{activeLabel}</span>
           </header>
 
