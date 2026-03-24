@@ -1940,6 +1940,7 @@ const CODES_VALIDES = [
   "KAR96A897",  // Karim Ayachi
   "MER2105D7",  // Meryem Boukenkoul
   "NO81BN48",   // Nej Ouadi
+  "YAS2794C9",  // Yasmina Necib
 ];
 
 // ── PENDING VIEW ──────────────────────────────────────────────────
