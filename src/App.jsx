@@ -1,1688 +1,2159 @@
-import { useMemo, useState, useCallback, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
-import {
-  BookOpen, Bookmark, Activity, ArrowRight, Star, Heart,
-  Timer, X, Clock, Award, Copy, CheckCircle,
-  RotateCcw, ChevronLeft, ChevronRight, Play, Pause,
-  Plus, Trash2, Target, TrendingUp, Calendar, Zap
-} from "lucide-react";
-import LearnScreen from "./LearnScreen";
+import React, { useState, useRef } from "react";
 
-// ════════════════════════════════════════════════════════════════════
-// DONNÉES — 30 JUZ avec durées de lecture moyennes (minutes)
-// Basé sur la pratique malikite : tartil modéré (~1 page/min)
-// ════════════════════════════════════════════════════════════════════
-const JUZ_DATA = Array.from({ length: 30 }, (_, i) => ({
-  number: i + 1,
-  name: `Juz ${i + 1}`,
-  arabicName: ["الم", "سَيَقُولُ", "تِلْكَ الرُّسُلُ", "لَن تَنَالُوا", "وَالْمُحْصَنَاتُ", "لَا يُحِبُّ اللَّهُ", "وَإِذَا سَمِعُوا", "وَلَوْ أَنَّنَا", "قَالَ الْمَلأُ", "وَاعْلَمُوا", "يَعْتَذِرُونَ", "وَمَا مِن دَابَّةٍ", "وَمَا أُبَرِّئُ", "رُبَمَا", "سُبْحَانَ الَّذِي", "قَالَ أَلَمْ", "اقْتَرَبَ", "قَدْ أَفْلَحَ", "وَقَالَ الَّذِينَ", "أَمَّنْ خَلَقَ", "اتْلُ مَا أُوحِيَ", "وَمَن يَقْنُتْ", "وَمَا لِيَ", "فَمَن أَظْلَمُ", "إِلَيْهِ يُرَدُّ", "حم", "قَالَ فَمَا خَطْبُكُمْ", "قَدْ سَمِعَ اللَّهُ", "تَبَارَكَ الَّذِي", "عَمَّ"][i],
-  pages: 20,
-  readingMinutes: [47, 45, 48, 46, 44, 43, 45, 47, 46, 44, 43, 45, 44, 43, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 30, 28, 25, 22][i],
-  surahs: getSurahsForJuz(i + 1),
-  encouragement: getEncouragement(i + 1),
-}));
+// ── VERSION ────────────────────────────────────────────────────────
+const APP_VERSION = "2.2";
+ // ← changer ce numéro à chaque mise à jour
 
-function getSurahsForJuz(juz) {
-  const map = {
-    1:[1,2],2:[2],3:[2,3],4:[3,4],5:[4,5],6:[4,5,6],7:[5,6,7],8:[6,7],9:[7,8],10:[8,9],
-    11:[9,10,11],12:[11,12],13:[12,13,14],14:[15,16],15:[17,18],16:[18,19,20],17:[21,22],
-    18:[23,24,25],19:[25,26,27],20:[27,28,29],21:[29,30,31,32,33],22:[33,34,35,36],
-    23:[36,37,38,39],24:[39,40,41],25:[41,42,43,44,45],26:[46,47,48,49,50,51],
-    27:[51,52,53,54,55,56,57],28:[58,59,60,61,62,63,64,65,66],
-    29:[67,68,69,70,71,72,73,74,75,76,77],30:[78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114]
-  };
-  return map[juz] || [];
-}
+// ── THEME ─────────────────────────────────────────────────────────
+const G = "#c9a84c";
+const GL = "#e8d48a";
+const BG = "#07070f";
+const S1 = "#0f0f1e";
+const S2 = "#17172a";
+const TX = "#f0ede8";
+const MU = "#787896";
+const HC = "#d4d4e2";
+const FC = "#f4a0b5";
+const MC = "#7ec89a";
+const RD = "#e05050";
 
-function getEncouragement(juz) {
-  const messages = [
-    { arabic: "مَا شَاءَ اللَّهُ", fr: "Masha'Allah ! Premier Juz complété — tu as posé la première pierre de ton Khatm.", hadith: "Le Prophète ﷺ dit : « Récitez le Coran, car il intercédera pour ses compagnons au Jour du Jugement. » — Muslim", verse: "إِنَّ هَٰذَا الْقُرْآنَ يَهْدِي لِلَّتِي هِيَ أَقْوَمُ", verseFr: "Ce Coran guide vers ce qui est le plus droit — Al-Isrā 9", emoji: "🌱" },
-    { arabic: "بَارَكَ اللَّهُ فِيكَ", fr: "Barakallāhu fīk ! Deux Juz — tu avances sur le chemin des Ahl al-Qur'an.", hadith: "« Celui qui récite le Coran et le maîtrise sera avec les nobles anges vertueux. » — Bukhāri & Muslim", verse: "وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ", verseFr: "Nous avons facilité le Coran pour la méditation — Al-Qamar 17", emoji: "✨" },
-    { arabic: "اللَّهُ أَكْبَرُ", fr: "Allāhu Akbar ! 3 Juz — Imam Mālik récitait chaque nuit avec recueillement. Tu suis ses pas.", hadith: "Imam Mālik رحمه الله : « La science la plus noble est la parole d'Allah. »", verse: "كِتَابٌ أَنزَلْنَاهُ إِلَيْكَ مُبَارَكٌ لِّيَدَّبَّرُوا آيَاتِهِ", verseFr: "Un Livre béni que Nous t'avons révélé pour qu'on médite Ses versets — Ṣād 29", emoji: "🌿" },
-    { arabic: "تَبَارَكَ اللَّهُ", fr: "Tabārakallāh ! 4 Juz terminés — la régularité est l'essence du madhhab malikite.", hadith: "« L'acte le plus aimé d'Allah est celui fait régulièrement, même petit. » — Bukhāri", verse: "وَاتَّبِعُوا أَحْسَنَ مَا أُنزِلَ إِلَيْكُم مِّن رَّبِّكُمْ", verseFr: "Suivez ce qui vous a été révélé de meilleur par votre Seigneur — Az-Zumar 55", emoji: "💎" },
-    { arabic: "سُبْحَانَ اللَّهِ", fr: "Subḥānallāh ! Juz 5 — tu es à 1/6 du Khatm. Continue avec confiance.", hadith: "« Chaque lettre du Coran vaut dix bonnes œuvres. » — Tirmidhī", verse: "إِنَّ الَّذِينَ يَتْلُونَ كِتَابَ اللَّهِ وَأَقَامُوا الصَّلَاةَ", verseFr: "Ceux qui récitent le Livre d'Allah… espèrent un commerce qui ne périra pas — Fāṭir 29", emoji: "⭐" },
-    { arabic: "الْحَمْدُ لِلَّهِ", fr: "Al-ḥamdu lillāh ! 6 Juz — un cinquième du Coran dans ta poitrine.", hadith: "Ibn Abī Zayd al-Qayrawānī : « La récitation du Coran purifie le cœur. »", verse: "يَا أَيُّهَا النَّاسُ قَدْ جَاءَتْكُم مَّوْعِظَةٌ مِّن رَّبِّكُمْ وَشِفَاءٌ لِّمَا فِي الصُّدُورِ", verseFr: "Une exhortation et une guérison pour ce qui est dans les poitrines — Yūnus 57", emoji: "💫" },
-    { arabic: "مَا شَاءَ اللَّهُ", fr: "7 Juz ! Imam Mālik récitait avec lenteur et recueillement — tu honores son héritage.", hadith: "« Récite le Coran avec tristesse, car c'est son état naturel. » — Ibn Māja", verse: "وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا", verseFr: "Récite le Coran lentement et distinctement — Al-Muzzammil 4", emoji: "🌙" },
-    { arabic: "اللَّهُ وَلِيُّنَا", fr: "8 Juz — tu progresses magnifiquement. Que Allah te facilite la suite.", hadith: "« La meilleure d'entre vous est celui qui apprend le Coran et l'enseigne. » — Bukhāri", verse: "الَّذِينَ آتَيْنَاهُمُ الْكِتَابَ يَتْلُونَهُ حَقَّ تِلَاوَتِهِ", verseFr: "Ceux à qui Nous avons donné le Livre le récitent comme il se doit — Al-Baqara 121", emoji: "🌟" },
-    { arabic: "بِسْمِ اللَّهِ", fr: "9 Juz ! Presque un tiers du chemin. Istiqāma — la constance est la clé !", hadith: "Imam Mālik lisait le Coran entier chaque semaine de sa vie entière.", verse: "فَاسْتَمِسْكْ بِالَّذِي أُوحِيَ إِلَيْكَ إِنَّكَ عَلَىٰ صِرَاطٍ مُّسْتَقِيمٍ", verseFr: "Tiens-toi fermement à ce qui t'est révélé — Az-Zukhruf 43", emoji: "🔥" },
-    { arabic: "الْحَمْدُ لِلَّهِ", fr: "10 Juz ! Un tiers du Khatm accompli — les anges se réjouissent avec toi.", hadith: "« Allah élève les gens par ce Livre et abaisse d'autres par lui. » — Muslim", verse: "إِنَّ هَٰذَا الْقُرْآنَ يَقُصُّ عَلَىٰ بَنِي إِسْرَائِيلَ أَكْثَرَ الَّذِي هُمْ فِيهِ يَخْتَلِفُونَ", verseFr: "Ce Coran expose aux enfants d'Israël l'essentiel de leurs divergences — An-Naml 76", emoji: "🏅" },
-    { arabic: "مَاشَاءَاللَّه", fr: "11 Juz — chaque page lue est une lumière sur ton visage au Jour dernier.", hadith: "« Celui dont la poitrine est vide du Coran est comme une maison en ruine. » — Tirmidhī", verse: "قُلْ لَّئِنِ اجْتَمَعَتِ الْإِنسُ وَالْجِنُّ عَلَىٰ أَن يَأْتُوا بِمِثْلِ هَٰذَا الْقُرْآنِ لَا يَأْتُونَ بِمِثْلِهِ", verseFr: "Jamais hommes et djinns réunis ne pourraient produire pareil Coran — Al-Isrā 88", emoji: "💡" },
-    { arabic: "اللَّهُ أَكْبَرُ", fr: "12 Juz terminés ! 40% du chemin. Ta discipline est une forme d'ibāda.", hadith: "Ibn Abī Zayd al-Qayrawānī : « Fais du Coran ton compagnon de vie. »", verse: "وَإِذَا قُرِئَ الْقُرْآنُ فَاسْتَمِعُوا لَهُ وَأَنصِتُوا لَعَلَّكُمْ تُرْحَمُونَ", verseFr: "Quand on récite le Coran, écoutez-le et restez silencieux — Al-A'rāf 204", emoji: "🎯" },
-    { arabic: "سُبْحَانَ اللَّهِ", fr: "13 Juz — presque la moitié ! Tu touches au cœur du Coran.", hadith: "« Le Coran est la corde d'Allah — accroche-toi à elle. » — Hakim", verse: "وَنُنَزِّلُ مِنَ الْقُرْآنِ مَا هُوَ شِفَاءٌ وَرَحْمَةٌ لِّلْمُؤْمِنِينَ", verseFr: "Nous faisons descendre du Coran ce qui est guérison et miséricorde — Al-Isrā 82", emoji: "💚" },
-    { arabic: "تَبَارَكَ اللَّهُ", fr: "14 Juz ! Un pas de plus vers la moitié du Khatm — waAllāhi c'est immense.", hadith: "« Récite le Coran en 7 nuits au minimum. » — Muwatta Mālik", verse: "إِنَّ الَّذِينَ يَتْلُونَ كِتَابَ اللَّهِ وَأَقَامُوا الصَّلَاةَ وَأَنفَقُوا مِمَّا رَزَقْنَاهُمْ", verseFr: "Ceux qui récitent le Livre d'Allah… espèrent un commerce impérissable — Fāṭir 29", emoji: "🌈" },
-    { arabic: "الْحَمْدُ لِلَّهِ", fr: "🏆 MOITIÉ DU KHATM ! Juz 15 accompli — tu es au cœur du Coran. Ya Rabb !", hadith: "« Il n'est pas de jalousie permise sauf deux : celui à qui Allah a donné le Coran et il le récite nuit et jour. » — Bukhāri", verse: "أَفَلَا يَتَدَبَّرُونَ الْقُرْآنَ وَلَوْ كَانَ مِنْ عِندِ غَيْرِ اللَّهِ لَوَجَدُوا فِيهِ اخْتِلَافًا كَثِيرًا", verseFr: "Ne méditent-ils pas sur le Coran ? S'il venait d'un autre qu'Allah, ils y trouveraient beaucoup de contradictions — An-Nisā 82", emoji: "🏆" },
-    { arabic: "مَا شَاءَ اللَّهُ", fr: "16 Juz — la seconde moitié commence. Tu es lancé(e), ne t'arrête plus !", hadith: "Imam Mālik : « Persévère, car la régularité efface toutes les lacunes. »", verse: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ", verseFr: "Celui qui craint Allah, Il lui trouvera une issue et le pourvoira d'où il ne s'y attend pas — At-Ṭalāq 2-3", emoji: "🚀" },
-    { arabic: "اللَّهُ وَلِيُّنَا", fr: "17 Juz ! Plus qu'à moitié. Chaque page rapproche du Khatm.", hadith: "« Réciter le Coran dans la prière de nuit vaut 70 fois mieux en dehors. » — Dāraquṭnī", verse: "وَلَقَدْ ضَرَبْنَا لِلنَّاسِ فِي هَٰذَا الْقُرْآنِ مِن كُلِّ مَثَلٍ لَّعَلَّهُمْ يَتَذَكَّرُونَ", verseFr: "Nous avons proposé aux hommes dans ce Coran toutes sortes d'exemples — Az-Zumar 27", emoji: "⚡" },
-    { arabic: "بَارَكَ اللَّهُ", fr: "18 Juz — 60% du Coran dans ta vie. MāshāAllāh, quelle baraka !", hadith: "Ibn Abī Zayd al-Qayrawānī recommandait de lire le Coran entier chaque mois.", verse: "سَنُرِيهِمْ آيَاتِنَا فِي الْآفَاقِ وَفِي أَنفُسِهِمْ حَتَّىٰ يَتَبَيَّنَ لَهُمْ أَنَّهُ الْحَقُّ", verseFr: "Nous leur montrerons Nos signes dans l'univers et en eux-mêmes — Fuṣṣilat 53", emoji: "🌙" },
-    { arabic: "سُبْحَانَ اللَّهِ", fr: "19 Juz ! Deux tiers bientôt atteints. La fin se rapproche avec certitude.", hadith: "« Le Coran est un remède à ce qui est dans les poitrines. » — Coran 10:57", verse: "وَلَوْ أَنَّ قُرْآنًا سُيِّرَتْ بِهِ الْجِبَالُ أَوْ قُطِّعَتْ بِهِ الْأَرْضُ", verseFr: "Si un Coran pouvait déplacer des montagnes ou fendre la terre… c'est celui-ci — Ar-Ra'd 31", emoji: "🌊" },
-    { arabic: "اللَّهُ أَكْبَرُ", fr: "20 Juz ! Deux tiers du Coran accomplis — les portes du Ciel s'ouvrent pour toi.", hadith: "« Lis le Coran, car il t'intercédera. » — Muslim", verse: "إِنَّ هَٰذَا لَهُوَ الْقَصَصُ الْحَقُّ ۚ وَمَا مِنْ إِلَٰهٍ إِلَّا اللَّهُ", verseFr: "Ceci est le récit vrai — il n'y a de divinité qu'Allah — Āl 'Imrān 62", emoji: "🎯" },
-    { arabic: "تَبَارَكَ اللَّهُ", fr: "21 Juz — 70% du parcours. Tu fais partie des Ahl al-Qur'ān désormais.", hadith: "Imam Mālik pleurait lors de la récitation — laisse le Coran toucher ton cœur.", verse: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", verseFr: "C'est par l'invocation d'Allah que les cœurs se tranquillisent — Ar-Ra'd 28", emoji: "💎" },
-    { arabic: "الْحَمْدُ لِلَّهِ", fr: "22 Juz ! Plus que 8 — l'élan de la fin est ta plus grande force.", hadith: "« Beautifie ta voix pour le Coran. » — Abū Dāwūd", verse: "وَإِذَا تُلِيَتْ عَلَيْهِمْ آيَاتُهُ زَادَتْهُمْ إِيمَانًا", verseFr: "Quand Ses versets leur sont récités, cela accroît leur foi — Al-Anfāl 2", emoji: "✨" },
-    { arabic: "مَا شَاءَ اللَّهُ", fr: "23 Juz — 77% du Khatm. Tu vois la lumière au bout du tunnel.", hadith: "Ibn Abī Zayd : « La récitation du Coran est le dhikr suprême. »", verse: "وَنَزَّلْنَا عَلَيْكَ الْكِتَابَ تِبْيَانًا لِّكُلِّ شَيْءٍ", verseFr: "Nous avons fait descendre sur toi le Livre comme clarification de toute chose — An-Naḥl 89", emoji: "🌟" },
-    { arabic: "بِسْمِ اللَّهِ", fr: "24 Juz ! Plus que 6 — concentre-toi, la victoire est à portée de main !", hadith: "« Complète le Coran, c'est la plus grande réussite du croyant. »", verse: "وَالَّذِينَ جَاهَدُوا فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا", verseFr: "Ceux qui luttent pour Nous, Nous les guiderons sur Nos voies — Al-'Ankabūt 69", emoji: "🔥" },
-    { arabic: "اللَّهُ وَلِيُّنَا", fr: "25 Juz — 5 restants. Chaque Juz maintenant est une couronne de lumière.", hadith: "« Les parents de celui qui a mémorisé le Coran seront couronnés au Paradis. » — Abū Dāwūd", verse: "وَمَن يُعَظِّمْ شَعَائِرَ اللَّهِ فَإِنَّهَا مِن تَقْوَى الْقُلُوبِ", verseFr: "Quiconque respecte les rites d'Allah, cela procède de la piété des cœurs — Al-Ḥajj 32", emoji: "👑" },
-    { arabic: "سُبْحَانَ اللَّهِ", fr: "26 Juz ! Quatre seulement. Tu es dans les derniers rangs — la récompense est immense.", hadith: "Imam Mālik : « Finir le Khatm est parmi les actes les plus méritoires. »", verse: "فَأَمَّا مَن أُوتِيَ كِتَابَهُ بِيَمِينِهِ فَيَقُولُ هَاؤُمُ اقْرَءُوا كِتَابِيَهْ", verseFr: "Celui qui recevra son livre en la droite dira : Tenez, lisez mon livre ! — Al-Ḥāqqa 19", emoji: "🌠" },
-    { arabic: "اللَّهُ أَكْبَرُ", fr: "27 Juz — 3 restants ! La volonté d'Allah est avec celui qui persévère.", hadith: "« Allah ne gaspille pas la récompense de celui qui fait du bien. » — Coran 12:90", verse: "إِنَّ مَعَ الْعُسْرِ يُسْرًا", verseFr: "Certes, avec la difficulté vient la facilité — Ash-Sharḥ 6", emoji: "💫" },
-    { arabic: "تَبَارَكَ اللَّهُ", fr: "28 Juz ! Deux derniers. Ce que tu vis maintenant, tes ancêtres en rêvaient.", hadith: "Ibn Abī Zayd al-Qayrawānī a terminé des centaines de Khatm — tu marches sur ses pas.", verse: "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا لِيَعْبُدُونِ", verseFr: "Je n'ai créé les djinns et les hommes que pour qu'ils M'adorent — Adh-Dhāriyāt 56", emoji: "🌙" },
-    { arabic: "الْحَمْدُ لِلَّهِ", fr: "29 Juz ! Plus qu'UN ! La du'ā de fin de Khatm t'attend — Allah est témoin.", hadith: "« La du'ā à la fin du Khatm est exaucée. » — Authentifié par ad-Dārimī", verse: "فَإِذَا قَرَأْتَ الْقُرْآنَ فَاسْتَعِذْ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ", verseFr: "Lorsque tu lis le Coran, cherche refuge auprès d'Allah contre le Shayṭān — An-Naḥl 98", emoji: "⭐" },
-    { arabic: "خَتَمْتَ الْقُرْآنَ", fr: "KHATM ACCOMPLI ! Al-ḥamdu lillāh Rabbil-'ālamīn ! Tu as complété le Livre d'Allah. Que cette récitation soit lumière dans ta tombe, intercession au Jugement, et baraka en ce monde et dans l'au-delà.", hadith: "« Celui qui complète le Coran, les anges font du'ā pour lui. » — Imam Ahmad. Lis maintenant la du'ā de Khatm : اللَّهُمَّ ارْحَمْنِي بِالْقُرْآنِ", verse: "إِنَّ الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ لَهُمْ جَنَّاتُ النَّعِيمِ", verseFr: "Ceux qui ont cru et accompli les bonnes œuvres auront les jardins du Délice — Luqmān 8", emoji: "🏆" },
-  ];
-  return messages[juz - 1] || messages[0];
-}
-
-// ════════════════════════════════════════════════════════════════════
-// DONNÉES ADHKAR MALIKITES — Muwatta + Cabinet Maher
-// ════════════════════════════════════════════════════════════════════
-const ADHKAR_MALIKITES = [
-  { id:1, title:"1. Āyat al-Kursī — Verset du Trône",
-    arabic:"اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ",
-    transliteration:"Allāhou Lā Ilāha Illā Houwa Al-Ĥayyou Al-Qayyoum. Lā ta'khoudzouhou sinatoun wa lā nawm. Lahou mā fis-samāwāti wa mā fil-ard. Man dhal-ladhī yashfa'ou 'indahou illā bi-idznih. Ya'lamou mā bayna aydīhim wa mā khalfahum. Wa lā youhīthouna bi-shay'in min 'ilmihi illā bi-mā shā'a. Wasi'a koursiyyouhou s-samāwāti wal-ard. Wa lā ya'oudouhou hifdzouhoumā. Wa houwa l-'Aliyyou l-'Azīm.",
-    french:"Allah ! Point de divinité à part Lui, le Vivant. Ni somnolence ni sommeil ne Le saisissent. À Lui appartient tout ce qui est dans les cieux et sur la terre. Son Trône déborde les cieux et la terre. Il est le Très Haut, le Très Grand.",
-    benefice:"Protection contre Satan tout au long de la journée et de la nuit.",
-    source:"Sourate 2 Al-Baqara v.255 — Bukhāri", repetition:1, category:"MATIN_SOIR" },
-  { id:2, title:"2. Al-Ikhlāṣ + Al-Falaq + An-Nās (3×)",
-    arabic:"قُلْ هُوَ اللَّهُ أَحَدٌ ۞ اللَّهُ الصَّمَدُ ۞ لَمْ يَلِدْ وَلَمْ يُولَدْ ۞ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
-    transliteration:"Qoul Hou Allāhou Aĥad — Allāhou Aş-Şamad — Lam Yalid Wa Lam Yoūlad — Walam Yakoun Lahou Kufūan Aĥad (puis Al-Falaq et An-Nās, 3× chacune)",
-    french:"Dis : Il est Allah, Unique. Allah, le Seul à être imploré. Il n'a jamais engendré, n'a pas été engendré. Et nul n'est égal à Lui. (Réciter aussi Al-Falaq et An-Nās 3 fois chacune)",
-    benefice:"Celui qui dit 3 fois ces sourates matin et soir, cela lui suffira et le protégera contre toute chose.",
-    source:"Abū Dāwūd, at-Tirmidhī — Sourates 112, 113, 114", repetition:3, category:"MATIN_SOIR" },
-  { id:3, title:"3. Aṣbaḥnā (matin) / Amsaynā (soir)",
-    arabic:"أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ",
-    transliteration:"Asbahna wa asbahal-mulku lillāh, wal-hamdu lillāh, lā ilāha illallāhu wahdahu lā sharīka lah, lahul-mulku wa lahul-hamdu wa huwa alā kulli shayin qadīr",
-    french:"Nous voilà au matin (soir) et le règne appartient à Allah. Louange à Allah. Il n'y a de divinités sauf Allah Seul, sans associés. À Lui la royauté, à Lui la louange et Il est capable de toute chose.",
-    benefice:"Invocation authentique du matin et du soir.",
-    source:"Muwatta Mālik, Kitab al-Nida", repetition:1, category:"MATIN_SOIR" },
-  { id:4, title:"4. Rabbi assalouka khayra… (matin/soir)",
-    arabic:"رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذَا الْيَوْمِ وَخَيْرَ مَا بَعْدَهُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذَا الْيَوْمِ وَشَرِّ مَا بَعْدَهُ، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ",
-    transliteration:"Rabbi assalouka khayra ma fi hadha el youmi wa khayra ma bahdah. Wa a'houdoubika min charri ma fi hada el youmi wa charri ma bahdah. Rabbi a'houdou bika min al kassali wa soûilkibar. Rabbi ahoudou bika min adhabine fi nari wa hadabine fil kabr.",
-    french:"Seigneur ! Je te demande le bien de ce jour et le bien qui vient après. Je me mets sous ta protection contre le mal de ce jour et le mal qui vient après. Protection contre la paresse, les maux de la vieillesse, le châtiment de l'enfer et les tourments de la tombe.",
-    benefice:"Protection contre le mal de la journée et de ce qui vient après.",
-    source:"Muslim, n°2723 — matin et soir", repetition:1, category:"MATIN_SOIR" },
-  { id:5, title:"5. Allāhumma bika aṣbaḥnā… (matin/soir)",
-    arabic:"اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ",
-    transliteration:"Allāhumma bika asbahna wa bika amsayna, wa bika nahya wa bika namutu wa ilayka n-nushūr (le soir : ...wa ilayka l-masīr)",
-    french:"Ô Seigneur ! C'est par Toi que nous nous retrouvons au matin (soir). C'est par Toi que nous vivons et mourons et c'est vers Toi que se fera la résurrection.",
-    benefice:"Invocation prophétique du matin et du soir.",
-    source:"At-Tirmidhī, n°3391 — matin et soir", repetition:1, category:"MATIN_SOIR" },
-  { id:6, title:"6. Sayyid al-Istighfār",
-    arabic:"اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَىٰ عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
-    transliteration:"Allāhumma anta rabbī lā ilāha illā anta, khalaqtanī wa anā abduk, wa anā alā ahdika wa wadika mastatatu, audhu bika min sharri mā sanatu, abūu laka bi-nimmatika alayya wa abūu bi-dhanbī, faghfir lī fa-innahu lā yaghfiru dh-dhunūba illā ant",
-    french:"Ô Seigneur ! Tu es mon Dieu. Il n'y a de divinités que Toi. Tu m'as créé et je suis Ton serviteur. Je me conforme à mon engagement. Je me mets sous Ta protection contre le mal que j'ai commis. Je reconnais Ton bienfait et mon péché. Pardonne-moi car il n'y a que Toi qui pardonnes.",
-    benefice:"Celui qui le dit le matin et le soir avec conviction et meurt en ce jour entre au paradis.",
-    source:"Bukhāri, n°6306 — matin et soir", repetition:1, category:"MATIN_SOIR" },
-  { id:7, title:"7. Allāhumma innī aṣbaḥtu ushhhiduka… (4×)",
-    arabic:"اللَّهُمَّ إِنِّي أَصْبَحْتُ أُشْهِدُكَ وَأُشْهِدُ حَمَلَةَ عَرْشِكَ، وَمَلَائِكَتَكَ وَجَمِيعَ خَلْقِكَ، أَنَّكَ أَنْتَ اللَّهُ لَا إِلَهَ إِلَّا أَنْتَ وَحْدَكَ لَا شَرِيكَ لَكَ، وَأَنَّ مُحَمَّداً عَبْدُكَ وَرَسُولُكَ",
-    transliteration:"Allāhumma innī asbahtu ushhiduka wa ushhidu hamalata arshika, wa malāikataka wa jamīa khalqika, annaka anta Allāhu lā ilāha illā anta wahdaka lā sharīka lak, wa anna Muhammadan abduka wa rasūluk",
-    french:"Ô Seigneur ! Me voici au matin, je Te prends à témoin et prends à témoin les porteurs de Ton Trône, Tes anges et toutes Tes créatures : Tu es Allah, il n'y a de divinité que Toi, Seul, sans associé. Et Muhammad est Ton serviteur et Ton messager.",
-    benefice:"Celui qui dit cette invocation 4 fois le matin ou le soir, Allah l'affranchira de l'enfer.",
-    source:"Abū Dāwūd, n°5069 — 4× matin et soir", repetition:4, category:"MATIN_SOIR" },
-  { id:8, title:"8. Allāhumma mā aṣbaḥa bī min niʿmah…",
-    arabic:"اللَّهُمَّ مَا أَصْبَحَ بِي مِنْ نِعْمَةٍ أَوْ بِأَحَدٍ مِنْ خَلْقِكَ، فَمِنْكَ وَحْدَكَ لَا شَرِيكَ لَكَ، فَلَكَ الْحَمْدُ وَلَكَ الشُّكْرُ",
-    transliteration:"Allāhumma mā asbaha bī min nimatin aw bi-ahadin min khalqika, fa-minka wahdaka lā sharīka lak, falakal-hamdu wa lakashshukr",
-    french:"Ô Seigneur ! En ce jour, tout bienfait qui m'arrive ou arrive à toute créature provient de Toi l'Unique, sans associé. À Toi la louange et le remerciement.",
-    benefice:"Celui qui le récite au matin aura accompli le devoir de montrer sa reconnaissance pour la journée.",
-    source:"Abū Dāwūd, n°5073 — matin et soir", repetition:1, category:"MATIN_SOIR" },
-  { id:9, title:"9. Allāhumma āfinī fī badanī… (3×)",
-    arabic:"اللَّهُمَّ عَافِنِي فِي بَدَنِي، اللَّهُمَّ عَافِنِي فِي سَمْعِي، اللَّهُمَّ عَافِنِي فِي بَصَرِي، لَا إِلَهَ إِلَّا أَنْتَ. اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْكُفْرِ وَالْفَقْرِ، وَأَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، لَا إِلَهَ إِلَّا أَنْتَ",
-    transliteration:"Allāhumma āfinī fī badanī, Allāhumma āfinī fī samī, Allāhumma āfinī fī basarī, lā ilāha illā ant. Allāhumma innī audhu bika minal-kufri, wal-faqri, wa audhu bika min adhābil-qabri, lā ilāha illā ant",
-    french:"Ô Seigneur ! Accorde-moi la santé dans mon corps, dans mon ouïe, dans ma vue. Je cherche protection contre la mécréance, la pauvreté et les tourments de la tombe.",
-    benefice:"Protection de la santé du corps, de l'ouïe et de la vue.",
-    source:"Abū Dāwūd, n°5090 — 3× matin et soir", repetition:3, category:"MATIN_SOIR" },
-  { id:10, title:"10. Hasbiyallāhu lā ilāha illā huw… (7×)",
-    arabic:"حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ",
-    transliteration:"Hasbiyallāhu lā ilāha illā huwa alayhi tawakkaltu wa huwa rabbul-arshil-azīm",
-    french:"Allah me suffit, il n'y a de divinité que Lui. C'est en Lui que je place ma confiance et Il est le Seigneur du Trône immense.",
-    benefice:"Celui qui le dit 7 fois le matin et le soir, Allah le protégera dans la vie d'ici-bas et dans l'au-delà.",
-    source:"Abū Dāwūd, n°5081 — 7× matin et soir", repetition:7, category:"MATIN_SOIR" },
-  { id:11, title:"11. Allāhumma innī as'aluka al-afwa…",
-    arabic:"اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي، اللَّهُمَّ اسْتُرْ عَوْرَاتِي وَآمِنْ رَوْعَاتِي",
-    transliteration:"Allāhumma innī asaluka al-afwa wal-āfiyata fid-dunyā wal-ākhirah. Allāhumma innī asaluka al-afwa wal-āfiyata fī dīnī wa dunyāya wa ahlī wa mālī. Allāhummastur awrātī wa āmin rawātī. Allāhumma hfadznī min bayni yadayya wa min khalfī wa 'an yamīnī wa 'an shimālī wa min fawqī. Wa a'oudhu bi-'adhamatika an ughtāla min tahtī.",
-    french:"Ô Seigneur ! Je Te demande le pardon et la santé dans cette vie et dans l'au-delà. Cache mes défauts et mets-moi à l'abri de mes effrois. Protège-moi de toutes les directions.",
-    benefice:"Protection complète de toutes les directions.",
-    source:"Abū Dāwūd, n°5074 — matin et soir", repetition:1, category:"MATIN_SOIR" },
-  { id:12, title:"12. Allāhumma ālima l-ghayb…",
-    arabic:"اللَّهُمَّ عَالِمَ الْغَيْبِ وَالشَّهَادَةِ فَاطِرَ السَّمَاوَاتِ وَالْأَرْضِ رَبَّ كُلِّ شَيْءٍ وَمَلِيكَهُ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ، أَعُوذُ بِكَ مِنْ شَرِّ نَفْسِي وَمِنْ شَرِّ الشَّيْطَانِ وَشِرْكِهِ",
-    transliteration:"Allāhumma ālimal-ghaybi wash-shahādati fātiras-samāwāti wal-ardi, rabba kulli shay'in wa malīkah, ashhadu an lā ilāha illā ant. A'oudhu bika min sharri nafsī wa min sharrish-shaytāni wa shirkihi. Wa an aqtarifa 'alā nafsī sū'an aw ajurrahu ilā muslim.",
-    french:"Ô Seigneur ! Connaisseur de l'invisible et du visible, créateur des cieux et de la terre. J'atteste qu'il n'y a de divinité que Toi. Je me mets sous Ta protection contre le mal de mon âme, du diable et son polythéisme.",
-    benefice:"Protection contre les maux de l'âme et du diable.",
-    source:"At-Tirmidhī, n°3529 — matin et soir", repetition:1, category:"MATIN_SOIR" },
-  { id:13, title:"13. Bismillāhil-ladhī lā yaḍurru… (3×)",
-    arabic:"بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ",
-    transliteration:"Bismillāhil-ladhī lā yadurru maasmihī shaun fil-ardi wa lā fis-samāi, wa huwas-samīul-alīm",
-    french:"Au nom d'Allah, nul ne peut nuire en présence de Son Nom ni sur terre ni dans le ciel et Il est l'Audient et l'Omniscient.",
-    benefice:"Celui qui dira 3 fois le matin et le soir, nul mal ne le touchera.",
-    source:"Abū Dāwūd, n°5088 — 3× matin et soir", repetition:3, category:"MATIN_SOIR" },
-  { id:14, title:"14. Radītu billāhi rabban… (3×)",
-    arabic:"رَضِيتُ بِاللَّهِ رَبًّا وَبِالْإِسْلَامِ دِينًا وَبِمُحَمَّدٍ نَبِيًّا",
-    transliteration:"Radītu billāhi rabban wa bil-islāmi dīnan wa bi-muhammadin nabiyyan",
-    french:"J'ai agréé Allah comme mon Seigneur, l'islam comme ma religion et Muhammad (sws) comme mon prophète.",
-    benefice:"Celui qui le dit 3 fois matin et soir, Allah se fera un devoir de lui accorder Son agrément.",
-    source:"Abū Dāwūd, n°5072 — 3× matin et soir", repetition:3, category:"MATIN_SOIR" },
-  { id:15, title:"15. Yā Hayyu Yā Qayyūm bi-rahmatika astaghīth…",
-    arabic:"يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ، أَصْلِحْ لِي شَأْنِي كُلَّهُ، وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ",
-    transliteration:"Yā hayyu yā qayyūmu bi-rahmatika astaghīth, aslih lī shānī kullahu, wa lā takilnī ilā nafsī tarfata ayn",
-    french:"Ô le Vivant, Celui qui veille éternellement ! J'implore secours auprès de Ta miséricorde. Améliore ma situation et ne me laisse pas à mon propre sort ne serait-ce le temps d'un clin d'oeil.",
-    benefice:"Protection et amélioration de la situation du croyant.",
-    source:"Al-Hākim, n°2000 — matin et soir", repetition:1, category:"MATIN_SOIR" },
-  { id:16, title:"16. Asbahna wa asbahal-mulku lillāh…",
-    arabic:"أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ رَبِّ الْعَالَمِينَ، اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَ هَذَا الْيَوْمِ فَتْحَهُ وَنَصْرَهُ وَنُورَهُ وَبَرَكَتَهُ وَهُدَاهُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِيهِ وَشَرِّ مَا بَعْدَهُ",
-    transliteration:"Asbahna wa asbahal-mulku lillāhi rabbil-ālamīn. Allāhumma innī asaluka khayra hādhal-yawmi: fathahou wa nasrahou wa nūrahou wa barakatahu wa hudāh. Wa a'oudhu bika min sharri mā fīhi wa sharri mā ba'dahou.",
-    french:"Nous voilà au matin et le règne appartient à Allah le Seigneur de l'univers. Ô Seigneur ! Je Te demande le bien de ce jour : conquêtes, victoires, lumières, bénédiction et guidée.",
-    benefice:"Demande du bien de la journée et protection contre ses maux.",
-    source:"Abū Dāwūd — matin et soir", repetition:1, category:"MATIN_SOIR" },
-  { id:17, title:"17. Asbahna alā fitrātil-islām…",
-    arabic:"أَصْبَحْنَا عَلَى فِطْرَةِ الْإِسْلَامِ، وَعَلَى كَلِمَةِ الْإِخْلَاصِ، وَعَلَى دِينِ نَبِيِّنَا مُحَمَّدٍ، وَعَلَى مِلَّةِ أَبِينَا إِبْرَاهِيمَ حَنِيفاً مُسْلِماً وَمَا كَانَ مِنَ الْمُشْرِكِينَ",
-    transliteration:"Asbahna alā fitrātil-islāmi, wa alā kalimatil-ikhlāsi, wa alā dīni nabiyyinā Muhammadin, wa alā millati abīnā Ibrāhīma hanīfan musliman wa mā kāna minal-mushrikīn",
-    french:"Nous voici au matin en conformité avec la saine disposition qu'est l'Islam, avec la parole du monothéisme, avec la religion de notre Prophète Muhammad (sws) et sur la voie de notre père Ibrāhīm, soumis à Allah.",
-    benefice:"Affirmation de la foi et de l'appartenance à l'Islam.",
-    source:"Ahmad, n°14248 — matin et soir", repetition:1, category:"MATIN_SOIR" },
-  { id:18, title:"18. Subhān Allāhi wa bihamdih (100×)",
-    arabic:"سُبْحَانَ اللَّهِ وَبِحَمْدِهِ",
-    transliteration:"Subhānallāhi wa bihamdih",
-    french:"Gloire et louange sont à Allah.",
-    benefice:"Celui qui dit 100 fois dans la journée aura ses péchés effacés même s'ils sont aussi nombreux que l'écume de la mer. (Bukhāri n°6405, Muslim n°2691)",
-    source:"Bukhāri n°6405 — Muslim n°2691 — 100× matin et soir", repetition:100, category:"MATIN_SOIR" },
-  { id:19, title:"19. Lā ilāha illallāhu wahdahu… (100×)",
-    arabic:"لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ",
-    transliteration:"Lā ilāha illallāhu wahdahu lā sharīka lah, lahul-mulku wa lahul-hamdu wa huwa alā kulli shayin qadīr",
-    french:"Il n'y a de divinité qu'Allah, Seul, sans associé. À Lui la royauté et la louange, et Il est capable de toute chose.",
-    benefice:"Récompense de celui qui a affranchi 10 esclaves. 100 bonnes actions inscrites, 100 péchés effacés. Protection contre Satan.",
-    source:"Bukhāri n°3293 — Muslim n°2691 — 100× matin et soir", repetition:100, category:"MATIN_SOIR" },
-  { id:20, title:"20. Subhānallāhi wa bihamdih, adada khalqih… (3×)",
-    arabic:"سُبْحَانَ اللَّهِ وَبِحَمْدِهِ عَدَدَ خَلْقِهِ، وَرِضَا نَفْسِهِ، وَزِنَةَ عَرْشِهِ، وَمِدَادَ كَلِمَاتِهِ",
-    transliteration:"Subhānallāhi wa bihamdih, adada khalqih, wa ridā nafsih, wa zinata arshih, wa midāda kalimātih",
-    french:"Gloire et louange à Allah autant de fois que l'univers compte de créatures, autant pour Le satisfaire, égal au poids de Son Trône et au nombre de Ses paroles.",
-    benefice:"Cette formule surpasse en mérite toutes les autres formes de dhikr.",
-    source:"Muslim, n°2726 — 3× le matin", repetition:3, category:"MATIN" },
-  { id:21, title:"21. Allāhumma innī asaluka ilman nāfian…",
-    arabic:"اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْماً نَافِعاً، وَرِزْقاً طَيِّباً، وَعَمَلاً مُتَقَبَّلاً",
-    transliteration:"Allāhumma innī asaluka ilman nāfian, wa rizqan tayyiban, wa amalan mutaqabbalan",
-    french:"Ô Seigneur ! Je Te demande un savoir utile, une bonne subsistance et des oeuvres agréées par Toi.",
-    benefice:"Demande des trois fondements : savoir, provision et actes agréés.",
-    source:"Ibn Mājah, n°925 — le matin", repetition:1, category:"MATIN" },
-  { id:22, title:"22. Astaghfirullāha wa atūbu ilayh (100×)",
-    arabic:"أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ",
-    transliteration:"Astaghfirullāha wa atūbu ilayh",
-    french:"Je demande pardon à Allah et je me repens à Lui.",
-    benefice:"Quiconque persévère dans l'istighfār, Allah lui accordera une issue lors de chaque difficulté, un soulagement à toute inquiétude et lui accordera sa subsistance par des moyens inattendus.",
-    source:"Abū Dāwūd, n°1518 — 100× matin et soir", repetition:100, category:"MATIN_SOIR" },
-  { id:23, title:"23. Allāhumma salli wa sallim alā nabiyyinā Muhammad (100×)",
-    arabic:"اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَىٰ نَبِيِّنَا مُحَمَّدٍ",
-    transliteration:"Allāhumma salli wa sallim alā nabiyyinā Muhammad",
-    french:"Ô Seigneur ! Prie et salue sur notre prophète Muhammad (sws).",
-    benefice:"Celui qui prie sur le Prophète une fois, Allah le bénit dix fois, lui efface dix péchés et l'élève de dix degrés.",
-    source:"Muslim, n°408 — 100× matin et soir", repetition:100, category:"MATIN_SOIR" },
-  { id:24, title:"Après le Fard — Istighfar Malikite",
-    arabic:"أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ",
-    transliteration:"Astaghfirullāhal-azīmal-ladhī lā ilāha illā huwal-hayyul-qayyūmu wa atūbu ilayh",
-    french:"Je demande pardon à Allah le Sublime — le Vivant, le Subsistant — et je me repens à Lui.",
-    source:"At-Tirmidhī — 3× après chaque Fard selon le madhhab malikite", repetition:3, category:"PRIERE" },
-  { id:25, title:"Tasbīh après la prière — méthode Mālik",
-    arabic:"سُبْحَانَ اللَّهِ ۞ الْحَمْدُ لِلَّهِ ۞ اللَّهُ أَكْبَرُ",
-    transliteration:"Subhānallāh (33×) — Al-hamdu lillāh (33×) — Allāhu akbar (33×) — puis : Lā ilāha illallāhu wahdahu lā sharīka lahu, lahul-mulku wa lahul-hamdu wa huwa 'alā kulli shay'in qadīr.",
-    french:"Gloire à Allah (33×) — Toute louange à Allah (33×) — Allah est le Plus Grand (33×) — puis : Il n'y a de divinité qu'Allah, Seul, sans associé. À Lui la royauté, à Lui la louange, et Il est Omnipotent.",
-    source:"Muwatta Mālik, Kitab Qasr as-Salat", repetition:100, category:"PRIERE" },
+// ── DATA ──────────────────────────────────────────────────────────
+// ── LISTE COMPLÈTE 132 INSPIRATIONS CHOGAN (source PDF officiel) ──
+// Couleur texte PDF : NOIR = homme | ROSE = femme | VERT = mixte
+// prices : prix par taille en €
+const DEMO_PERFUMES = [
+  // ── Page 1 ───────────────────────────────────────────────────────
+  { id:1,   name:"One Million",          brand:"P. Rabanne",          ref:"001", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:2,   name:"Acqua Di Gio",         brand:"G. Armani",           ref:"002", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:3,   name:"Fahrenheit",           brand:"C. Dior",             ref:"003", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:4,   name:"The One",              brand:"D&G",                 ref:"004", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:5,   name:"Opium",                brand:"Y. Saint Laurent",    ref:"006", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:6,   name:"J'Adore",              brand:"C. Dior",             ref:"007", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:7,   name:"Alien",                brand:"T. Mugler",           ref:"010", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:8,   name:"Light Blue femme",     brand:"D&G",                 ref:"011", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:9,   name:"Eau Sauvage",          brand:"C. Dior",             ref:"012", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:10,  name:"Manifesto",            brand:"Y. Saint Laurent",    ref:"014", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:11,  name:"Roma",                 brand:"L. Biagiotti",        ref:"015", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:12,  name:"Le Mâle",              brand:"JP. Gaultier",        ref:"016", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:13,  name:"Déclaration",          brand:"Cartier",             ref:"018", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:14,  name:"Lady Million",         brand:"P. Rabanne",          ref:"019", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:15,  name:"La Nuit de l'Homme",   brand:"Y. Saint Laurent",    ref:"020", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:16,  name:"Light Blue homme",     brand:"D&G",                 ref:"021", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:17,  name:"Terre d'Hermès",       brand:"Hermès",              ref:"022", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:18,  name:"Hypnotic Poison",      brand:"C. Dior",             ref:"023", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:19,  name:"Chanel n°5",           brand:"Chanel",              ref:"024", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:20,  name:"For Her",              brand:"N. Rodriguez",        ref:"025", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:21,  name:"Flower",               brand:"Kenzo",               ref:"026", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:22,  name:"Trésor",               brand:"Lancôme",             ref:"027", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:23,  name:"Angel",                brand:"T. Mugler",           ref:"028", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  // ✅ CORRIGÉ : ref 029 → ROSE = femme
+  { id:24,  name:"Eau D'Issey",          brand:"I. Miyake",           ref:"029", gender:"femme", sizes:["100ml","30ml","15ml"],prices:{"100ml":35,"30ml":18,"15ml":11.90} },
+  // ── Page 2 ───────────────────────────────────────────────────────
+  { id:25,  name:"Black XS",             brand:"P. Rabanne",          ref:"030", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:26,  name:"Spice Bomb",           brand:"Viktor & Rolf",       ref:"032", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:27,  name:"Black Code",           brand:"G. Armani",           ref:"033", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:28,  name:"Man",                  brand:"Bvlgari",             ref:"037", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:29,  name:"Bleu",                 brand:"Chanel",              ref:"038", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:30,  name:"Miss Dior Chérie",     brand:"C. Dior",             ref:"039", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:31,  name:"Hypnose",              brand:"Lancôme",             ref:"040", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:32,  name:"La Vie est Belle",     brand:"Lancôme",             ref:"042", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:33,  name:"Silver Montain Water", brand:"Creed",               ref:"044", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:34,  name:"Crystal Noir",         brand:"Versace",             ref:"047", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:35,  name:"Allure homme",         brand:"Chanel",              ref:"048", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:36,  name:"Dolce",                brand:"D&G",                 ref:"049", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:37,  name:"Coco Mademoiselle",    brand:"Chanel",              ref:"051", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:38,  name:"Pasha 150",            brand:"Cartier",             ref:"052", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:39,  name:"Narciso",              brand:"N. Rodriguez",        ref:"053", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:40,  name:"Black Orchid",         brand:"T. Ford",             ref:"054", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:41,  name:"Black Opium",          brand:"Y. Saint Laurent",    ref:"055", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:42,  name:"Ange ou Démon",        brand:"Givenchy",            ref:"056", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:43,  name:"Omnia Améthyste",      brand:"Bvlgari",             ref:"057", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:44,  name:"Invictus",             brand:"P. Rabanne",          ref:"061", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:45,  name:"Intenso",              brand:"D&G",                 ref:"062", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:46,  name:"Omnia Indian Garnet",  brand:"Bvlgari",             ref:"064", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:47,  name:"Olympéa",              brand:"P. Rabanne",          ref:"067", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:48,  name:"Aventus",              brand:"Creed",               ref:"068", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":57,"30ml":29.50,"15ml":17.90} },
+  // ── Page 3 ───────────────────────────────────────────────────────
+  // ✅ CORRIGÉ : ref 069 → NOIR = homme
+  { id:49,  name:"Acqua di Sale",        brand:"P. Roma",             ref:"069", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:50,  name:"The One femme",        brand:"D&G",                 ref:"070", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:51,  name:"Allure femme",         brand:"Chanel",              ref:"071", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:52,  name:"Patchouli",            brand:"Reminiscence",        ref:"072", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:53,  name:"Himalaya",             brand:"Creed",               ref:"073", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:54,  name:"Black Afgano",         brand:"Nasomatto",           ref:"074", gender:"homme", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:55,  name:"\"X\" for Men",        brand:"Clive Christian",     ref:"075", gender:"homme", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:56,  name:"Acqua di Gioia",       brand:"G. Armani",           ref:"076", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:57,  name:"Myslf",                brand:"Y. Saint Laurent",    ref:"079", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:58,  name:"Si",                   brand:"G. Armani",           ref:"080", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:59,  name:"Classique Essence",    brand:"JP. Gaultier",        ref:"081", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:60,  name:"Signorina",            brand:"S. Ferragamo",        ref:"082", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:61,  name:"Dylan Blue",           brand:"Versace",             ref:"084", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:62,  name:"Chance",               brand:"Chanel",              ref:"085", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:63,  name:"Legend",               brand:"Mont Blanc",          ref:"086", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:64,  name:"Wanted",               brand:"Azzaro",              ref:"087", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:65,  name:"Man in Black",         brand:"Bvlgari",             ref:"088", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:66,  name:"Mon Paris",            brand:"Y. Saint Laurent",    ref:"089", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:67,  name:"Poison Girl",          brand:"C. Dior",             ref:"090", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:68,  name:"Chrome",               brand:"Azzaro",              ref:"091", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:69,  name:"Aventus for Her",      brand:"Creed",               ref:"093", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":57,"30ml":29.50,"15ml":17.90} },
+  { id:70,  name:"Sauvage",              brand:"C. Dior",             ref:"094", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:71,  name:"Gabrielle",            brand:"Chanel",              ref:"095", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:72,  name:"Amo Ferragamo",        brand:"S. Ferragamo",        ref:"097", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  // ── Page 4 ───────────────────────────────────────────────────────
+  { id:73,  name:"Joy",                  brand:"C. Dior",             ref:"098", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:74,  name:"Mandarino di Amalfi",  brand:"T. Ford",             ref:"099", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":45,"30ml":23.50,"15ml":13.90} },
+  { id:75,  name:"White Aoud",           brand:"Montale",             ref:"100", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:76,  name:"Velvet Amber Skin",    brand:"D&G",                 ref:"101", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:77,  name:"Velvet Amber Sun",     brand:"D&G",                 ref:"102", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:78,  name:"Intense Café",         brand:"Montale",             ref:"105", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:79,  name:"Fucking Fabulous",     brand:"T. Ford",             ref:"106", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:80,  name:"J'Adore l'Or",         brand:"C. Dior",             ref:"109", gender:"femme", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:81,  name:"Kirké",                brand:"T. Terenzi",          ref:"110", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:82,  name:"Lost Cherry",          brand:"T. Ford",             ref:"111", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:83,  name:"Neroli Portofino",     brand:"T. Ford",             ref:"112", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:84,  name:"Sur la Route",         brand:"L. Vuitton",          ref:"113", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":57,"30ml":29.50,"15ml":17.90} },
+  { id:85,  name:"Ombre Nomade",         brand:"L. Vuitton",          ref:"114", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:86,  name:"Idôle",                brand:"Lancôme",             ref:"115", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:87,  name:"Yes I Am",             brand:"Cacharel",            ref:"116", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  // ✅ CORRIGÉ : ref 117 → NOIR = homme
+  { id:88,  name:"Tobacco Vanille",      brand:"T. Ford",             ref:"117", gender:"homme", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:89,  name:"Baccarat Rouge 540",   brand:"Maison Francis K.",   ref:"118", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:90,  name:"Scandal",              brand:"JP. Gaultier",        ref:"119", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:91,  name:"La Petite Robe Noire", brand:"Guerlain",            ref:"120", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:92,  name:"L'Interdit",           brand:"Givenchy",            ref:"121", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:93,  name:"Libre",                brand:"Y. Saint Laurent",    ref:"122", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:94,  name:"Good Girl Gone Bad",   brand:"Kilian",              ref:"123", gender:"femme", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:95,  name:"Zeta",                 brand:"Morph",               ref:"124", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:96,  name:"Sole di Positano Aqua",brand:"T. Ford",             ref:"125", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  // ── Page 5 ───────────────────────────────────────────────────────
+  { id:97,  name:"Soleil Blanc",         brand:"T. Ford",             ref:"126", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:98,  name:"Oud Wood",             brand:"T. Ford",             ref:"127", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:99,  name:"Vanille Fatale",       brand:"T. Ford",             ref:"128", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:100, name:"Erba Pura",            brand:"Xerjoff",             ref:"129", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:101, name:"Megamare",             brand:"Orto Parisi",         ref:"130", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":65,"15ml":22.90} },
+  { id:102, name:"Good Girl",            brand:"C. Herrera",          ref:"131", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":48,"30ml":25.50,"15ml":14.90} },
+  { id:103, name:"My Way",               brand:"G. Armani",           ref:"132", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":45,"30ml":23.50,"15ml":13.90} },
+  { id:104, name:"Prada Paradoxe",       brand:"Prada",               ref:"133", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:105, name:"Bitter Peach",         brand:"T. Ford",             ref:"134", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  // ✅ CORRIGÉ : ref 135 → VERT = mixte
+  { id:106, name:"Bois d'Argent",        brand:"C. Dior",             ref:"135", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":57,"30ml":29.50,"15ml":17.90} },
+  { id:107, name:"Dior Homme Intense",   brand:"C. Dior",             ref:"136", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":45,"30ml":23.50,"15ml":13.90} },
+  { id:108, name:"XJ 1861 Naxos",        brand:"Xerjoff",             ref:"137", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:109, name:"Whood Whisper",        brand:"Ojar",                ref:"138", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:110, name:"Les Sables Roses",     brand:"Louis Vuitton",       ref:"139", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":65,"15ml":22.90} },
+  { id:111, name:"Éros",                 brand:"Versace",             ref:"140", gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:112, name:"Turath",               brand:"The Spirit of Dubaï", ref:"141", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":65,"15ml":22.90} },
+  { id:113, name:"Ombré Leather",        brand:"Tom Ford",            ref:"142", gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":57,"30ml":29.50,"15ml":17.90} },
+  { id:114, name:"Vanille Powder",       brand:"Matière Première",    ref:"143", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:115, name:"Bianco Latte",         brand:"Giardini di Toscana", ref:"144", gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:116, name:"Dévotion",             brand:"D&G",                 ref:"145", gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:117, name:"Rouge",                brand:"Balmain",             ref:"146U",gender:"mixte", sizes:["50ml","15ml"],        prices:{"50ml":52,"15ml":19.90} },
+  { id:118, name:"BOSS Bottled Absolu",  brand:"H. Boss",             ref:"147M",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:119, name:"Goddess",              brand:"Burberry",            ref:"148W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  // ── Page 6 ───────────────────────────────────────────────────────
+  { id:120, name:"Hugo homme",           brand:"H. Boss",             ref:"150M",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:121, name:"Guilty femme",         brand:"Gucci",               ref:"151W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:122, name:"Guilty homme",         brand:"Gucci",               ref:"152M",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:123, name:"Chloé",                brand:"Chloé",               ref:"153W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:124, name:"Love Chloé",           brand:"Chloé",               ref:"154W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:125, name:"CK One",               brand:"C. Klein",            ref:"155U",gender:"mixte", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:126, name:"Hugo femme",           brand:"H. Boss",             ref:"156W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:127, name:"The Scent",            brand:"H. Boss",             ref:"157W",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:128, name:"Flora",                brand:"Gucci",               ref:"158W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:129, name:"Burberry femme",       brand:"Burberry",            ref:"159W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:130, name:"Burberry for Men",     brand:"Burberry",            ref:"160M",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:131, name:"Born In Roma Intense femme",brand:"Valentino",      ref:"161W",gender:"femme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
+  { id:132, name:"Born In Roma Intense homme",brand:"Valentino",      ref:"162M",gender:"homme", sizes:["70ml","30ml","15ml"], prices:{"70ml":35,"30ml":18,"15ml":11.90} },
 ];
 
-const QURAN_SURAHS = Array.from({ length: 114 }, (_, i) => ({
-  number: i + 1,
-  name: ["Al-Fātiḥa","Al-Baqara","Āl 'Imrān","An-Nisā","Al-Mā'ida","Al-An'ām","Al-A'rāf","Al-Anfāl","At-Tawba","Yūnus","Hūd","Yūsuf","Ar-Ra'd","Ibrāhīm","Al-Ḥijr","An-Naḥl","Al-Isrā","Al-Kahf","Maryam","Ṭā-Hā","Al-Anbiyā","Al-Ḥajj","Al-Mu'minūn","An-Nūr","Al-Furqān","Ash-Shu'arā","An-Naml","Al-Qaṣaṣ","Al-'Ankabūt","Ar-Rūm","Luqmān","As-Sajda","Al-Aḥzāb","Saba","Fāṭir","Yā-Sīn","Aṣ-Ṣāffāt","Ṣād","Az-Zumar","Ghāfir","Fuṣṣilat","Ash-Shūrā","Az-Zukhruf","Ad-Dukhān","Al-Jāthiya","Al-Aḥqāf","Muḥammad","Al-Fatḥ","Al-Ḥujurāt","Qāf","Adh-Dhāriyāt","Aṭ-Ṭūr","An-Najm","Al-Qamar","Ar-Raḥmān","Al-Wāqi'a","Al-Ḥadīd","Al-Mujādila","Al-Ḥashr","Al-Mumtaḥina","Aṣ-Ṣaff","Al-Jumu'a","Al-Munāfiqūn","At-Taghābun","Aṭ-Ṭalāq","At-Taḥrīm","Al-Mulk","Al-Qalam","Al-Ḥāqqa","Al-Ma'ārij","Nūḥ","Al-Jinn","Al-Muzzammil","Al-Muddaththir","Al-Qiyāma","Al-Insān","Al-Mursalāt","An-Naba","An-Nāzi'āt","'Abasa","At-Takwīr","Al-Infiṭār","Al-Muṭaffifīn","Al-Inshiqāq","Al-Burūj","Aṭ-Ṭāriq","Al-A'lā","Al-Ghāshiya","Al-Fajr","Al-Balad","Ash-Shams","Al-Layl","Aḍ-Ḍuḥā","Ash-Sharḥ","At-Tīn","Al-'Alaq","Al-Qadr","Al-Bayyina","Az-Zalzala","Al-'Ādiyāt","Al-Qāri'a","At-Takāthur","Al-'Aṣr","Al-Humaza","Al-Fīl","Quraysh","Al-Mā'ūn","Al-Kawthar","Al-Kāfirūn","An-Naṣr","Al-Masad","Al-Ikhlāṣ","Al-Falaq","An-Nās"][i],
-  arabic: ["الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس","هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه","الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم","لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر","فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق","الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة","الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج","نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس","التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد","الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات","القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر","المسد","الإخلاص","الفلق","الناس"][i],
-  verses: [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,59,37,37,31,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,44,29,37,31,36,44,43,31,7,29,30,20,21,12,5,11,8,3,5,4,6,3,11,4,5,5,4,5,6,3,5,4][i],
-  juz: [1,1,2,3,4,5,6,7,8,9,10,10,12,12,13,14,15,15,16,16,17,17,18,18,18,19,19,20,20,21,21,21,21,22,22,22,23,23,23,24,24,25,25,25,25,26,26,26,26,26,27,27,27,27,27,27,27,28,28,28,28,28,28,28,28,28,29,29,29,29,29,29,29,29,29,29,29,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30][i],
-}));
+const CHECKLIST0 = [
+  { id:1,  text:"Inscription Limitless" },
+  { id:2,  text:"Module : Démarrage" },
+  { id:3,  text:"Module : Les bases du succès" },
+  { id:4,  text:"Module : Marketing d'action" },
+  { id:5,  text:"Module : L'art de mieux vendre" },
+  { id:6,  text:"Module : Gammes Chogan" },
+  { id:7,  text:"Module : TikTok Academy" },
+  { id:8,  text:"Module : Marketing d'attraction en MLM" },
+  { id:9,  text:"Liste de contacts" },
+  { id:10, text:"Effectuer ta première vente" },
+].map(i => ({ ...i, done: false }));
 
-// ════════════════════════════════════════════════════════════════════
-// STORAGE HELPERS
-// ════════════════════════════════════════════════════════════════════
-function storage(key, defaultVal) {
-  try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : defaultVal; }
-  catch { return defaultVal; }
-}
-function storageSet(key, val) {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+const SCRIPTS = [
+  { id:1, title:"Contact naturel",         ctx:"Personne que tu connais",
+    text:"Salut [Prénom] ! 😊 J'ai pensé à toi — je viens de commencer quelque chose de super avec les parfums Chogan. Des fragrances de qualité luxe à prix accessible, livrées à domicile. Tu voudrais qu'on en parle 5 min ?",
+    tip:"Toujours personnaliser avec le prénom. Finir par une question ouverte." },
+  { id:2, title:"Relance douce",            ctx:"Prospect sans réponse",
+    text:"Coucou [Prénom] ! Je repasse te voir car j'avais pensé à toi 😊 Est-ce que c'est encore un bon moment pour en parler ? Pas de pression du tout !",
+    tip:"Ne pas relancer plus de 2 fois. Rester léger et bienveillant." },
+  { id:3, title:"Invitation atelier parfum", ctx:"Découverte produit",
+    text:"Hey [Prénom] ! J'organise un petit atelier parfum chez moi [Date]. On teste les fragrances — c'est sympa et sans obligation d'achat. Tu passes ?",
+    tip:"L'atelier crée la confiance et facilite les ventes naturellement." },
+  { id:4, title:"Opportunité business",     ctx:"Recrutement consultant",
+    text:"[Prénom], je sais que tu cherches à arrondir tes fins de mois. Est-ce que tu es ouverte à découvrir comment certaines personnes gagnent 300 à 1 500 €/mois en recommandant des parfums qu'on porte tous les jours ?",
+    tip:"Cibler des profils entrepreneur ou en recherche de revenus complémentaires." },
+];
+
+const QUIZ = [
+  { id:1,  q:"Quelle est la différence entre les familles Fougère et Chyprée ?",
+    opts:["Fougère = boisé aquatique, Chyprée = floral oriental","Fougère = lavande/géranium/viril, Chyprée = bergamote/jasmin/caractère","Fougère = femme, Chyprée = homme","Aucune différence notable"],
+    correct:1 },
+  { id:2,  q:"Une cliente aime les parfums 'chauds, sensuels et qui laissent un sillage'. Quelle famille lui recommandes-tu ?",
+    opts:["Hespéridée","Fleurie","Ambrée/Orientale","Fougère"],
+    correct:2 },
+  { id:3,  q:"Ton lien de parrainage CLIENT génère des CP. À quoi servent ces CP ?",
+    opts:["À payer tes commandes personnelles","À débloquer des remises sur les prochaines commandes de tes clientes","À calculer ta commission mensuelle","À accéder aux catalogues exclusifs"],
+    correct:1 },
+  { id:4,  q:"Dans le Programme Ambassadeur, à partir de quel niveau accèdes-tu aux voyages et récompenses exclusives ?",
+    opts:["Dès l'inscription","À partir du statut Silver","À partir du statut Gold","À partir du statut Platinium"],
+    correct:3 },
+  { id:5,  q:"Une cliente veut un parfum 'dynamique et sportif'. Quelle famille olfactive convient le mieux ?",
+    opts:["Orientale/Ambrée","Aromatique","Boisée","Fleurie"],
+    correct:1 },
+  { id:6,  q:"Combien de modules de formation sont disponibles sur Limitless ?",
+    opts:["4 modules","6 modules","7 modules","10 modules"],
+    correct:2 },
+  { id:7,  q:"Quelle est la bonne démarche pour créer ton espace consultant Chogan ?",
+    opts:["Demander à Marie de le faire","S'inscrire sur mylimitless.be","S'inscrire sur chogan.eu avec son lien de parrainage","Envoyer un email à Chogan"],
+    correct:2 },
+  { id:8,  q:"Que contient obligatoirement la mallette de démarrage ?",
+    opts:["Uniquement des catalogues papier","Des flacons testeurs pour présenter les parfums à tes clientes","Seulement des documents administratifs","Des bons de commande pré-remplis"],
+    correct:1 },
+  { id:9,  q:"Quelle est l'ERREUR à ne pas faire lors de l'envoi du lien parrainage ?",
+    opts:["L'envoyer par WhatsApp","Envoyer le lien CONSULTANT à la place du lien CLIENT","Préciser que c'est sans engagement","Personnaliser le message"],
+    correct:1 },
+  { id:10, q:"Un homme de 45 ans cherche un parfum 'sûr de lui, mature et précieux'. Quelle famille ?",
+    opts:["Hespéridée","Aromatique","Boisée","Fougère"],
+    correct:2 },
+  { id:11, q:"Dans le Programme Ambassadeur, que se passe-t-il si tu n'atteins pas ton objectif mensuel ?",
+    opts:["Tu perds définitivement ton statut","Tu repasses au niveau inférieur pour le mois suivant","Tu es exclue de l'équipe","Rien, le programme est sans condition"],
+    correct:1 },
+  { id:12, q:"La famille Hespéridée est SURTOUT adaptée à quel type de cliente ?",
+    opts:["Femme mature qui aime les parfums intenses","Personne de tout âge recherchant fraîcheur et légèreté","Homme cherchant un parfum viril","Femme élégante appréciant les fleurs"],
+    correct:1 },
+  { id:13, q:"Quelle est la concentration des parfums Chogan par rapport aux grandes marques ?",
+    opts:["Inférieure (10-15%)","Équivalente (20-30% concentration luxe)","Supérieure (50%)","Variable selon les références"],
+    correct:1 },
+  { id:14, q:"Pour maximiser tes ventes, dans quel ordre dois-tu utiliser tes outils Limitless ?",
+    opts:["Quiz → Scripts → Modules","Modules → Scripts → Quiz","Scripts → Modules → Quiz","L'ordre n'a pas d'importance"],
+    correct:1 },
+  { id:15, q:"Une cliente hésite entre deux parfums Chyprés. Comment l'orienter efficacement ?",
+    opts:["Lui donner les deux et voir","Lui demander si elle préfère fruité (Chypré Fruité) ou floral (Chypré Floral)","Lui recommander toujours le plus cher","Lui dire de consulter le catalogue seule"],
+    correct:1 },
+];
+
+// ── GOOGLE SHEET TRACKER ─────────────────────────────────────────
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbzOBoyWxfPgf_8r37SmXAd4fQVGwAFlyW0bUu1LVgWHGkpWe_rvosJSHppKa3M3UFYaCg/exec";
+
+function trackAction(prenom, onglet, action) {
+  try {
+    const params = new URLSearchParams({ prenom: prenom||"Anonyme", onglet, action });
+    fetch(SHEET_URL + "?" + params.toString(), { method:"GET", mode:"no-cors" });
+  } catch(e) {}
 }
 
-// ════════════════════════════════════════════════════════════════════
-// HOOKS
-// ════════════════════════════════════════════════════════════════════
-function useBookmarks(type) {
-  const KEY = `bookmarks_${type}_v3`;
-  const [bookmarks, setBookmarks] = useState(() => storage(KEY, []));
-  const save = useCallback((bm) => {
-    setBookmarks(prev => {
-      const now = new Date();
-      const date = now.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
-      const time = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-      const next = [{ ...bm, id: now.getTime(), date, time, datetime: `${date} à ${time}`, type }, ...prev].slice(0, 50);
-      storageSet(KEY, next);
-      return next;
+async function getMurs() {
+  try {
+    const res = await fetch(SHEET_URL + "?action=getMurs");
+    const data = await res.json();
+    return data;
+  } catch(e) { return null; }
+}
+
+async function saveMurs(anns, sucs) {
+  try {
+    const params = new URLSearchParams({
+      action: "saveMurs",
+      anns: JSON.stringify(anns),
+      sucs: JSON.stringify(sucs)
     });
-  }, [KEY, type]);
-  const remove = useCallback((id) => {
-    setBookmarks(prev => { const next = prev.filter(b => b.id !== id); storageSet(KEY, next); return next; });
-  }, [KEY]);
-  const resetAll = useCallback(() => { storageSet(KEY, []); setBookmarks([]); }, [KEY]);
-  return { bookmarks, save, remove, resetAll };
+    fetch(SHEET_URL + "?" + params.toString(), { method:"GET", mode:"no-cors" });
+  } catch(e) {}
 }
 
-function useFridayKahf() {
-  const KEY = "kahf_fridays_v1";
-  const [readFridays, setReadFridays] = useState(() => storage(KEY, []));
-  const today = new Date();
-  const startOfYear = new Date(today.getFullYear(), 0, 1);
-  const weekNum = Math.ceil(((today - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
-  const yearWeek = `${today.getFullYear()}-W${String(weekNum).padStart(2,'0')}`;
-  const isReadThisWeek = readFridays.includes(yearWeek);
-  const markRead = useCallback(() => {
-    setReadFridays(prev => {
-      if (prev.includes(yearWeek)) return prev;
-      const next = [...prev, yearWeek].slice(-52);
-      storageSet(KEY, next);
-      return next;
-    });
-  }, [yearWeek]);
-  return { readFridays, isReadThisWeek, markRead, totalFridays: readFridays.length };
-}
+const gc = g => g === "homme" ? HC : g === "femme" ? FC : MC;
+const gl = g => g === "homme" ? "♂ Homme" : g === "femme" ? "♀ Femme" : "⚧ Mixte";
 
-function useJuzProgram() {
-  const [program, setProgram] = useState(() => storage("juz_program_v3", {
-    active: false, startDate: null, endDate: null, completed: {},
-  }));
-  const start = useCallback(({ startDateISO, endDateISO }) => {
-    const p = { active: true, startDate: startDateISO, endDate: endDateISO, completed: {} };
-    setProgram(p); storageSet("juz_program_v3", p);
-  }, []);
-  const reset = useCallback(() => {
-    const p = { active: false, startDate: null, endDate: null, completed: {} };
-    setProgram(p); storageSet("juz_program_v3", p);
-  }, []);
-  const manualComplete = useCallback((juzNum) => {
-    setProgram(prev => {
-      const already = prev.completed[juzNum];
-      const updated = { ...prev.completed };
-      if (already) { delete updated[juzNum]; }
-      else { updated[juzNum] = { date: new Date().toISOString(), manual: true }; }
-      const next = { ...prev, completed: updated };
-      storageSet("juz_program_v3", next); return next;
-    });
-  }, []);
-  const completedCount = Object.keys(program.completed).length;
-  const remaining = 30 - completedCount;
-  const now = Date.now();
-  const startMs = program.startDate ? new Date(program.startDate).getTime() : now;
-  const endMs   = program.endDate   ? new Date(program.endDate).getTime()   : now + 30 * 86400000;
-  const daysPassed   = Math.max(1, Math.floor((now - startMs) / 86400000) + 1);
-  const daysTotal    = Math.max(1, Math.ceil((endMs - startMs) / 86400000));
-  const daysLeft     = Math.max(1, Math.ceil((endMs - now) / 86400000));
-  const dailyGoalJuz = Math.max(1, Math.ceil(remaining / daysLeft));
-  const expectedJuz  = Math.min(30, Math.ceil((daysPassed / daysTotal) * 30));
-  const onTrack      = completedCount >= expectedJuz;
-  const progressPct  = Math.round((completedCount / 30) * 100);
-  const behindBy = Math.max(0, expectedJuz - completedCount);
-  return {
-    program, start, reset, manualComplete,
-    completedCount, remaining, daysPassed, daysTotal, daysLeft,
-    dailyGoalJuz, expectedJuz, onTrack, progressPct, behindBy,
-  };
-}
+// ── CSS ───────────────────────────────────────────────────────────
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body,#root{background:${BG};color:${TX};font-family:'DM Sans',system-ui,sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent;}
+.app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:row;overflow-x:hidden;}
+.lnav{width:52px;min-height:100vh;background:#0a0a1a;border-right:0.5px solid rgba(201,168,76,.12);display:flex;flex-direction:column;align-items:center;padding:8px 0;position:fixed;left:0;top:0;z-index:200;overflow-y:auto;}
+.lnav-inner{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;}
+.nb{width:52px;border:none;background:transparent;color:${MU};padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:color .15s;font-family:'DM Sans',sans-serif;}
+.nb.on{color:${G};}
+.nic{font-size:18px;line-height:1;}
+.nlbl{font-size:7px;letter-spacing:.3px;text-transform:uppercase;text-align:center;line-height:1.2;}
+.content-wrap{flex:1;margin-left:52px;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;max-width:378px;}
+.hdr{background:#0a0a1a;border-bottom:0.5px solid rgba(201,168,76,.18);padding:12px 14px;display:flex;align-items:center;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;font-weight:700;color:${G};letter-spacing:3px;text-transform:uppercase;}
+.hdr-sub{margin-left:auto;font-size:9px;color:${MU};letter-spacing:2px;text-transform:uppercase;}
+.main{flex:1;overflow-y:auto;}
+.card{background:${S1};border:0.5px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;margin-bottom:10px;}
+.cardg{background:${S1};border:0.5px solid rgba(201,168,76,.22);border-radius:12px;padding:14px;margin-bottom:10px;}
+.sh{padding:18px 18px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.shtitle{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:600;color:${G};}
+.sb{padding:12px 18px;}
+.btn-p{background:linear-gradient(135deg,${G},#a8872e);color:#07070f;border:none;border-radius:50px;padding:13px 28px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;letter-spacing:.8px;cursor:pointer;text-transform:uppercase;box-shadow:0 4px 20px rgba(201,168,76,.25);transition:opacity .15s;}
+.btn-p:hover{opacity:.88;}
+.btn-o{background:transparent;color:${G};border:0.5px solid rgba(201,168,76,.4);border-radius:8px;padding:7px 14px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .15s;}
+.btn-o:hover{background:rgba(201,168,76,.07);}
+.btn-d{background:transparent;color:${RD};border:0.5px solid rgba(224,80,80,.28);border-radius:8px;padding:5px 12px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.ftabs{display:flex;gap:6px;padding:10px 18px;overflow-x:auto;scrollbar-width:none;}
+.ftabs::-webkit-scrollbar{display:none;}
+.ftab{background:${S1};border:0.5px solid rgba(255,255,255,.07);color:${MU};border-radius:20px;padding:5px 13px;font-size:12px;white-space:nowrap;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.ftab.on{background:rgba(201,168,76,.1);border-color:${G};color:${G};}
+.srch{width:calc(100% - 36px);margin:0 18px 10px;background:${S1};border:0.5px solid rgba(255,255,255,.07);color:${TX};border-radius:10px;padding:9px 13px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;}
+.srch:focus{border-color:rgba(201,168,76,.32);}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 18px 14px;}
+.pcrd{background:${S1};border-radius:10px;padding:11px;border-left:3px solid;transition:transform .12s;}
+.pcrd:hover{transform:scale(1.015);}
+.ci{display:flex;align-items:flex-start;gap:11px;padding:11px;border-radius:10px;background:${S1};margin-bottom:7px;cursor:pointer;transition:background .12s;}
+.ci:hover{background:${S2};}
+.cbox{width:21px;height:21px;border-radius:6px;border:1.5px solid rgba(201,168,76,.38);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .15s;}
+.cbox.ck{background:${G};border-color:${G};}
+.pbar-w{height:6px;background:rgba(255,255,255,.05);border-radius:10px;overflow:hidden;margin:6px 0;}
+.pbar{height:100%;background:linear-gradient(90deg,${G},${GL});border-radius:10px;transition:width .3s ease;}
+.scrd{background:${S1};border-radius:12px;margin-bottom:9px;border:0.5px solid rgba(255,255,255,.06);overflow:hidden;}
+.shdr{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.upz{margin:0 18px 10px;border:1.5px dashed rgba(201,168,76,.28);border-radius:14px;padding:22px;text-align:center;cursor:pointer;background:rgba(201,168,76,.02);transition:all .15s;}
+.upz:hover{border-color:${G};background:rgba(201,168,76,.05);}
+.qopt{background:${S1};border:0.5px solid rgba(255,255,255,.07);border-radius:8px;padding:9px 13px;margin-bottom:5px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;color:${TX};width:100%;text-align:left;transition:all .12s;}
+.qopt:hover{border-color:rgba(201,168,76,.28);}
+.qopt.sel{border-color:${G};background:rgba(201,168,76,.08);color:${G};}
+.qopt.ok{border-color:${MC};background:rgba(126,200,154,.08);color:${MC};}
+.qopt.ko{border-color:${RD};background:rgba(224,80,80,.07);color:${RD};}
+.div{height:0.5px;background:rgba(255,255,255,.05);margin:4px 0 12px;}
+.inp{background:${S1};border:0.5px solid rgba(255,255,255,.09);color:${TX};border-radius:8px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:100%;}
+.inp:focus{border-color:rgba(201,168,76,.32);}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500;}
+.rlink{display:flex;align-items:center;gap:13px;padding:13px 15px;background:${S1};border-radius:12px;margin-bottom:8px;border:0.5px solid rgba(255,255,255,.06);cursor:pointer;transition:background .12s;color:${TX};text-decoration:none;}
+.rlink:hover{background:${S2};}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.fi{animation:fi .24s ease forwards;}
+`;
 
-function useSurahProgress() {
-  const [checked, setChecked] = useState(() => storage("surah_checked_v2", {}));
-  const toggle = useCallback((id) => {
-    setChecked(prev => { const next = { ...prev, [id]: !prev[id] }; storageSet("surah_checked_v2", next); return next; });
-  }, []);
-  const counts = useMemo(() => ({ surahChecked: Object.values(checked).filter(Boolean).length }), [checked]);
-  return { checked, toggle, counts };
-}
+// ── SUB-COMPONENTS ────────────────────────────────────────────────
 
-// ════════════════════════════════════════════════════════════════════
-// COMPOSANT — Modal Encouragement
-// ════════════════════════════════════════════════════════════════════
-const CONFETTI_COLORS = ["#F59E0B","#10B981","#3B82F6","#EC4899","#A78BFA","#FBBF24"];
-const confettiParticles = Array.from({ length: 20 }, (_, i) => ({
-  id: i, x: Math.random() * 100, y: Math.random() * 100,
-  color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-  size: 4 + Math.random() * 6, delay: Math.random() * 0.8,
-  duration: 1.2 + Math.random() * 0.8,
-}));
-
-function EncouragementModal({ juz, onClose }) {
-  if (!juz) return null;
-  const enc = juz.encouragement;
-  const isKhatm = juz.number === 30;
-  const isMilestone = [10, 15, 20, 25, 30].includes(juz.number);
+function DZDCalc() {
+  const [eur, setEur] = useState("");
+  const [rate, setRate] = useState("145");
+  const dzd = eur && !isNaN(+eur) ? Math.round(+eur * (+rate || 145)) : null;
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-lg"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.75, y: 50, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0.8, opacity: 0 }}
-        transition={{ type: "spring", damping: 20, stiffness: 300 }}
-        className={`relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border ${
-          isKhatm ? "border-yellow-500/50" : isMilestone ? "border-purple-500/40" : "border-emerald-500/30"
-        }`}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className={`absolute inset-0 ${
-            isKhatm ? "bg-gradient-to-br from-yellow-950 via-amber-900/90 to-orange-950"
-            : isMilestone ? "bg-gradient-to-br from-purple-950 via-indigo-900/90 to-slate-900"
-            : "bg-gradient-to-br from-emerald-950 via-teal-900/90 to-slate-900"
-          }`} />
-          {confettiParticles.map(p => (
-            <motion.div key={p.id} className="absolute rounded-full"
-              style={{ width: p.size, height: p.size, background: p.color, left: `${p.x}%`, top: `${p.y}%` }}
-              animate={{ y: [0,-30,30,-15,0], x: [0,10,-10,5,0], opacity: [0.8,1,0.5,0.9,0.3], scale: [1,1.5,0.8,1.2,0] }}
-              transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, repeatDelay: 1.5 }}
-            />
-          ))}
-          <motion.div className={`absolute -top-20 -right-20 w-64 h-64 rounded-full border ${isKhatm ? "border-yellow-500/20" : "border-emerald-500/15"}`}
-            animate={{ scale: [1,1.3,1], opacity: [0.3,0.6,0.3] }} transition={{ duration: 3, repeat: Infinity }}
-          />
-          <motion.div className={`absolute -bottom-20 -left-20 w-48 h-48 rounded-full border ${isKhatm ? "border-amber-400/15" : "border-teal-500/15"}`}
-            animate={{ scale: [1.2,1,1.2], opacity: [0.2,0.5,0.2] }} transition={{ duration: 4, repeat: Infinity }}
-          />
+    <div className="cardg">
+      <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:12 }}>Convertisseur EUR → DZD</p>
+      <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+        <div style={{ flex:1 }}>
+          <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>Montant (€)</label>
+          <input className="inp" type="number" placeholder="0.00" value={eur} onChange={e=>setEur(e.target.value)} />
         </div>
-        <div className="relative z-10 p-7">
-          <div className="flex justify-between items-center mb-5">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-              isKhatm ? "bg-yellow-500/20 border-yellow-500/40 text-yellow-300" : "bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
-            }`}>Juz {juz.number} / 30</span>
-            <motion.span animate={{ rotate: [0,15,-15,10,0], scale: [1,1.3,1.1,1.2,1] }}
-              transition={{ duration: 1, repeat: Infinity, repeatDelay: 2 }} className="text-4xl">
-              {enc.emoji || (isKhatm ? "🏆" : "✨")}
-            </motion.span>
-          </div>
-          <div className={`p-4 rounded-2xl mb-4 border text-center ${isKhatm ? "bg-yellow-900/30 border-yellow-600/20" : "bg-white/5 border-white/10"}`}>
-            <p className="text-xs uppercase tracking-widest text-slate-500 mb-2 font-semibold">Verset du Coran</p>
-            <p className="text-xl font-serif leading-loose mb-2 text-white" dir="rtl" lang="ar">{enc.verse}</p>
-            <p className="text-xs text-slate-400 italic">{enc.verseFr}</p>
-          </div>
-          <div className="text-center mb-4">
-            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-              className={`text-2xl font-serif mb-2 ${isKhatm ? "text-yellow-300" : isMilestone ? "text-purple-300" : "text-emerald-300"}`} dir="rtl">
-              {enc.arabic}
-            </motion.p>
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-              className="text-white font-semibold leading-relaxed text-sm">{enc.fr}
-            </motion.p>
-          </div>
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
-            className={`p-4 rounded-2xl text-xs italic text-left border mb-5 ${
-              isKhatm ? "bg-amber-900/30 border-amber-700/25 text-amber-200" : "bg-emerald-900/25 border-emerald-700/20 text-emerald-200"
-            }`}>
-            <p className="font-semibold text-xs uppercase tracking-wider mb-1.5 not-italic opacity-60">Hadith & Tradition malikite</p>
-            {enc.hadith}
-          </motion.div>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={onClose}
-            className={`w-full py-3.5 rounded-2xl font-bold text-white shadow-lg transition-all ${
-              isKhatm ? "bg-gradient-to-r from-yellow-500 to-amber-500 hover:shadow-yellow-500/30"
-              : isMilestone ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:shadow-purple-500/30"
-              : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:shadow-emerald-500/30"
-            } hover:shadow-xl`}>
-            {isKhatm ? "🤲 Allāhumma taqabbal — Āmīn" : "Al-ḥamdu lillāh — Continuer"}
-          </motion.button>
+        <div style={{ flex:1 }}>
+          <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>1€ = ? DZD</label>
+          <input className="inp" type="number" placeholder="145" value={rate} onChange={e=>setRate(e.target.value)} />
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+      {dzd !== null && (
+        <div style={{ textAlign:"center", padding:"10px 0" }}>
+          <p style={{ fontSize:11, color:MU }}>{eur}€ =</p>
+          <p style={{ fontSize:28, fontWeight:600, color:G }}>{dzd.toLocaleString("fr-FR")} DZD</p>
+        </div>
+      )}
+    </div>
   );
 }
 
-// ════════════════════════════════════════════════════════════════════
-// COMPOSANT — Programme Juz
-// ════════════════════════════════════════════════════════════════════
-function JuzProgram({ onNavigateToJuz, juzProgram: juz }) {
-  const {
-    program, start, reset, manualComplete,
-    completedCount, remaining, daysPassed, daysTotal, daysLeft,
-    dailyGoalJuz, expectedJuz, onTrack, progressPct, behindBy,
-  } = juz;
-  const khatmBM = useBookmarks("khatm");
-  const [encourageJuz, setEncourageJuz] = useState(null);
-  const [confirmReset, setConfirmReset]  = useState(false);
-  const [readingJuz,   setReadingJuz]    = useState(null);
-  const [elapsed,      setElapsed]       = useState(0);
-  const timerRef = useRef(null);
-  const todayISO = new Date().toISOString().slice(0, 10);
-  const in30ISO  = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
-  const [startDate, setStartDate] = useState(todayISO);
-  const [endDate,   setEndDate]   = useState(in30ISO);
-  const previewDays = Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / 86400000));
-  const previewJuzPerDayRaw = 30 / previewDays;
-  const previewJuzPerDay = Math.ceil(previewJuzPerDayRaw);
-  const previewDaysPerJuz = previewJuzPerDayRaw < 1 ? Math.round(previewDays / 30) : null;
-  const previewMinPerDay = Math.max(1, Math.round(previewJuzPerDayRaw)) * 47;
-  useEffect(() => {
-    if (readingJuz) { setElapsed(0); timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000); }
-    else { clearInterval(timerRef.current); }
-    return () => clearInterval(timerRef.current);
-  }, [readingJuz]);
-  const fmtTime = s => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-  const fmtMin  = m => m >= 60 ? `${Math.floor(m/60)}h${m%60||''}` : `${m} min`;
-  const handleManual = (j) => { if (!program.completed[j.number]) setEncourageJuz(j); manualComplete(j.number); };
-  const handleFinishReading = () => {
-    if (!readingJuz) return;
-    if (!program.completed[readingJuz.number]) setEncourageJuz(readingJuz);
-    manualComplete(readingJuz.number); setReadingJuz(null);
-  };
-
-  if (!program.active) {
-    return (
-      <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
-          <div className="text-5xl">📅</div>
-          <h2 className="text-2xl font-black text-white">Programme de Khatm</h2>
-          <p className="text-slate-400 text-sm leading-relaxed">Choisis ta date de départ et ta date de fin — l'objectif quotidien s'ajuste automatiquement à ton rythme.</p>
-        </motion.div>
-        <div className="bg-white/5 border border-white/10 rounded-3xl p-5 space-y-5">
-          <div className="grid grid-cols-3 gap-2">
-            {[{ label: "30 jours", icon: "⚡", days: 30 },{ label: "60 jours", icon: "🌿", days: 60 },{ label: "3 mois", icon: "🌊", days: 90 }].map(opt => {
-              const ed = new Date(new Date(startDate).getTime() + opt.days * 86400000).toISOString().slice(0, 10);
-              const active = endDate === ed;
-              return (
-                <button key={opt.days} onClick={() => setEndDate(ed)}
-                  className={`p-3 rounded-2xl border text-center text-sm transition-all ${active ? "bg-emerald-500/20 border-emerald-500 text-white" : "bg-white/5 border-white/10 text-slate-400 hover:border-white/25"}`}>
-                  <div className="text-xl mb-0.5">{opt.icon}</div>
-                  <div className="font-bold text-xs">{opt.label}</div>
-                </button>
-              );
-            })}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-xs text-slate-500 font-semibold uppercase tracking-wide">📅 Date de départ</label>
-              <input type="date" value={startDate}
-                onChange={e => { setStartDate(e.target.value); if (e.target.value >= endDate) { const nd = new Date(e.target.value); nd.setDate(nd.getDate() + 30); setEndDate(nd.toISOString().slice(0, 10)); } }}
-                className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500/60 transition-all [color-scheme:dark]"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs text-slate-500 font-semibold uppercase tracking-wide">🏁 Date de fin</label>
-              <input type="date" value={endDate} min={startDate} onChange={e => setEndDate(e.target.value)}
-                className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500/60 transition-all [color-scheme:dark]"
-              />
-            </div>
-          </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-2xl p-4 space-y-1.5 text-sm">
-            <p className="text-emerald-300 font-bold mb-2">📊 Ton plan :</p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-white/5 rounded-xl p-2.5 text-center"><p className="text-slate-500">Durée totale</p><p className="text-white font-black text-lg">{previewDays}j</p></div>
-              <div className="bg-white/5 rounded-xl p-2.5 text-center"><p className="text-slate-500">Rythme</p><p className="text-emerald-400 font-black text-base">{previewDaysPerJuz ? `1 juz / ${previewDaysPerJuz}j` : `${previewJuzPerDay} juz/j`}</p></div>
-              <div className="bg-white/5 rounded-xl p-2.5 text-center"><p className="text-slate-500">Lecture/jour</p><p className="text-white font-bold">~{fmtMin(previewMinPerDay)}</p></div>
-              <div className="bg-white/5 rounded-xl p-2.5 text-center"><p className="text-slate-500">Fin prévue</p><p className="text-white font-bold text-xs">{new Date(endDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "2-digit" })}</p></div>
-            </div>
-            <p className="text-xs text-slate-500 italic mt-1 text-center">⚡ L'objectif quotidien s'adapte automatiquement si tu prends du retard</p>
-          </div>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-            onClick={() => start({ startDateISO: new Date(startDate).toISOString(), endDateISO: new Date(endDate).toISOString() })}
-            disabled={startDate >= endDate}
-            className="w-full py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-          >🚀 Commencer mon Programme</motion.button>
-        </div>
-      </div>
-    );
-  }
-
+// ── BIENVENUE VIEW — Lecteur PDF intégré ─────────────────────────
+// 👉 Place le fichier PDF dans /public/bienvenue-chogan.pdf sur Vercel
+function BienvenueView({ onBack }) {
   return (
-    <div className="max-w-2xl mx-auto px-4 py-5 space-y-5">
-      <AnimatePresence>{encourageJuz && <EncouragementModal juz={encourageJuz} onClose={() => setEncourageJuz(null)} />}</AnimatePresence>
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className={`rounded-3xl p-5 border ${onTrack ? "bg-emerald-900/30 border-emerald-500/30" : "bg-orange-900/30 border-orange-500/30"}`}>
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${onTrack ? "text-emerald-400" : "text-orange-400"}`}>
-              {onTrack ? "✅ Dans l'objectif" : `⚠️ ${behindBy} Juz de retard`}
-            </p>
-            <p className="text-white font-bold text-lg">{completedCount} / 30 Juz</p>
-            <p className="text-slate-500 text-xs">Jour {daysPassed} / {daysTotal} · {daysLeft} jours restants</p>
-          </div>
-          <div className="text-right">
-            <p className="text-slate-500 text-xs mb-0.5">Objectif du jour</p>
-            <p className={`font-black text-3xl ${onTrack ? "text-emerald-400" : "text-orange-400"}`}>{dailyGoalJuz}</p>
-            <p className="text-slate-600 text-xs">Juz</p>
-          </div>
-        </div>
-        <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-2">
-          <motion.div className={`h-full rounded-full ${onTrack ? "bg-gradient-to-r from-emerald-500 to-teal-400" : "bg-gradient-to-r from-orange-500 to-yellow-400"}`}
-            initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 1 }}
-          />
-        </div>
-        <div className="flex justify-between text-xs text-slate-500 mb-4">
-          <span>{progressPct}% accompli</span><span>{remaining} Juz restants</span>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { label: "Lecture/jour", value: `~${fmtMin(dailyGoalJuz * 47)}` },
-            { label: "Fin prévue", value: program.endDate ? new Date(program.endDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "—" },
-            { label: "Avance/retard", value: onTrack ? `+${completedCount - expectedJuz}` : `-${behindBy}`, color: onTrack ? "text-emerald-400" : "text-orange-400" },
-          ].map(s => (
-            <div key={s.label} className="bg-white/5 rounded-2xl p-2.5 text-center">
-              <p className="text-slate-600 text-[10px]">{s.label}</p>
-              <p className={`font-bold text-sm ${s.color || "text-white"}`}>{s.value}</p>
-            </div>
-          ))}
-        </div>
-        {!onTrack && (
-          <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-2xl text-xs text-orange-300 text-center">
-            ⏰ Pour rester dans les temps : lis <strong>{dailyGoalJuz} Juz</strong> aujourd'hui (~{fmtMin(dailyGoalJuz * 47)})
-          </div>
-        )}
-      </motion.div>
-
-      <AnimatePresence>
-        {readingJuz && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-            className="bg-blue-900/40 border border-blue-500/30 rounded-3xl p-5 text-center">
-            <p className="text-blue-300 text-sm font-semibold mb-1">⏱ Lecture en cours</p>
-            <p className="text-white font-black text-xl mb-1">{readingJuz.name} — {readingJuz.arabicName}</p>
-            <div className="text-4xl font-mono font-black text-blue-300 my-3">{fmtTime(elapsed)}</div>
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-3">
-              <motion.div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full"
-                animate={{ width: `${Math.min(100, (elapsed / (readingJuz.readingMinutes * 60)) * 100)}%` }}
-              />
-            </div>
-            <p className="text-slate-500 text-xs mb-4">
-              Durée moyenne : ~{fmtMin(readingJuz.readingMinutes)}
-              {elapsed < readingJuz.readingMinutes * 60 ? ` · ${fmtTime(readingJuz.readingMinutes * 60 - elapsed)} restants` : " · ✅ Objectif de temps atteint !"}
-            </p>
-            <button onClick={handleFinishReading} className="px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-emerald-500/30 transition-all">
-              ✅ J'ai terminé ce Juz
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div>
-        <h3 className="font-bold text-white mb-3 flex items-center gap-2 text-sm"><Target className="w-4 h-4 text-emerald-400"/> Grille des 30 Juz</h3>
-        <div className="grid grid-cols-6 gap-1.5">
-          {JUZ_DATA.map(j => {
-            const done = !!program.completed[j.number];
-            const isReading = readingJuz?.number === j.number;
-            return (
-              <div key={j.number} className="relative">
-                <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
-                  onClick={() => onNavigateToJuz(j.number)}
-                  className={`w-full rounded-xl py-2 text-center transition-all border text-xs font-bold ${
-                    done ? "bg-emerald-500/25 border-emerald-500/50 text-emerald-300"
-                    : isReading ? "bg-blue-500/20 border-blue-500/40 text-blue-300 animate-pulse"
-                    : "bg-white/4 border-white/8 text-slate-500 hover:border-white/20 hover:text-white"
-                  }`} title={`Lire ${j.name} · ~${j.readingMinutes} min`}>
-                  <div>{done ? "✓" : j.number}</div>
-                  <div className="text-[9px] opacity-50">{j.readingMinutes}m</div>
-                </motion.button>
-                <button onClick={e => { e.stopPropagation(); handleManual(j); }}
-                  className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[8px] font-black flex items-center justify-center transition-all ${
-                    done ? "bg-emerald-500 text-white" : "bg-white/15 text-slate-500 hover:bg-emerald-500/50 hover:text-white"
-                  }`} title="Valider / dévalider ce Juz">
-                  {done ? "✓" : "M"}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-        <p className="text-xs text-slate-700 mt-1.5 text-center">Appuie pour valider · M = validé manuellement</p>
+    <div className="fi" style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 130px)" }}>
+      <div className="sh" style={{ alignItems:"center", flexShrink:0 }}>
+        <button onClick={onBack} style={{ background:"none", border:"none", color:G, cursor:"pointer", fontSize:18, marginRight:10, padding:0 }}>←</button>
+        <span className="shtitle">Bienvenue chez Chogan</span>
       </div>
-
-      <div>
-        <h3 className="font-bold text-white mb-3 text-sm flex items-center gap-2"><Play className="w-4 h-4 text-blue-400"/> Prochains Juz</h3>
-        <div className="space-y-2">
-          {JUZ_DATA.filter(j => !program.completed[j.number]).slice(0, 5).map(j => (
-            <div key={j.number} className="flex items-center gap-3 p-3 bg-white/4 border border-white/8 rounded-2xl">
-              <div className="w-9 h-9 rounded-xl bg-white/8 flex items-center justify-center font-black text-white text-sm shrink-0">{j.number}</div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-white text-sm">{j.name} — <span className="font-serif text-slate-400">{j.arabicName}</span></p>
-                <p className="text-xs text-slate-600">~{fmtMin(j.readingMinutes)} · {j.pages} pages</p>
-              </div>
-              <div className="flex gap-1.5">
-                <button onClick={() => onNavigateToJuz(j.number)} className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/30 transition-all" title="Lire ce Juz"><BookOpen className="w-3.5 h-3.5"/></button>
-                <button onClick={() => setReadingJuz(readingJuz?.number === j.number ? null : j)}
-                  className={`p-2 rounded-xl transition-all text-xs font-bold ${readingJuz?.number === j.number ? "bg-blue-500 text-white" : "bg-blue-500/15 text-blue-400 hover:bg-blue-500/30"}`} title="Lancer le chrono">
-                  {readingJuz?.number === j.number ? <Pause className="w-3.5 h-3.5"/> : <Play className="w-3.5 h-3.5"/>}
-                </button>
-                <button onClick={() => handleManual(j)} className="p-2 rounded-xl bg-white/8 text-slate-400 hover:bg-white/15 transition-all" title="Valider manuellement"><CheckCircle className="w-3.5 h-3.5"/></button>
-              </div>
-            </div>
-          ))}
-          {remaining === 0 && <p className="text-center py-6 text-emerald-400 font-black text-lg">🏆 Khatm accompli ! Al-ḥamdu lillāh !</p>}
-        </div>
+      <div style={{ flex:1, margin:"10px 18px 0", borderRadius:12, overflow:"hidden", border:"0.5px solid rgba(201,168,76,.2)" }}>
+        <iframe
+          src="/bienvenue-chogan.pdf"
+          style={{ width:"100%", height:"100%", border:"none", background:"#fff" }}
+          title="Bienvenue chez Chogan"
+        />
       </div>
-
-      <div className="bg-white/4 border border-amber-500/15 rounded-3xl p-4 space-y-3">
-        <p className="font-bold text-white text-sm flex items-center gap-2"><Bookmark className="w-4 h-4 text-amber-400"/> Marque-pages du Programme</p>
-        <p className="text-xs text-slate-600">Enregistre ta position dans le programme pour y revenir facilement.</p>
-        <button onClick={() => {
-          const nextJuz = JUZ_DATA.find(j => !program.completed[j.number]);
-          khatmBM.save({ surah: nextJuz ? nextJuz.number : completedCount, verse: nextJuz ? nextJuz.number : completedCount, surahName: nextJuz ? `Juz ${nextJuz.number} — ${nextJuz.name}` : `Khatm terminé`, surahArabic: nextJuz?.arabicName || "", note: `Position: ${completedCount}/30 Juz complétés`, juzNum: nextJuz?.number || 0 });
-        }} className="flex items-center gap-2 px-4 py-2 bg-amber-500/15 border border-amber-500/20 text-amber-300 rounded-xl text-xs font-semibold hover:bg-amber-500/25 transition-all">
-          <Bookmark className="w-3.5 h-3.5"/> Sauvegarder ma position actuelle ({completedCount}/30 Juz)
-        </button>
-        {khatmBM.bookmarks.length > 0 && (
-          <div className="space-y-1.5 max-h-32 overflow-y-auto">
-            {khatmBM.bookmarks.map(bm => (
-              <div key={bm.id} className="flex items-center justify-between px-3 py-2 bg-white/5 rounded-xl group">
-                <button className="flex-1 text-left" onClick={() => bm.juzNum && onNavigateToJuz(bm.juzNum)}>
-                  <p className="text-white text-xs font-semibold">{bm.surahName}</p>
-                  <p className="text-slate-600 text-[10px] flex items-center gap-1"><Clock className="w-2.5 h-2.5"/>{bm.datetime}</p>
-                </button>
-                <button onClick={() => khatmBM.remove(bm.id)} className="text-slate-700 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100 ml-2"><Trash2 className="w-3 h-3"/></button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="pb-6 text-center">
-        {!confirmReset ? (
-          <button onClick={() => setConfirmReset(true)} className="flex items-center gap-2 text-slate-700 hover:text-red-400 transition-colors text-xs mx-auto">
-            <RotateCcw className="w-3.5 h-3.5"/> Réinitialiser le programme
-          </button>
-        ) : (
-          <div className="flex gap-3 justify-center">
-            <button onClick={() => { reset(); setConfirmReset(false); }} className="px-4 py-2 bg-red-500/15 text-red-400 border border-red-500/25 rounded-xl text-xs font-bold hover:bg-red-500/25 transition-all">Confirmer</button>
-            <button onClick={() => setConfirmReset(false)} className="px-4 py-2 bg-white/5 text-slate-400 border border-white/10 rounded-xl text-xs hover:bg-white/10 transition-all">Annuler</button>
-          </div>
-        )}
+      <div style={{ padding:"12px 18px", display:"flex", gap:8 }}>
+        <a href="/bienvenue-chogan.pdf" download style={{ flex:1, textAlign:"center" }} className="btn-o">
+          ↓ Télécharger le PDF
+        </a>
+        <button className="btn-o" onClick={onBack}>← Retour</button>
       </div>
     </div>
   );
 }
 
-// ════════════════════════════════════════════════════════════════════
-// COMPOSANT — Marque-pages
-// ════════════════════════════════════════════════════════════════════
-function BookmarksPage() {
-  const quranBM = useBookmarks("quran");
-  const khatmBM = useBookmarks("khatm");
-  const [activeTab, setActiveTab] = useState("quran");
-  const [confirmReset, setConfirmReset] = useState(false);
-  const current = activeTab === "quran" ? quranBM : khatmBM;
+function RessourcesView({ onOpenBienvenue, onOpenPromo }) {
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-black text-white">🔖 Marque-pages</h2>
-          <p className="text-slate-600 text-xs mt-0.5">Coran et Khatm sont séparés et indépendants</p>
-        </div>
-        {current.bookmarks.length > 0 && !confirmReset && (
-          <button onClick={() => setConfirmReset(true)} className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-white/10 hover:border-red-500/20 rounded-xl transition-all">
-            <RotateCcw className="w-3.5 h-3.5"/> Tout effacer
-          </button>
-        )}
-        {confirmReset && (
-          <div className="flex gap-2">
-            <button onClick={() => { current.resetAll(); setConfirmReset(false); }} className="px-3 py-1.5 text-xs font-bold text-white bg-red-500/25 border border-red-500/40 rounded-xl hover:bg-red-500/40 transition-all">Confirmer</button>
-            <button onClick={() => setConfirmReset(false)} className="px-3 py-1.5 text-xs text-slate-400 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all">Annuler</button>
+    <div className="fi">
+      <div className="sh"><span className="shtitle">Ressources</span></div>
+      <div className="sb">
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📥 Téléchargements</p>
+        {[
+          { ic:"📄", t:"Bon de commande",  d:"À imprimer pour tes clients" },
+          { ic:"🗓", t:"Planning mensuel", d:"Organise ton activité Chogan" },
+        ].map((r,i) => (
+          <div key={i} className="rlink">
+            <span style={{ fontSize:22 }}>{r.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:500 }}>{r.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{r.d}</p>
+            </div>
+            <span style={{ color:G, fontSize:16 }}>↓</span>
           </div>
-        )}
-      </div>
-      <div className="flex bg-white/5 rounded-2xl p-1 border border-white/10">
-        {[{ key: "quran", label: "📖 Coran", count: quranBM.bookmarks.length },{ key: "khatm", label: "📅 Khatm", count: khatmBM.bookmarks.length }].map(tab => (
-          <button key={tab.key} onClick={() => { setActiveTab(tab.key); setConfirmReset(false); }}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 ${activeTab === tab.key ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-white shadow-lg" : "text-slate-500 hover:text-white"}`}>
-            {tab.label}
-            {tab.count > 0 && <span className={`text-xs font-black px-1.5 py-0.5 rounded-full ${activeTab === tab.key ? "bg-white/25 text-white" : "bg-white/10 text-slate-500"}`}>{tab.count}</span>}
-          </button>
+        ))}
+        <a href="/bienvenue-chogan.pdf" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)" }}>
+          <span style={{ fontSize:22 }}>👋</span>
+          <div style={{ flex:1 }}>
+            <p style={{ fontSize:13, fontWeight:600, color:G }}>PDF Bienvenue chez Chogan</p>
+            <p style={{ fontSize:11, color:MU, marginTop:2 }}>Guide complet d'onboarding — appuie pour ouvrir</p>
+          </div>
+          <span style={{ color:G, fontSize:16 }}>↗</span>
+        </a>
+        <div className="rlink" style={{ background:"rgba(74,222,128,.05)", borderColor:"rgba(74,222,128,.2)", cursor:"pointer" }} onClick={onOpenPromo}>
+          <span style={{ fontSize:22 }}>🏷</span>
+          <div style={{ flex:1 }}>
+            <p style={{ fontSize:13, fontWeight:600, color:"#4ade80" }}>Calculateur Promo</p>
+            <p style={{ fontSize:11, color:MU, marginTop:2 }}>Prix de revient · marges · calculs DZD automatiques</p>
+          </div>
+          <span style={{ color:"#4ade80", fontSize:16 }}>→</span>
+        </div>
+
+        <div className="div" style={{ margin:"14px 0" }} />
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🔗 Liens utiles</p>
+        {[
+          { ic:"🎨", t:"Modèles Canva",       d:"Stories et posts Instagram prêts à personnaliser", url:"#" },
+          { ic:"🔓", t:"Limitless – Formation",d:"Plateforme de formation complète",                url:"https://mylimitless.be/" },
+          { ic:"🌐", t:"Site Chogan Officiel", d:"chogan.eu — espace consultant & commandes",        url:"https://chogan.eu" },
+        ].map((r,i) => (
+          <a key={i} className="rlink" href={r.url} target="_blank" rel="noreferrer">
+            <span style={{ fontSize:22 }}>{r.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:500 }}>{r.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{r.d}</p>
+            </div>
+            <span style={{ color:G, fontSize:16 }}>↗</span>
+          </a>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📲 Canaux Telegram</p>
+        <div className="cardg" style={{ marginBottom:12 }}>
+          <p style={{ fontSize:12, color:"#ccc", lineHeight:1.7 }}>
+            Tous les canaux Telegram pour accéder aux informations importantes : actualités, preuves sociales, nouveautés, stories et contenu réseaux 😊
+          </p>
+          <p style={{ fontSize:22, color:G, fontFamily:"'Cormorant Garamond',serif", fontStyle:"italic", marginTop:10, textAlign:"center", fontWeight:600 }}>Marie</p>
+        </div>
+        {[
+          { ic:"📸", t:"Story",          d:"Modèles de stories à partager",    url:"https://t.me/+FlsHgrOtL64wOGFk" },
+          { ic:"📅", t:"Calendly",       d:"Prise de rendez-vous",             url:"https://t.me/+ICxJuEEFHg04MzJk" },
+          { ic:"🖼️", t:"Pictures",       d:"Photos & visuels produits",        url:"https://t.me/+1zWQawmuayo0ZTc0" },
+          { ic:"🗓️", t:"90 Jours",       d:"Challenge & suivi 90 jours",       url:"https://t.me/+AAX6DoGpg48wZTdk" },
+          { ic:"💰", t:"Pro Vente",      d:"Scripts et techniques de vente",   url:"https://t.me/+akYPbYLQ3kcxYzdk" },
+          { ic:"⭐", t:"Preuve Sociale", d:"Témoignages & succès de l'équipe", url:"https://t.me/+Ylo19O_dBQ01ODE0" },
+        ].map((r,i) => (
+          <a key={i} className="rlink" href={r.url} target="_blank" rel="noreferrer">
+            <span style={{ fontSize:22 }}>{r.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:500 }}>{r.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{r.d}</p>
+            </div>
+            <span style={{ color:"#2AABEE", fontSize:16 }}>↗</span>
+          </a>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🏅 Statuts & Aide</p>
+        {[
+          { ic:"⭐", n:"Standard", b:"FAQ",           d:"Base de connaissances complète",    c:MU },
+          { ic:"🥇", n:"Gold",     b:"WhatsApp direct",d:"Support prioritaire via WhatsApp", c:G },
+          { ic:"👑", n:"Admin",    b:"Gestion totale", d:"Gestion complète de l'équipe",     c:"#b0a0ff" },
+        ].map((s,i) => (
+          <div key={i} className="card" style={{ borderLeft:`3px solid ${s.c}`, display:"flex", gap:12, alignItems:"center", marginBottom:8 }}>
+            <span style={{ fontSize:22 }}>{s.ic}</span>
+            <div style={{ flex:1 }}>
+              <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:2 }}>
+                <span style={{ fontSize:13, fontWeight:600, color:s.c }}>{s.n}</span>
+                <span className="badge" style={{ background:"rgba(255,255,255,.05)", color:s.c }}>{s.b}</span>
+              </div>
+              <p style={{ fontSize:11, color:MU }}>{s.d}</p>
+            </div>
+          </div>
         ))}
       </div>
-      <div className="flex items-start gap-3 p-3.5 bg-amber-500/8 border border-amber-500/15 rounded-2xl">
-        <span className="text-lg shrink-0">💡</span>
-        <div>
-          {activeTab === "quran" ? (
-            <><p className="text-amber-300 font-semibold text-xs">Marque-pages Coran</p><p className="text-slate-500 text-xs mt-0.5">Dans <strong className="text-white">📖 Coran</strong>, appuie sur n'importe quel verset pour l'enregistrer ici instantanément.</p></>
-          ) : (
-            <><p className="text-amber-300 font-semibold text-xs">Marque-pages Khatm</p><p className="text-slate-500 text-xs mt-0.5">Dans <strong className="text-white">📅 Programme</strong>, utilise le bouton "Sauvegarder ma position" pour marquer où tu en es dans ton Khatm.</p></>
-          )}
-        </div>
-      </div>
-      <AnimatePresence mode="wait">
-        <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-          {current.bookmarks.length === 0 ? (
-            <div className="text-center py-14 space-y-2"><p className="text-5xl">🔖</p><p className="text-slate-500 text-sm">Aucun marque-page {activeTab === "quran" ? "Coran" : "Khatm"}</p></div>
-          ) : (
-            <div className="space-y-2.5">
-              <p className="text-slate-700 text-xs">{current.bookmarks.length} marque-page{current.bookmarks.length > 1 ? "s" : ""}</p>
-              <AnimatePresence>
-                {current.bookmarks.map(bm => (
-                  <motion.div key={bm.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}
-                    className="flex items-center gap-3 p-4 bg-white/5 border border-amber-500/15 rounded-2xl group hover:border-amber-500/30 transition-all">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500/12 border border-amber-500/20 flex flex-col items-center justify-center shrink-0">
-                      {activeTab === "quran" ? (<><span className="text-amber-400 font-black text-base leading-none">{bm.surah}</span><span className="text-amber-600/80 text-[10px] font-semibold">v.{bm.verse}</span></>) : (<span className="text-amber-400 text-xl">📅</span>)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-white text-sm">{bm.surahName}</p>
-                      {bm.note && <p className="text-xs text-amber-600/60 italic truncate">"{bm.note}"</p>}
-                      <p className="text-xs text-slate-600 flex items-center gap-1 mt-0.5"><Clock className="w-3 h-3 shrink-0"/>{bm.datetime}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-1.5">
-                      {activeTab === "quran" && <p className="font-serif text-slate-500 text-base" dir="rtl">{bm.surahArabic}</p>}
-                      <button onClick={() => current.remove(bm.id)} className="p-1.5 text-slate-700 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"><Trash2 className="w-3.5 h-3.5"/></button>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
     </div>
   );
 }
 
-// ════════════════════════════════════════════════════════════════════
-// COMPOSANT — Adhkar
-// ════════════════════════════════════════════════════════════════════
-const TAB_LABELS = { matin: "🌅 Matin", soir: "🌙 Soir", priere: "🕌 Prière" };
+function FormationView() {
+  const [sub, setSub] = useState("modules");
+  const [openSc, setOpenSc] = useState(null);
+  const [qa, setQa] = useState({});
+  const [qdone, setQdone] = useState(false);
 
-function useArabicSpeech() {
-  const [speaking, setSpeaking] = useState(null);
-  const [voices, setVoices] = useState([]);
-  const utterRef = useRef(null);
-  useEffect(() => {
-    const load = () => { const v = window.speechSynthesis?.getVoices() || []; if (v.length > 0) setVoices(v); };
-    load();
-    if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = load;
-    return () => { if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = null; };
-  }, []);
-  const speak = useCallback((dhikr) => {
-    if (!("speechSynthesis" in window)) { alert("La synthèse vocale n'est pas supportée sur ce navigateur."); return; }
-    if (speaking === dhikr.id) { window.speechSynthesis.cancel(); setSpeaking(null); return; }
-    window.speechSynthesis.cancel();
-    const doSpeak = (voiceList) => {
-      const utter = new SpeechSynthesisUtterance(dhikr.arabic);
-      utter.lang = "ar-SA"; utter.rate = 0.75; utter.pitch = 1;
-      const arabicVoice = voiceList.find(v => v.lang === "ar-SA") || voiceList.find(v => v.lang === "ar-EG") || voiceList.find(v => v.lang.startsWith("ar")) || null;
-      if (arabicVoice) utter.voice = arabicVoice;
-      utter.onstart = () => setSpeaking(dhikr.id); utter.onend = () => setSpeaking(null); utter.onerror = () => setSpeaking(null);
-      utterRef.current = utter; window.speechSynthesis.speak(utter);
-    };
-    const currentVoices = window.speechSynthesis.getVoices();
-    if (currentVoices.length > 0) { doSpeak(currentVoices); }
-    else {
-      window.speechSynthesis.onvoiceschanged = () => { const v = window.speechSynthesis.getVoices(); setVoices(v); doSpeak(v); window.speechSynthesis.onvoiceschanged = null; };
-      setTimeout(() => { if (speaking !== dhikr.id) doSpeak([]); }, 300);
-    }
-  }, [speaking]);
-  const stop = useCallback(() => { window.speechSynthesis.cancel(); setSpeaking(null); }, []);
-  useEffect(() => () => { window.speechSynthesis?.cancel(); }, []);
-  return { speaking, speak, stop, voicesLoaded: voices.length > 0 };
-}
+  const score = QUIZ.filter(q => qa[q.id] === q.correct).length;
 
-function DhikrCard({ dhikr, favorites, toggleFav, copied, handleCopy, recited, setRecited, speaking, speak }) {
-  const [expanded, setExpanded] = useState(false);
-  const isPlaying = speaking === dhikr.id;
-  const count = recited[dhikr.id] || 0;
-  const done = count >= dhikr.repetition;
   return (
-    <motion.div layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-      className={`rounded-3xl border transition-all overflow-hidden ${done ? "bg-emerald-900/20 border-emerald-500/30" : "bg-white/5 border-white/10 hover:border-emerald-500/20"}`}>
-      <div className="px-5 pt-5 pb-4">
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white text-sm leading-snug mb-2">{dhikr.title}</p>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 rounded-lg text-xs font-bold border border-emerald-500/20">{dhikr.repetition}×</span>
-              {done && <span className="px-2 py-1 bg-emerald-500/25 text-emerald-300 rounded-lg text-xs font-bold">✓ Terminé</span>}
+    <div className="fi">
+      <div className="sh">
+        <span className="shtitle">Formation</span>
+        {sub === "quiz" && <button className="btn-d" onClick={()=>{if(window.confirm("Reset quiz ?")){ setQa({}); setQdone(false); }}}>↺ Reset</button>}
+      </div>
+      <div className="ftabs">
+        {[["modules","📚 Modules"],["prospection","💬 Scripts"],["quiz","📝 Quiz"]].map(([v,l])=>(
+          <button key={v} className={`ftab ${sub===v?"on":""}`} onClick={()=>setSub(v)}>{l}</button>
+        ))}
+      </div>
+
+      {sub === "modules" && (
+        <div className="sb">
+          <div className="cardg" style={{ marginBottom:16 }}>
+            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🎬 Académie Chogan</p>
+            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>3 modules vidéos pour maîtriser chaque aspect de ton activité. Complète-les dans l'ordre.</p>
+          </div>
+          {[
+            { ic:"📝", t:"Module 1 – Inscription", d:"Créer ton espace consultant et comprendre la plateforme Chogan" },
+            { ic:"👜", t:"Module 2 – La Mallette",  d:"Présentation des produits et tes premières ventes" },
+            { ic:"💰", t:"Module 3 – La Vente",    d:"Techniques de vente, objections et closing efficace" },
+          ].map((m,i) => (
+            <div key={i} className="rlink">
+              <span style={{ fontSize:22 }}>{m.ic}</span>
+              <div style={{ flex:1 }}>
+                <p style={{ fontSize:13, fontWeight:500 }}>{m.t}</p>
+                <p style={{ fontSize:11, color:MU, marginTop:2, lineHeight:1.4 }}>{m.d}</p>
+              </div>
+              <span style={{ color:G, fontSize:15, flexShrink:0 }}>▶</span>
             </div>
-          </div>
-          <div className="flex gap-1 shrink-0">
-            <button onClick={() => speak(dhikr)} title={isPlaying ? "Arrêter" : "Écouter en arabe"}
-              className={`p-2 rounded-xl transition-all border ${isPlaying ? "bg-blue-500/25 border-blue-500/40 text-blue-300 animate-pulse" : "bg-white/5 border-white/10 text-slate-500 hover:text-blue-400 hover:border-blue-500/30"}`}>
-              {isPlaying ? <span className="text-base leading-none">⏸</span> : <span className="text-base leading-none">🔊</span>}
-            </button>
-            <button onClick={() => handleCopy(dhikr)} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-white border border-transparent">
-              {copied[dhikr.id] ? <CheckCircle className="w-4 h-4 text-emerald-400"/> : <Copy className="w-4 h-4"/>}
-            </button>
-            <button onClick={() => toggleFav(dhikr.id)} className={`p-2 rounded-xl transition-all border border-transparent ${favorites[dhikr.id] ? "text-rose-400" : "text-slate-500 hover:text-rose-400"}`}>
-              {favorites[dhikr.id] ? "♥" : "♡"}
-            </button>
-          </div>
+          ))}
         </div>
-        <div className={`p-4 rounded-2xl mb-3 border transition-all cursor-pointer ${isPlaying ? "bg-blue-500/8 border-blue-500/25" : "bg-slate-800/60 border-white/10 hover:border-white/20"}`} onClick={() => speak(dhikr)}>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-slate-600 uppercase tracking-wider font-semibold">النص العربي</p>
-            <span className={`text-xs ${isPlaying ? "text-blue-400 font-semibold" : "text-slate-600"}`}>{isPlaying ? "⏸ Arrêter" : "🔊 Écouter"}</span>
+      )}
+
+      {sub === "prospection" && (
+        <div className="sb">
+          <div className="cardg" style={{ marginBottom:14 }}>
+            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>📖 Module 2 – Contacter & Inviter</p>
+            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>4 scripts éprouvés. Personnalise toujours avec le prénom et adapte au contexte.</p>
           </div>
-          <p className="text-right font-serif text-white leading-[2.4] select-text" dir="rtl" lang="ar" style={{ fontSize: "clamp(1.1rem, 4vw, 1.5rem)", wordBreak: "keep-all" }}>{dhikr.arabic}</p>
-          {isPlaying && (
-            <div className="flex items-center gap-1 justify-center mt-3">
-              {[...Array(4)].map((_, i) => (<motion.div key={i} className="w-1 rounded-full bg-blue-400" animate={{ height: ["6px","16px","6px"] }} transition={{ duration: 0.6, delay: i*0.15, repeat: Infinity }}/>))}
-              <span className="text-blue-400 text-xs ml-2 font-semibold">Récitation en cours…</span>
+          {SCRIPTS.map(s => (
+            <div key={s.id} className="scrd">
+              <div className="shdr" onClick={()=>setOpenSc(openSc===s.id?null:s.id)}>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:600 }}>{s.title}</p>
+                  <p style={{ fontSize:11, color:MU, marginTop:2 }}>{s.ctx}</p>
+                </div>
+                <span style={{ color:G }}>{openSc===s.id?"▲":"▼"}</span>
+              </div>
+              {openSc===s.id && (
+                <div style={{ padding:"0 15px 15px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
+                  <div style={{ background:"rgba(201,168,76,.05)", border:"0.5px solid rgba(201,168,76,.14)", borderRadius:10, padding:13, fontSize:13, lineHeight:1.7, margin:"12px 0", color:"#ddd", fontStyle:"italic" }}>
+                    {s.text}
+                  </div>
+                  <div style={{ fontSize:11, color:MC, padding:"7px 11px", background:"rgba(126,200,154,.07)", borderRadius:8, marginBottom:10 }}>
+                    💡 {s.tip}
+                  </div>
+                  <button className="btn-o" style={{ width:"100%" }}
+                    onClick={()=>navigator.clipboard?.writeText(s.text).then(()=>alert("Script copié ! 📋"))}>
+                    📋 Copier le script
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {sub === "quiz" && (
+        <div className="sb">
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <p style={{ fontSize:13, fontWeight:500 }}>Quiz de Certification</p>
+            <span className="badge" style={{ background:"rgba(201,168,76,.14)", color:G }}>8/10 requis</span>
+          </div>
+
+          {!qdone ? (
+            <div style={{display:"contents"}}>
+              {QUIZ.map((q,qi)=>(
+                <div key={q.id} className="card" style={{ marginBottom:10 }}>
+                  <p style={{ fontSize:13, fontWeight:500, marginBottom:10, lineHeight:1.45 }}>{qi+1}. {q.q}</p>
+                  {q.opts.map((opt,oi)=>(
+                    <button key={oi} className={`qopt ${qa[q.id]===oi?"sel":""}`}
+                      onClick={()=>setQa(p=>({...p,[q.id]:oi}))}>
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              ))}
+              <button className="btn-p" style={{ width:"100%", marginTop:8 }}
+                onClick={()=>{
+                  if(Object.keys(qa).length < QUIZ.length){ alert("Réponds à toutes les questions !"); return; }
+                  setQdone(true);
+                }}>
+                Valider le quiz
+              </button>
+            </div>
+          ) : (
+            <div style={{display:"contents"}}>
+              <div className={score>=8?"cardg":"card"} style={{ textAlign:"center", padding:24, marginBottom:16 }}>
+                <p style={{ fontSize:40, marginBottom:8 }}>{score>=8?"🎓":"📚"}</p>
+                <p style={{ fontSize:30, fontWeight:700, color:score>=8?G:RD }}>{score}/10</p>
+                <p style={{ fontSize:13, marginTop:8, color:"#ccc" }}>
+                  {score>=8?"Certification obtenue ! Félicitations ! 🎉":"Score insuffisant — révise et réessaie"}
+                </p>
+              </div>
+              {QUIZ.map((q,qi)=>(
+                <div key={q.id} className="card" style={{ marginBottom:8 }}>
+                  <p style={{ fontSize:12, fontWeight:500, marginBottom:8, lineHeight:1.4 }}>{qi+1}. {q.q}</p>
+                  {q.opts.map((opt,oi)=>(
+                    <button key={oi} className={`qopt ${oi===q.correct?"ok":qa[q.id]===oi&&oi!==q.correct?"ko":""}`}>{opt}</button>
+                  ))}
+                </div>
+              ))}
+              <button className="btn-o" style={{ width:"100%", marginTop:8 }}
+                onClick={()=>{setQa({});setQdone(false);}}>
+                Reprendre le quiz
+              </button>
             </div>
           )}
         </div>
-        <div className="bg-emerald-500/8 border border-emerald-500/15 rounded-2xl p-4 mb-3">
-          <p className="text-xs text-emerald-600 uppercase tracking-wider font-semibold mb-1.5">Traduction</p>
-          <p className="text-slate-300 text-sm leading-relaxed select-text">{dhikr.french}</p>
+      )}
+    </div>
+  );
+}
+
+function ChecklistView({ checklist, setChecklist }) {
+  const done = checklist.filter(i=>i.done).length;
+  const pct = Math.round((done/checklist.length)*100);
+  return (
+    <div className="fi">
+      <div className="sh">
+        <span className="shtitle">Checklist</span>
+        <button className="btn-d" onClick={()=>{if(window.confirm("Réinitialiser la checklist ?")) setChecklist(CHECKLIST0);}}>↺ Reset</button>
+      </div>
+      <div className="sb">
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
+          <span style={{ fontSize:12, color:MU }}>{done}/{checklist.length} étapes</span>
+          <span className="badge" style={{ background:pct===100?"rgba(126,200,154,.16)":"rgba(201,168,76,.14)", color:pct===100?MC:G }}>{pct}%</span>
         </div>
-        {dhikr.benefice && (
-          <div className="bg-amber-500/8 border border-amber-500/20 rounded-2xl p-4 mb-3">
-            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1.5">📜 Vertu & bénéfice</p>
-            <p className="text-amber-200/80 text-sm leading-relaxed italic select-text">{dhikr.benefice}</p>
+        <div className="pbar-w"><div className="pbar" style={{ width:`${pct}%` }} /></div>
+        {pct===100&&(
+          <div className="cardg" style={{ textAlign:"center", padding:20, marginTop:12 }}>
+            <p style={{ fontSize:24, marginBottom:6 }}>🎓</p>
+            <p style={{ color:G, fontWeight:600, fontSize:14 }}>Onboarding complété ! Félicitations !</p>
           </div>
         )}
-        <div className={`p-4 rounded-2xl mb-3 border transition-all ${isPlaying ? "bg-blue-500/8 border-blue-500/20" : "bg-white/3 border-white/8"}`}>
-          <p className="text-xs text-slate-600 uppercase tracking-wider font-semibold mb-1.5">Translittération</p>
-          <p className="font-bold text-white text-base leading-relaxed break-words select-text">{dhikr.transliteration}</p>
+        <div style={{ marginTop:10 }}>
+          {checklist.map(item=>(
+            <div key={item.id} className="ci"
+              onClick={()=>setChecklist(p=>p.map(i=>i.id===item.id?{...i,done:!i.done}:i))}>
+              <div className={`cbox ${item.done?"ck":""}`}>
+                {item.done&&<span style={{ color:"#07070f", fontSize:11, fontWeight:700 }}>✓</span>}
+              </div>
+              <span style={{ fontSize:13, lineHeight:1.4, flex:1, textDecoration:item.done?"line-through":"none", color:item.done?MU:TX }}>
+                {item.text}
+              </span>
+            </div>
+          ))}
         </div>
-        <button onClick={() => setExpanded(e => !e)} className="w-full text-left text-slate-700 hover:text-slate-500 text-xs italic transition-all flex items-center justify-between gap-2">
-          <span className={expanded ? "" : "truncate"}>{dhikr.source}</span>
-          <span className="shrink-0 text-slate-700">{expanded ? "▲" : "▼"}</span>
+      </div>
+    </div>
+  );
+}
+
+function CatalogueView({ perfumes, setPerfumes }) {
+  const [sizeF, setSizeF] = useState("tous");
+  const [genF, setGenF] = useState("tous");
+  const [srch, setSrch] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const fref = useRef();
+
+  const filtered = perfumes.filter(p => {
+    if (sizeF !== "tous" && !(p.sizes||[]).includes(sizeF)) return false;
+    if (genF  !== "tous" && p.gender !== genF) return false;
+    if (srch) {
+      const q = srch.toLowerCase();
+      if (!p.name.toLowerCase().includes(q) && !(p.brand||"").toLowerCase().includes(q) && !(p.ref||"").includes(srch)) return false;
+    }
+    return true;
+  });
+
+  const handleFile = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    setUploading(true); setMsg("✨ Extraction IA en cours…");
+    try {
+      const b64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(",")[1]); r.onerror=rej; r.readAsDataURL(file); });
+      const isImg = file.type.startsWith("image/");
+      const resp = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          model:"claude-sonnet-4-20250514", max_tokens:2000,
+          messages:[{ role:"user", content:[
+            { type:isImg?"image":"document", source:{ type:"base64", media_type:file.type, data:b64 }},
+            { type:"text", text:`Extrais TOUS les parfums Chogan visibles dans cette image/PDF.
+Règle couleur du texte : NOIR = homme | ROSE/ROUGE = femme | VERT = mixte
+Chaque parfum peut avoir plusieurs tailles (70ml, 30ml, 50ml, 15ml, 100ml).
+Réponds UNIQUEMENT en JSON valide sans markdown :
+[{"name":"nom du parfum","brand":"marque inspiratrice","ref":"code principal ex:001","gender":"homme|femme|mixte","sizes":["70ml","30ml","15ml"]}]
+Si pas de référence, génère un id court. Inclus TOUTES les entrées visibles.` }
+          ]}]
+        })
+      });
+      const data = await resp.json();
+      const raw = (data.content||[]).map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)&&list.length>0) {
+        setPerfumes(prev=>{
+          const names = new Set(prev.map(p=>p.name.toLowerCase()));
+          const add = list.filter(p=>!names.has((p.name||"").toLowerCase()))
+            .map((p,i)=>({...p, id:Date.now()+i, name:p.name||`Parfum ${i+1}`, gender:p.gender||"mixte", sizes:p.sizes||["70ml","15ml"]}));
+          return [...prev,...add];
+        });
+        setMsg(`✅ ${list.length} inspirations extraites !`);
+      } else { setMsg("⚠️ Aucun parfum détecté. Image plus nette ?"); }
+    } catch(err) { setMsg("❌ Erreur extraction. Réessaie."); }
+    finally { setUploading(false); setTimeout(()=>setMsg(""),5000); e.target.value=""; }
+  };
+
+  return (
+    <div className="fi">
+      <div className="sh">
+        <span className="shtitle">Liste Inspirations</span>
+        <span style={{ fontSize:11, color:MU }}>{perfumes.length} parfums</span>
+      </div>
+
+      <div className="upz" onClick={()=>fref.current.click()}>
+        {uploading
+          ? <p style={{ color:G, fontSize:13 }}>⏳ Analyse IA en cours…</p>
+          : <div style={{display:"contents"}}>
+              <p style={{ fontSize:24, marginBottom:6 }}>📷</p>
+              <p style={{ fontSize:13, color:G, fontWeight:500 }}>Mettre à jour la liste</p>
+              <p style={{ fontSize:11, color:MU, marginTop:3 }}>Upload photo ou PDF → extraction automatique par IA</p>
+            </div>
+        }
+      </div>
+      <input ref={fref} type="file" accept="image/*,application/pdf" style={{ display:"none" }} onChange={handleFile} />
+      {msg&&<div style={{ textAlign:"center", fontSize:12, padding:"4px 18px 10px", color:msg.startsWith("✅")?MC:msg.startsWith("❌")?RD:G }}>{msg}</div>}
+
+      <div className="ftabs">
+        {[["tous","Tous"],["homme","♂ Homme"],["femme","♀ Femme"],["mixte","⚧ Mixte"]].map(([v,l])=>(
+          <button key={v} className={`ftab ${genF===v?"on":""}`}
+            style={genF===v&&v!=="tous"?{borderColor:gc(v),color:gc(v)}:{}}
+            onClick={()=>setGenF(v)}>{l}</button>
+        ))}
+      </div>
+      <div className="ftabs" style={{ paddingTop:0 }}>
+        {[["tous","Toutes"],["15ml","15 ml"],["30ml","30 ml"],["50ml","50 ml"],["70ml","70 ml"]].map(([v,l])=>(
+          <button key={v} className={`ftab ${sizeF===v?"on":""}`} onClick={()=>setSizeF(v)}>{l}</button>
+        ))}
+      </div>
+      <input className="srch" placeholder="🔍 Nom, marque ou référence…" value={srch} onChange={e=>setSrch(e.target.value)} />
+
+      <div className="pgrid">
+        {filtered.length===0
+          ? <div style={{ gridColumn:"1/-1", textAlign:"center", padding:36, color:MU }}><p style={{ fontSize:28, marginBottom:8 }}>🌸</p><p style={{ fontSize:13 }}>Aucun parfum trouvé</p></div>
+          : filtered.map(p=>(
+              <div key={p.id} className="pcrd" style={{ borderLeftColor:gc(p.gender) }}>
+                <p style={{ fontSize:12, fontWeight:600, color:gc(p.gender), lineHeight:1.3, marginBottom:2 }}>{p.name}</p>
+                <p style={{ fontSize:10, color:MU, marginBottom:2 }}>{p.brand}</p>
+                <p style={{ fontSize:10, color:MU, marginBottom:7 }}>Réf. {p.ref}</p>
+                <div style={{ display:"flex", flexDirection:"column", gap:3 }}>
+                  {(p.sizes||[]).map(s=>(
+                    <div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+                      padding:"2px 6px", borderRadius:6,
+                      background: sizeF===s ? `rgba(${p.gender==="homme"?"212,212,226":p.gender==="femme"?"244,160,181":"126,200,154"},.15)` : "rgba(255,255,255,.04)",
+                      border: sizeF===s ? `0.5px solid ${gc(p.gender)}` : "0.5px solid transparent"
+                    }}>
+                      <span style={{ fontSize:10, color: sizeF===s ? gc(p.gender) : MU, fontWeight: sizeF===s?600:400 }}>{s}</span>
+                      <span style={{ fontSize:10, color:G, fontWeight:600 }}>{p.prices?.[s] ? `${p.prices[s].toFixed(2).replace(".",",")} €` : "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+        }
+      </div>
+      <div style={{ textAlign:"center", paddingBottom:16 }}>
+        <button className="btn-d" onClick={()=>{if(window.confirm("Réinitialiser la liste ?")) setPerfumes(DEMO_PERFUMES);}}>
+          ↺ Réinitialiser la liste
         </button>
       </div>
-      <div className="px-5 pb-5">
-        {dhikr.repetition > 1 && (
-          <div className="h-1.5 bg-white/8 rounded-full overflow-hidden mb-3">
-            <motion.div className={`h-full rounded-full transition-all ${done ? "bg-emerald-500" : "bg-gradient-to-r from-emerald-600 to-teal-400"}`}
-              animate={{ width: `${Math.min(100, (count / dhikr.repetition) * 100)}%` }}
-            />
-          </div>
-        )}
-        <div className="flex items-center gap-3">
-          {count > 0 && (
-            <button onClick={() => setRecited(p => ({ ...p, [dhikr.id]: 0 }))} className="p-2 text-slate-700 hover:text-slate-400 hover:bg-white/5 rounded-xl transition-all" title="Remettre à zéro"><RotateCcw className="w-3.5 h-3.5"/></button>
-          )}
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}
-            onClick={() => !done && setRecited(p => ({ ...p, [dhikr.id]: (p[dhikr.id] || 0) + 1 }))}
-            className={`flex-1 py-3 rounded-2xl font-bold text-sm transition-all ${done ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 cursor-default" : "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg hover:shadow-emerald-500/20"}`}>
-            {done ? `✓ Complété (${dhikr.repetition}/${dhikr.repetition})` : dhikr.repetition === 1 ? "Récité ✓" : `Réciter — ${count} / ${dhikr.repetition}`}
-          </motion.button>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function AdhkarPage({ fridayKahf: fridayKahfProp }) {
-  const [favorites, setFavorites] = useState(() => storage("adhkar_favs", {}));
-  const [copied,    setCopied]    = useState({});
-  const [recited,   setRecited]   = useState(() => storage("adhkar_recited", {}));
-  const [activeTab, setActiveTab] = useState("matin");
-  const [confirmReset, setConfirmReset] = useState(false);
-  const { speaking, speak, voicesLoaded } = useArabicSpeech();
-  const { isReadThisWeek, markRead, totalFridays } = fridayKahfProp || useFridayKahf();
-  const today = new Date();
-  const isFriday = today.getDay() === 5;
-  const handleResetRecited = () => { storageSet("adhkar_recited", {}); setRecited({}); setConfirmReset(false); };
-  const handleCopy = useCallback((dhikr) => {
-    navigator.clipboard.writeText(`${dhikr.arabic}\n\n${dhikr.transliteration}\n\n${dhikr.french}\n\nSource : ${dhikr.source}`);
-    setCopied(p => ({ ...p, [dhikr.id]: true }));
-    setTimeout(() => setCopied(p => ({ ...p, [dhikr.id]: false })), 2000);
-  }, []);
-  const toggleFav = useCallback((id) => {
-    setFavorites(prev => { const next = { ...prev, [id]: !prev[id] }; storageSet("adhkar_favs", next); return next; });
-  }, []);
-  const handleSetRecited = useCallback((updater) => {
-    setRecited(prev => { const next = typeof updater === "function" ? updater(prev) : updater; storageSet("adhkar_recited", next); return next; });
-  }, []);
-  const filtered = ADHKAR_MALIKITES.filter(d => {
-    const cat = d.category.toLowerCase();
-    if (activeTab === "matin") return cat === "matin" || cat === "matin_soir";
-    if (activeTab === "soir")  return cat === "soir"  || cat === "matin_soir";
-    return cat === activeTab;
-  });
-  const totalDone = filtered.filter(d => (recited[d.id] || 0) >= d.repetition).length;
-  return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-bold border border-emerald-500/25 uppercase tracking-wider">📿 Madhhab Malikite — Muwatta Mālik</div>
-          <h2 className="text-2xl font-black text-white mt-2">الأذكار اليومية</h2>
-          <p className="text-slate-600 text-xs mt-0.5">{voicesLoaded ? "🔊 Voix arabe prête" : "🔊 Appuie sur le texte arabe pour écouter"}</p>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          {!confirmReset ? (
-            <button onClick={() => setConfirmReset(true)} className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-white/10 hover:border-red-500/20 rounded-xl transition-all"><RotateCcw className="w-3 h-3"/> Réinitialiser</button>
-          ) : (
-            <div className="flex flex-col gap-1.5 items-end">
-              <p className="text-xs text-slate-500 text-right">Effacer tous les compteurs ?</p>
-              <div className="flex gap-2">
-                <button onClick={handleResetRecited} className="px-3 py-1.5 text-xs font-bold text-white bg-red-500/25 border border-red-500/40 rounded-xl hover:bg-red-500/40 transition-all">Confirmer</button>
-                <button onClick={() => setConfirmReset(false)} className="px-3 py-1.5 text-xs text-slate-400 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all">Annuler</button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="flex bg-white/5 rounded-2xl p-1 border border-white/10 gap-1 overflow-x-auto">
-        {Object.entries(TAB_LABELS).map(([key, label]) => {
-          const tabDhikr = ADHKAR_MALIKITES.filter(d => d.category.toLowerCase() === key);
-          const tabDone  = tabDhikr.filter(d => (recited[d.id] || 0) >= d.repetition).length;
-          return (
-            <button key={key} onClick={() => setActiveTab(key)}
-              className={`flex-shrink-0 py-2 px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === key ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg" : "text-slate-500 hover:text-white"}`}>
-              {label}
-              {tabDhikr.length > 0 && <span className={`ml-1.5 text-[10px] ${activeTab === key ? "text-white/70" : "text-slate-700"}`}>{tabDone}/{tabDhikr.length}</span>}
-            </button>
-          );
-        })}
-      </div>
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-blue-500/8 border border-blue-500/15 rounded-2xl">
-        <span className="text-lg">🔊</span>
-        <p className="text-blue-300/70 text-xs">Appuie sur <strong className="text-blue-300">🔊</strong> ou le texte arabe pour entendre la récitation. Vitesse lente pour faciliter le suivi.</p>
-      </div>
-      {isFriday && (
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          className={`flex items-start gap-3 p-4 rounded-2xl border ${isReadThisWeek ? "bg-emerald-900/30 border-emerald-500/30" : "bg-amber-500/10 border-amber-500/30"}`}>
-          <span className="text-2xl shrink-0">🕌</span>
-          <div className="flex-1">
-            <p className={`font-bold text-sm mb-0.5 ${isReadThisWeek ? "text-emerald-300" : "text-amber-300"}`}>
-              {isReadThisWeek ? "✅ Al-Kahf lu ce vendredi !" : "Aujourd'hui c'est vendredi — Lis la Sourate Al-Kahf !"}
-            </p>
-            <p className="text-slate-500 text-xs leading-relaxed">« Celui qui lit Al-Kahf le vendredi, une lumière l'illuminera jusqu'au vendredi suivant. » — Ṣaḥīḥ al-Jāmi'</p>
-            {totalFridays > 0 && <p className="text-slate-600 text-xs mt-1">📊 Tu as lu Al-Kahf {totalFridays} vendredi{totalFridays > 1 ? "s" : ""}</p>}
-          </div>
-          {!isReadThisWeek && (
-            <button onClick={markRead} className="shrink-0 px-3 py-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-bold hover:bg-amber-500/30 transition-all">Marquer lu</button>
-          )}
-        </motion.div>
-      )}
-      {filtered.length > 1 && (
-        <div className="flex items-center gap-3 px-1">
-          <div className="flex-1 h-1 bg-white/8 rounded-full overflow-hidden">
-            <motion.div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
-              animate={{ width: `${(totalDone / filtered.length) * 100}%` }} transition={{ duration: 0.5 }}
-            />
-          </div>
-          <span className="text-xs text-slate-600 shrink-0">{totalDone}/{filtered.length} adhkār</span>
-        </div>
-      )}
-      <AnimatePresence mode="wait">
-        <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4 pb-6">
-          {filtered.length === 0 && <p className="text-center text-slate-600 py-10">Aucun dhikr dans cet onglet.</p>}
-          {filtered.map(dhikr => (
-            <DhikrCard key={dhikr.id} dhikr={dhikr} favorites={favorites} toggleFav={toggleFav} copied={copied} handleCopy={handleCopy} recited={recited} setRecited={handleSetRecited} speaking={speaking} speak={speak}/>
-          ))}
-        </motion.div>
-      </AnimatePresence>
     </div>
   );
 }
 
-// ════════════════════════════════════════════════════════════════════
-// COMPOSANT — QuranReader
-// ════════════════════════════════════════════════════════════════════
-function QuranReader({ initialSurahNum, initialVerseNum, onNavConsumed, juzBounds, checked, toggle, counts }) {
-  const quranBM = useBookmarks("quran");
-  const [currentSurah, setCurrentSurah] = useState(() => initialSurahNum ? QURAN_SURAHS[initialSurahNum - 1] || null : null);
-  const [targetVerse, setTargetVerse] = useState(initialVerseNum || null);
-  const [activeJuzBounds, setActiveJuzBounds] = useState(juzBounds || null);
-  useEffect(() => {
-    if (!initialSurahNum) return;
-    const surah = QURAN_SURAHS[initialSurahNum - 1];
-    if (!surah) return;
-    setCurrentSurah(surah);
-    if (initialVerseNum && initialVerseNum > 1) setTargetVerse(initialVerseNum);
-  }, [initialSurahNum, initialVerseNum]);
-  const lastScrollPos = useRef(0);
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const save = () => { lastScrollPos.current = el.scrollTop; };
-    el.addEventListener("scroll", save, { passive: true });
-    return () => el.removeEventListener("scroll", save);
-  }, []);
-  useEffect(() => { if (juzBounds) setActiveJuzBounds(juzBounds); }, [juzBounds]);
-  const verseRefs = useRef({});
-  const { verses, loading: versesLoading, error: versesError } = useVerses(currentSurah?.number);
-  const [filter, setFilter] = useState("");
-  const [autoScroll, setAutoScroll] = useState(false);
-  const [scrollSpeed, setScrollSpeed] = useState(2);
-  const [bookmarkToast, setBookmarkToast] = useState(null);
-  const scrollRef = useRef(null);
-  const autoRef = useRef(null);
-  const [dlStatus, setDlStatus] = useState(() => {
-    const init = {};
-    Object.keys(EMBEDDED_VERSES).forEach(k => { init[k] = "done"; });
-    _versesMemCache.forEach((_, k) => { init[k] = "done"; });
-    return init;
-  });
-  const downloadSurah = async (surah, e) => {
-    e.stopPropagation();
-    const n = surah.number;
-    if (dlStatus[n] === "done" || dlStatus[n] === "loading") return;
-    setDlStatus(prev => ({ ...prev, [n]: "loading" }));
-    try {
-      const verses = await fetchSurahFromAPI(n, surah);
-      _versesMemCache.set(n, verses);
-      setDlStatus(prev => ({ ...prev, [n]: "done" }));
-    } catch { setDlStatus(prev => ({ ...prev, [n]: "error" })); }
-  };
-  const touchStart = useRef(null);
-  const handleTouchStart = (e) => { touchStart.current = e.touches[0].clientX; };
-  const handleTouchEnd = (e) => {
-    if (!touchStart.current || !currentSurah) return;
-    const diff = touchStart.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 60) {
-      if (diff > 0 && currentSurah.number < 114) { setCurrentSurah(QURAN_SURAHS[currentSurah.number]); setActiveJuzBounds(null); }
-      if (diff < 0 && currentSurah.number > 1) { setCurrentSurah(QURAN_SURAHS[currentSurah.number - 2]); setActiveJuzBounds(null); }
-    }
-    touchStart.current = null;
-  };
-  useEffect(() => {
-    if (autoScroll && scrollRef.current) { autoRef.current = setInterval(() => { scrollRef.current?.scrollBy({ top: scrollSpeed, behavior: "smooth" }); }, 50); }
-    else { clearInterval(autoRef.current); }
-    return () => clearInterval(autoRef.current);
-  }, [autoScroll, scrollSpeed]);
-  useEffect(() => {
-    if (!targetVerse) return;
-    const attempt = (tries = 0) => {
-      const el = verseRefs.current[targetVerse];
-      if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); setTargetVerse(null); setTimeout(() => onNavConsumed?.(), 1500); }
-      else if (tries < 20) { setTimeout(() => attempt(tries + 1), 300); }
-    };
-    const t = setTimeout(() => attempt(), 500);
-    return () => clearTimeout(t);
-  }, [targetVerse, currentSurah, verses]);
-  useEffect(() => {
-    if (bookmarkToast) { const t = setTimeout(() => setBookmarkToast(null), 2500); return () => clearTimeout(t); }
-  }, [bookmarkToast]);
-  const handleVerseBookmark = useCallback((verseNum) => {
-    if (!currentSurah) return;
-    quranBM.save({ surah: currentSurah.number, verse: verseNum, surahName: currentSurah.name, surahArabic: currentSurah.arabic, note: "" });
-    setBookmarkToast({ verse: verseNum, surahName: currentSurah.name });
-  }, [currentSurah, quranBM]);
-  const filtered = QURAN_SURAHS.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()) || s.arabic.includes(filter) || String(s.number).includes(filter));
-  const getJuzFilteredVerses = (rawVerses) => {
-    if (!activeJuzBounds || !currentSurah) return rawVerses;
-    const { startSurah, startVerse, endSurah, endVerse } = activeJuzBounds;
-    return rawVerses.filter(v => {
-      const sn = currentSurah.number;
-      if (sn === startSurah && sn === endSurah) return v.number >= startVerse && v.number <= endVerse;
-      if (sn === startSurah) return v.number >= startVerse;
-      if (sn === endSurah)   return v.number <= endVerse;
-      return true;
-    });
-  };
+function AccueilView({ prenom, isAdmin }) {
+  const [started, setStarted] = useState(false);
+  const [inputPrenom, setInputPrenom] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [anns, setAnns] = useState([
+    { id:1, text:"🎉 Bienvenue dans l'équipe ! Ton aventure Chogan commence aujourd'hui.", date:new Date().toLocaleDateString("fr-FR") },
+    { id:2, text:"🌸 Promo du mois : -20% sur la gamme 50ml jusqu'à fin du mois !", date:new Date().toLocaleDateString("fr-FR") },
+  ]);
+  const [sucs, setSucs] = useState([
+    { id:1, name:"Amira B.", ach:"Première vente ✨" },
+    { id:2, name:"Nour K.",  ach:"Statut Gold atteint 🥇" },
+  ]);
+  const [newA, setNewA] = useState("");
+  const [newSName, setNewSName] = useState("");
+  const [newSAch, setNewSAch] = useState("");
 
-  if (currentSurah) {
-    return (
-      <div className="flex flex-col" style={{ height: "calc(100dvh - 60px)" }} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-        <AnimatePresence>
-          {bookmarkToast && (
-            <motion.div initial={{ opacity: 0, y: -40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-              className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-2xl shadow-xl shadow-amber-500/30 whitespace-nowrap">
-              🔖 Verset {bookmarkToast.verse} sauvegardé !
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <div className="flex items-center gap-2 px-4 py-3 bg-slate-950/90 backdrop-blur-xl border-b border-white/8 shrink-0">
-          <button onClick={() => { setCurrentSurah(null); setAutoScroll(false); }} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-400 hover:text-white"><ChevronLeft className="w-5 h-5"/></button>
-          <div className="flex-1 text-center">
-            <p className="font-bold text-white text-sm">{currentSurah.name}</p>
-            <p className="text-slate-500 text-xs">{versesLoading ? "⏳ Chargement…" : verses.length > 0 ? `${verses.length} versets · Juz ${currentSurah.juz}` : `${currentSurah.verses} versets · Juz ${currentSurah.juz}`}</p>
+  const displayName = inputPrenom.trim() || prenom || "Consultante";
+
+  // Charger les murs partagés au démarrage
+  React.useEffect(() => {
+    getMurs().then(data => {
+      if (data?.anns?.length) setAnns(data.anns);
+      if (data?.sucs?.length) setSucs(data.sucs);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  // Sauvegarder automatiquement quand Marie modifie
+  const updateAnns = (newAnns) => { setAnns(newAnns); if(isAdmin) saveMurs(newAnns, sucs); };
+  const updateSucs = (newSucs) => { setSucs(newSucs); if(isAdmin) saveMurs(anns, newSucs); };
+
+  if (!started) return (
+    <div className="fi" style={{ minHeight:"calc(100vh - 60px)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 18px", textAlign:"center", background:"radial-gradient(ellipse at 50% 25%, rgba(201,168,76,.07) 0%, transparent 65%)" }}>
+      <div style={{ width:72, height:72, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"2px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14 }}><span style={{ fontFamily:"serif", fontSize:28, color:"#c9a84c", fontWeight:700 }}>C</span></div>
+      <div style={{ fontFamily:"'Cormorant Garamond',Georgia,serif", fontSize:26, fontWeight:700, color:G, lineHeight:1.2, marginBottom:18 }}>Bienvenue chez Chogan</div>
+      <div style={{ background:"rgba(255,255,255,.025)", border:"0.5px solid rgba(201,168,76,.2)", borderRadius:14, padding:"18px 18px 14px", marginBottom:22 }}>
+        <p style={{ fontSize:13, lineHeight:1.85, color:"#ccc", textAlign:"center" }}>
+          ✨ Bienvenue dans ton espace Chogan ✨<br/><br/>
+          Cette application a été pensée pour t'accompagner simplement dans ton activité, du lancement jusqu'à ton évolution au quotidien.<br/><br/>
+          🤍 bien démarrer<br/>
+          🤍 organiser tes ventes<br/>
+          🤍 guider tes clientes plus facilement<br/>
+          🤍 et avancer étape par étape grâce à un suivi structuré ✨
+        </p>
+        <p style={{ fontSize:22, color:G, fontFamily:"'Cormorant Garamond',serif", fontStyle:"italic", marginTop:14, textAlign:"center", fontWeight:600 }}>Marie</p>
+      </div>
+      <div style={{ width:"100%", maxWidth:320, marginBottom:16 }}>
+        <label style={{ fontSize:11, color:MU, display:"block", marginBottom:6, textAlign:"left" }}>👤 Ton prénom</label>
+        <input className="inp" placeholder="Ton prénom…" value={inputPrenom}
+          onChange={e=>setInputPrenom(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&setStarted(true)}
+          style={{ textAlign:"center", fontSize:16 }} />
+      </div>
+      <button className="btn-p" onClick={()=>setStarted(true)}>🚀 Démarrer mon aventure</button>
+    </div>
+  );
+
+  return (
+    <div className="fi">
+      <div className="sh">
+        <span className="shtitle">Bonjour {displayName} 👋</span>
+        <button className="btn-d" onClick={()=>{if(window.confirm("Réinitialiser l'accueil ?")) setStarted(false);}}>↺ Reset</button>
+      </div>
+      <div className="sb">
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📣 Mur d'Annonces</p>
+        {anns.map(a=>(
+          <div key={a.id} className="cardg" style={{ position:"relative" }}>
+            <p style={{ fontSize:13, lineHeight:1.55 }}>{a.text}</p>
+            <p style={{ fontSize:10, color:MU, marginTop:5 }}>{a.date}</p>
+            {isAdmin && <button onClick={()=>updateAnns(anns.filter(x=>x.id!==a.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>}
           </div>
-          <button onClick={() => toggle(currentSurah.number)}
-            className={`p-2 rounded-xl transition-all ${checked[currentSurah.number] ? "text-emerald-400 bg-emerald-500/15" : "text-slate-400 hover:text-emerald-400 hover:bg-white/10"}`} title="Marquer comme lue">
-            <CheckCircle className="w-5 h-5"/>
-          </button>
-        </div>
-        <div className="flex items-center gap-3 px-4 py-2 bg-slate-900/80 border-b border-white/5 shrink-0">
-          <button onClick={() => setAutoScroll(a => !a)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${autoScroll ? "bg-blue-500/25 text-blue-300 border border-blue-500/40" : "bg-white/5 text-slate-500 hover:text-white"}`}>
-            {autoScroll ? <Pause className="w-3 h-3"/> : <Play className="w-3 h-3"/>} Auto-scroll
-          </button>
-          {autoScroll && (
-            <div className="flex items-center gap-2 flex-1">
-              <span className="text-xs text-slate-600">Vitesse</span>
-              <input type="range" min={1} max={6} value={scrollSpeed} onChange={e => setScrollSpeed(Number(e.target.value))} className="flex-1 accent-blue-500 h-1"/>
+        ))}
+        {isAdmin && (
+          <div style={{ display:"flex", gap:8, marginTop:8, alignItems:"center" }}>
+            <input className="inp" placeholder="Nouvelle annonce…" value={newA}
+              onChange={e=>setNewA(e.target.value)}
+              onKeyDown={e=>{ if(e.key==="Enter" && newA.trim()){ updateAnns([...anns,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}}
+              style={{ flex:1 }} />
+            <button className="btn-o" style={{ flexShrink:0, padding:"9px 16px", fontSize:18 }}
+              onClick={()=>{ if(!newA.trim())return; updateAnns([...anns,{id:Date.now(),text:newA,date:new Date().toLocaleDateString("fr-FR")}]); setNewA(""); }}>+</button>
+          </div>
+        )}
+        {!isAdmin && <p style={{ fontSize:10, color:MU, textAlign:"center", fontStyle:"italic", marginTop:6 }}>Seule Marie peut modifier les annonces</p>}
+      </div>
+
+      <div className="div" />
+
+      <div className="sb">
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🏆 Mur des Succès</p>
+        {sucs.map(s=>(
+          <div key={s.id} className="card" style={{ display:"flex", alignItems:"center", gap:12, position:"relative" }}>
+            <span style={{ fontSize:24 }}>🌟</span>
+            <div><p style={{ fontSize:13, fontWeight:600 }}>{s.name}</p><p style={{ fontSize:12, color:MU }}>{s.ach}</p></div>
+            {isAdmin && <button onClick={()=>updateSucs(sucs.filter(x=>x.id!==s.id))} style={{ position:"absolute", top:10, right:10, background:"none", border:"none", color:MU, cursor:"pointer", fontSize:17 }}>×</button>}
+          </div>
+        ))}
+        {isAdmin && (
+          <div style={{ display:"flex", flexDirection:"column", gap:6, marginTop:8 }}>
+            <input className="inp" placeholder="Prénom de la consultante" value={newSName}
+              onChange={e=>setNewSName(e.target.value)} />
+            <div style={{ display:"flex", gap:8 }}>
+              <input className="inp" placeholder="Son succès (ex: première vente 🎉)" value={newSAch}
+                onChange={e=>setNewSAch(e.target.value)}
+                onKeyDown={e=>{ if(e.key==="Enter" && newSName.trim()){ updateSucs([...sucs,{id:Date.now(),name:newSName,ach:newSAch||"Nouveau succès 🎉"}]); setNewSName(""); setNewSAch(""); }}}
+                style={{ flex:1 }} />
+              <button className="btn-o" style={{ flexShrink:0, padding:"9px 16px", fontSize:18 }}
+                onClick={()=>{
+                  if(!newSName.trim())return;
+                  updateSucs([...sucs,{id:Date.now(),name:newSName,ach:newSAch||"Nouveau succès 🎉"}]);
+                  setNewSName(""); setNewSAch("");
+                }}>+</button>
             </div>
-          )}
-          {!autoScroll && <p className="text-slate-700 text-xs ml-auto italic">Appuie sur un verset pour 🔖</p>}
-          <div className="flex gap-1 ml-auto">
-            <button onClick={() => currentSurah.number > 1 && setCurrentSurah(QURAN_SURAHS[currentSurah.number - 2])} disabled={currentSurah.number === 1} className="p-1.5 hover:bg-white/10 rounded-lg transition-all text-slate-500 hover:text-white disabled:opacity-30"><ChevronLeft className="w-4 h-4"/></button>
-            <span className="text-xs text-slate-600 self-center px-1">{currentSurah.number}/114</span>
-            <button onClick={() => currentSurah.number < 114 && setCurrentSurah(QURAN_SURAHS[currentSurah.number])} disabled={currentSurah.number === 114} className="p-1.5 hover:bg-white/10 rounded-lg transition-all text-slate-500 hover:text-white disabled:opacity-30"><ChevronRight className="w-4 h-4"/></button>
           </div>
+        )}
+        {!isAdmin && <p style={{ fontSize:10, color:MU, textAlign:"center", fontStyle:"italic", marginTop:6 }}>Seule Marie peut modifier les succès</p>}
+      </div>
+    </div>
+  );
+}
+
+// ── CATALOGUES VIEW ───────────────────────────────────────────────
+
+const CATALOGUES = [
+  { ic:"🌸", titre:"Parfums",                url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1739360788_documents",  desc:"Collection complète 15ml · 30ml · 50ml · 70ml" },
+  { ic:"🏠", titre:"Parfums d'ambiance",     url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1736340849_documents",  desc:"Diffuseurs & senteurs maison" },
+  { ic:"💧", titre:"Les Huiles",             url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1732103472_documents",  desc:"Huiles essentielles & concentrées" },
+  { ic:"🌿", titre:"LOLUM (huiles)",         url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1728551530_documents",  desc:"Gamme huiles LOLUM" },
+  { ic:"💄", titre:"Maquillage",             url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1741095206_documents",  desc:"Rouge à lèvres, fond de teint, yeux…" },
+  { ic:"🕶", titre:"Lunettes de soleil",     url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1740996419_documents",  desc:"Collection lunettes tendance" },
+  { ic:"🧹", titre:"Produits ménagers",      url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1738679717_documents",  desc:"Nettoyants & entretien maison" },
+  { ic:"🌱", titre:"Bien-être (Aurodhea)",   url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1736256904_documents",  desc:"Compléments & soins bien-être" },
+  { ic:"💊", titre:"Peptilux",               url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1740410027_documents",  desc:"Gamme Peptilux" },
+  { ic:"💪", titre:"Supplefit",              url:"https://www.chogangroup.com/dflip/page_flip.php?doc=1733905272_documents",  desc:"Nutrition sportive & forme" },
+];
+
+function CataloguesView() {
+  return (
+    <div className="fi">
+      <div className="sh"><span className="shtitle">Catalogues</span></div>
+      <div className="sb">
+        <div className="cardg" style={{ marginBottom:16 }}>
+          <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:3 }}>📖 Catalogues officiels Chogan</p>
+          <p style={{ fontSize:11, color:MU, lineHeight:1.6 }}>Appuie sur un catalogue pour l'ouvrir directement sur le site officiel Chogan.</p>
         </div>
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-4">
-          <div className="text-center mb-8">
-            <p className="text-5xl font-serif text-white mb-2" dir="rtl" lang="ar">{currentSurah.arabic}</p>
-            <p className="text-slate-500 text-sm">{currentSurah.name} · {currentSurah.verses} versets</p>
-            {currentSurah.number !== 9 && <p className="text-2xl font-serif text-emerald-400 mt-4" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>}
+        {CATALOGUES.map((c,i)=>(
+          <a key={i} className="rlink" href={c.url} target="_blank" rel="noreferrer">
+            <span style={{ fontSize:26, flexShrink:0 }}>{c.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600 }}>{c.titre}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{c.desc}</p>
+            </div>
+            <span style={{ color:G, fontSize:16, flexShrink:0 }}>↗</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── KIT DE DÉMARRAGE VIEW ─────────────────────────────────────────
+
+const FAMILLES = [
+  { id:"ambree", emoji:"🟠", nom:"Ambrée / Orientale", couleur:"#c97c3a", style:"CHAUD · SENSUEL · ENVOÛTANT",
+    notes:"Vanille, ambroxan, amande, patchouli, benjoin, résines…",
+    pourQui:"Toute personne qui aime séduire, plaire, laisser un sillage. Donne de l'assurance, de l'audace.",
+    sousFamilles:[
+      { n:"Ambré Épicé",       refs:["6 – Opium","33 – Black Code","117 – Tobacco Vanille"] },
+      { n:"Ambré Aquatique",   refs:["130 – Megamare"] },
+      { n:"Ambré Boisé",       refs:["10 – Alien","15 – Roma","30 – Black XS","37 – Man","48 – Allure","72 – Patchouli","73 – Himalaya","102 – Velvet Amber Sun","114 – Ombre Nomade","127 – Oud Wood","141 – Turath"] },
+      { n:"Ambré",             refs:["83 – Uomo","101 – Velvet Amber Skin","124 – Zeta","129 – Erba Pura"] },
+      { n:"Ambré Floral",      refs:["13 – Guilty","14 – Manifesto","26 – Flower","27 – Trésor","41 – Chloé","47 – Crystal Noir","51 – Coco Mademoiselle","56 – Ange ou Démon","64 – Omnia Indian Garnet","67 – Olympéa","70 – The One","81 – Classique Essence"] },
+      { n:"Oriental Vanillé",  refs:["23 – Hypnotic Poison","28 – Angel","40 – Hypnose","55 – Black Opium","71 – Allure","90 – Poison Girl","97 – Amo","105 – Intense Café","109 – J'Adore l'Or","111 – Lost Cherry","116 – Yes I Am","118 – Baccarat Rouge","121 – L'Interdit","126 – Soleil Blanc","128 – Vanille Fatale","131 – Good Girl","133 – Paradoxe","134 – Bitter Peach","139 – Les Sables Roses","143 – Vanilla Powder","144 – Bianco Latte","54 – Black Orchid","88 – Man in Black"] },
+    ]},
+  { id:"fleurie", emoji:"🌸", nom:"Fleurie", couleur:"#d45c8a", style:"ÉLÉGANCE · FÉMINITÉ",
+    notes:"Rose, jasmin, fleur d'oranger, tubéreuse, géranium…",
+    pourQui:"Principalement pour les femmes, féminines, élégantes, appréciant la délicatesse et la finesse.",
+    sousFamilles:[
+      { n:"Floral Aldéhydé",     refs:["24 – Chanel N°5"] },
+      { n:"Floral Boisé Musqué", refs:["25 – For Her","43 – Love Chloé","53 – Narciso","57 – Omnia Améthyste","98 – Joy","100 – White Aoud"] },
+      { n:"Floral",              refs:["49 – Dolce","77 – Flora","96 – Gabrielle","132 – My Way"] },
+      { n:"Floral Fruité",       refs:["7 – J'Adore","11 – Light Blue","19 – Lady Million","42 – La Vie est Belle","82 – Signorina","95 – Burberry","120 – La Petite Robe Noire","123 – Good Girl Gone Bad"] },
+      { n:"Floral Aquatique",    refs:["29 – Eau d'Issey","76 – Acqua di Gioia"] },
+    ]},
+  { id:"boisee", emoji:"🪵", nom:"Boisée", couleur:"#8b6242", style:"LUXUEUX · CHALEUREUX · PRÉCIEUX",
+    notes:"Essences, mousses de bois, cèdre, bois de santal, bois de gaïac, tabac…",
+    pourQui:"Principalement des hommes, sûrs d'eux, ayant une certaine maturité.",
+    sousFamilles:[
+      { n:"Boisé Aromatique",    refs:["17 – Guilty","38 – Bleu","50 – Burberry for Men","52 – Pasha","62 – Intenso","74 – Black Afgano"] },
+      { n:"Boisé Floral Musqué", refs:["3 – Fahrenheit","18 – Déclaration","136 – Dior Homme Intense"] },
+      { n:"Boisé",               refs:["138 – Wood Whisper"] },
+      { n:"Boisé Épicé",         refs:["1 – One Million","4 – The One","20 – La Nuit de l'Homme","22 – Terre d'Hermès","32 – Spice Bomb","87 – Wanted"] },
+      { n:"Boisé Chypré",        refs:["135 – Bois d'Argent"] },
+      { n:"Boisé Aquatique",     refs:["61 – Invictus","69 – Acqua di Sale"] },
+    ]},
+  { id:"aromatique", emoji:"🌿", nom:"Aromatique", couleur:"#5a8a5a", style:"SOBRE · VIF · MASCULIN",
+    notes:"Sauge, laurier, lavande, romarin, menthe…",
+    pourQui:"Femmes dynamiques/sportives. Hommes charismatiques, actifs, entreprenants.",
+    sousFamilles:[
+      { n:"Aromatique Fougère",   refs:["140 – Éros"] },
+      { n:"Aromatique Vert",      refs:["63 – Hugo femme","5 – Hugo homme"] },
+      { n:"Aromatique",           refs:["44 – Silver Mountain Water"] },
+      { n:"Aromatique Épicé",     refs:["65 – The Scent","137 – XJ 1861 Naxos"] },
+      { n:"Aromatique Aquatique", refs:["2 – Acqua di Gio"] },
+    ]},
+  { id:"chypree", emoji:"🍃", nom:"Chyprée", couleur:"#4a7a4a", style:"CHARISMATIQUE · AFFIRMÉ · CARACTÈRE",
+    notes:"Bergamote, jasmin, mousse de chêne, patchouli…",
+    pourQui:"Femmes et hommes avec de forte personnalité, à la recherche de parfums singuliers.",
+    sousFamilles:[
+      { n:"Chypré Fruité", refs:["39 – Miss Dior Chérie","68 – Aventus","80 – Si","93 – Aventus for Her","110 – Kirké"] },
+      { n:"Chypré Floral", refs:["85 – Chance","89 – Mon Paris","115 – Idôle","119 – Scandal"] },
+    ]},
+  { id:"hesperidee", emoji:"🍋", nom:"Hespéridée", couleur:"#b8a030", style:"FRAIS · LÉGER · FRUITÉ",
+    notes:"Agrumes, citron, mandarine, orange, bergamote…",
+    pourQui:"Personnes de tout âge en quête de fraîcheur et de légèreté, appréciant le côté tonifiant.",
+    sousFamilles:[
+      { n:"Hespéridés Aromatiques", refs:["12 – Eau Sauvage","21 – Light Blue","46 – CK One","91 – Chrome","99 – Mandarino di Amalfi","112 – Néroli Portofino","113 – Sur la Route"] },
+      { n:"Hespéridés",             refs:["125 – Sole di Positano"] },
+    ]},
+  { id:"fougere", emoji:"🫧", nom:"Fougère", couleur:"#6a6aba", style:"VIRIL · PUISSANT · VIVIFIANT",
+    notes:"Lavande, géranium, mousse de chêne, labdanum, vétiver…",
+    pourQui:"Des hommes essentiellement, dégageant une certaine virilité, une vigueur, souvent rassurant.",
+    sousFamilles:[
+      { n:"Fougère Ambré/Oriental", refs:["16 – Le Mâle","75 – X for Men","122 – Libre"] },
+      { n:"Fougère Aromatique",     refs:["84 – Blue Dylan","86 – Legend","94 – Sauvage"] },
+      { n:"Cuiré",                  refs:["106 – Fucking Fabulous","142 – Ombré Leather"] },
+    ]},
+];
+
+function KitDemarrageView() {
+  const [openFam, setOpenFam] = useState(null);
+  const [openSub, setOpenSub] = useState(null);
+  const [openPays, setOpenPays] = useState(false);
+
+  const PAYS_LIST = [
+    {flag:"🇦🇱",name:"Albanie"},{flag:"🇩🇿",name:"Algérie"},{flag:"🇦🇴",name:"Angola",test:true},
+    {flag:"🇦🇺",name:"Australie",test:true},{flag:"🇦🇹",name:"Autriche"},{flag:"🇵🇹",name:"Açores"},
+    {flag:"🇧🇪",name:"Belgique"},{flag:"🇧🇬",name:"Bulgarie"},{flag:"🇨🇦",name:"Canada",test:true},
+    {flag:"🇪🇸",name:"Ceuta",test:true},{flag:"🇨🇾",name:"Chypre"},{flag:"🇬🇷",name:"Corfou"},
+    {flag:"🇭🇷",name:"Croatie"},{flag:"🇩🇰",name:"Danemark"},{flag:"🇪🇬",name:"Égypte",test:true},
+    {flag:"🇪🇪",name:"Estonie"},{flag:"🇫🇮",name:"Finlande"},{flag:"🇫🇷",name:"France"},
+    {flag:"🇬🇪",name:"Géorgie"},{flag:"🇩🇪",name:"Allemagne"},{flag:"🇬🇷",name:"Grèce"},
+    {flag:"🇫🇷",name:"Guadeloupe"},{flag:"🇬🇬",name:"Guernsey"},{flag:"🇮🇳",name:"Inde",test:true},
+    {flag:"🇮🇶",name:"Iraq",test:true},{flag:"🇮🇪",name:"Irlande"},{flag:"🇮🇸",name:"Islande",test:true},
+    {flag:"🇫🇮",name:"Îles Aland"},{flag:"🇪🇸",name:"Îles Canaries"},{flag:"🇬🇷",name:"Îles Grecques"},
+    {flag:"🇮🇹",name:"Italie"},{flag:"🇯🇪",name:"Jersey"},{flag:"🇰🇿",name:"Kazakhstan",test:true},
+    {flag:"🇽🇰",name:"Kosovo"},{flag:"🇱🇻",name:"Lettonie"},{flag:"🇱🇧",name:"Libano",test:true},
+    {flag:"🇱🇾",name:"Libye",test:true},{flag:"🇱🇮",name:"Liechtenstein"},{flag:"🇱🇹",name:"Lituanie"},
+    {flag:"🇱🇺",name:"Luxembourg"},{flag:"🇲🇰",name:"Macédoine du Nord"},{flag:"🇵🇹",name:"Madeira"},
+    {flag:"🇲🇹",name:"Malte"},{flag:"🇫🇷",name:"Martinique"},{flag:"🇫🇷",name:"Mayotte"},
+    {flag:"🇪🇸",name:"Melilla",test:true},{flag:"🇲🇽",name:"Messico",test:true},{flag:"🇲🇩",name:"Moldova"},
+    {flag:"🇲🇪",name:"Monténégro",test:true},{flag:"🇳🇴",name:"Norvège"},{flag:"🇫🇷",name:"Nouvelle Calédonie"},
+    {flag:"🇳🇱",name:"Pays-Bas"},{flag:"🇵🇱",name:"Pologne"},{flag:"🇵🇹",name:"Portugal"},
+    {flag:"🇬🇧",name:"Royaume-Uni"},{flag:"🇨🇿",name:"République Tchèque"},{flag:"🇩🇴",name:"République Dominicaine",test:true},
+    {flag:"🇫🇷",name:"Réunion"},{flag:"🇷🇴",name:"Roumanie"},{flag:"🇫🇷",name:"Saint-Barthélemy"},
+    {flag:"🇫🇷",name:"Saint-Martin"},{flag:"🇫🇷",name:"Saint-Pierre et Miquelon"},{flag:"🇸🇲",name:"San Marino"},
+    {flag:"🇸🇬",name:"Singapour",test:true},{flag:"🇸🇰",name:"Slovacchia"},{flag:"🇸🇮",name:"Slovénie"},
+    {flag:"🇪🇸",name:"Espagne"},{flag:"🇸🇪",name:"Suède"},{flag:"🇨🇭",name:"Suisse"},
+    {flag:"🇹🇭",name:"Thaïlande",test:true},{flag:"🇭🇺",name:"Hongrie"},{flag:"🇻🇳",name:"Viêt Nam",test:true},
+  ];
+
+  return (
+    <div className="fi">
+      <div className="sh"><span className="shtitle">Kit de démarrage</span></div>
+      <div className="sb">
+
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📋 Documents</p>
+        <a href="https://raw.githubusercontent.com/ouadinej-design/limitless-app/main/Liste%20inspirations.pdf" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)" }}>
+          <span style={{ fontSize:22 }}>📋</span>
+          <div style={{ flex:1 }}>
+            <p style={{ fontSize:13, fontWeight:600, color:G }}>Liste des Inspirations</p>
+            <p style={{ fontSize:11, color:MU, marginTop:2 }}>132 références · prix · tailles</p>
           </div>
-          {versesLoading && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
-                <div className="flex gap-1">{[...Array(3)].map((_,i) => (<motion.div key={i} className="w-2 h-2 bg-blue-400 rounded-full" animate={{ y: [0,-6,0] }} transition={{ duration: 0.6, delay: i * 0.15, repeat: Infinity }}/>))}</div>
-                <div><p className="text-blue-300 text-sm font-semibold">Chargement en cours…</p><p className="text-slate-600 text-xs">Récupération des versets (arabe · phonétique · français)</p></div>
+          <span style={{ color:G, fontSize:16 }}>↗</span>
+        </a>
+        {[
+          { ic:"🌟", t:"Programme Ambassadeur", url:"https://drive.google.com/file/d/1d952VZyjBs6XM7rVmpr1K07GnP0is1U2/view" },
+          { ic:"📖", t:"Book",                  url:"https://drive.google.com/file/d/1wrZCau12O-JQ3Pfkmu2Mu2qHQCP9_cdb/view" },
+          { ic:"📗", t:"Book 2",                url:"https://drive.google.com/file/d/1V4JLCN7rIqWnd7UYTH8MTLzsN0UKybzQ/view" },
+        ].map((r,i)=>(
+          <a key={i} href={r.url} target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(66,133,244,.06)", borderColor:"rgba(66,133,244,.2)" }}>
+            <span style={{ fontSize:22 }}>{r.ic}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>{r.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>Ouvrir via Google Drive</p>
+            </div>
+            <span style={{ color:"#4285f4", fontSize:16 }}>↗</span>
+          </a>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🎬 Vidéos</p>
+        {[
+          { ic:"👜", t:"La Mallette",              d:"Présentation de ta mallette de démarrage",     url:"https://drive.google.com/file/d/1s3EKcodYivoV1wVBnkWlG3Uk4gGWkp48/view" },
+          { ic:"🔗", t:"Lien de parrainage client", d:"Comment envoyer ton lien à tes clientes",      url:"https://drive.google.com/file/d/1XLsJsyvHPe7GHSrRHvxScbligxILIcvH/view" },
+        ].map((v,i)=>(
+          <a key={i} href={v.url} target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(201,168,76,.04)", borderColor:"rgba(201,168,76,.15)" }}>
+            <div style={{ width:44, height:44, borderRadius:"50%", background:G, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <span style={{ fontSize:18, marginLeft:3 }}>▶</span>
+            </div>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600, color:G }}>{v.t}</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>{v.d}</p>
+            </div>
+            <span style={{ color:G, fontSize:16 }}>↗</span>
+          </a>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🌸 Familles Olfactives</p>
+        {FAMILLES.map(f => (
+          <div key={f.id} className="scrd" style={{ borderLeft:"3px solid "+f.couleur }}>
+            <div className="shdr" onClick={()=>{ setOpenFam(openFam===f.id?null:f.id); setOpenSub(null); }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:22 }}>{f.emoji}</span>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:600, color:f.couleur }}>{f.nom}</p>
+                  <p style={{ fontSize:10, color:MU, marginTop:1, letterSpacing:.5 }}>{f.style}</p>
+                </div>
               </div>
-              {Array.from({ length: 4 }, (_, i) => (<div key={i} className="p-4 rounded-2xl bg-white/3 animate-pulse space-y-3"><div className="h-8 bg-white/8 rounded-xl"/><div className="h-3 bg-blue-500/10 rounded-lg w-3/4"/><div className="h-3 bg-white/5 rounded-lg w-2/3"/></div>))}
+              <span style={{ color:f.couleur }}>{openFam===f.id?"▲":"▼"}</span>
             </div>
-          )}
-          {versesError === "not_embedded" && (
-            <div className="text-center py-10 space-y-4 px-4">
-              <p className="text-4xl">⬇️</p>
-              <p className="text-white font-bold text-sm">Sourate non téléchargée</p>
-              <p className="text-slate-500 text-xs leading-relaxed max-w-xs mx-auto">Cette sourate doit être téléchargée avant d'être lue. Reviens à la liste et appuie sur ⬇ à côté de son nom.</p>
-              <button onClick={() => setCurrentSurah(null)} className="px-5 py-2.5 bg-blue-500/15 text-blue-300 border border-blue-500/25 rounded-2xl text-sm font-bold hover:bg-blue-500/25 transition-all">← Retour à la liste</button>
+            {openFam===f.id && (
+              <div style={{ padding:"0 14px 14px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
+                <div style={{ background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px", margin:"10px 0" }}>
+                  <p style={{ fontSize:11, color:MU, marginBottom:3 }}>🎵 Notes</p>
+                  <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.notes}</p>
+                </div>
+                <div style={{ background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px", marginBottom:12 }}>
+                  <p style={{ fontSize:11, color:MU, marginBottom:3 }}>👤 Pour qui</p>
+                  <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.pourQui}</p>
+                </div>
+                <p style={{ fontSize:10, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Sous-familles</p>
+                {f.sousFamilles.map((sf,si) => {
+                  const subKey = f.id+"-"+si;
+                  const isOpen = openSub===subKey;
+                  return (
+                    <div key={si} style={{ marginBottom:6 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+                        background:"rgba(255,255,255,.04)", borderRadius:8, padding:"8px 12px", cursor:"pointer",
+                        border:"0.5px solid "+(isOpen?f.couleur:"transparent") }}
+                        onClick={()=>setOpenSub(isOpen?null:subKey)}>
+                        <p style={{ fontSize:12, fontWeight:500, color:isOpen?f.couleur:TX }}>{sf.n}</p>
+                        <span style={{ fontSize:10, color:MU }}>{sf.refs.length} réf.</span>
+                      </div>
+                      {isOpen && (
+                        <div style={{ padding:"8px 12px", background:"rgba(255,255,255,.02)", borderRadius:"0 0 8px 8px", marginTop:-4 }}>
+                          {sf.refs.map((r,ri)=>(
+                            <span key={ri} style={{ display:"inline-block", fontSize:10, padding:"2px 8px", margin:"2px 3px", background:"rgba(120,120,120,.15)", borderRadius:20, color:"#ccc" }}>{r}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+
+        <div className="div" style={{ margin:"14px 0" }} />
+
+        <div className="scrd" style={{ borderLeft:"3px solid #4285f4" }}>
+          <div className="shdr" onClick={()=>setOpenPays(!openPays)}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <span style={{ fontSize:22 }}>🌍</span>
+              <div>
+                <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>Pays ouverts Chogan</p>
+                <p style={{ fontSize:10, color:MU, marginTop:1 }}>{PAYS_LIST.length} pays · {PAYS_LIST.filter(p=>p.test).length} en phase de test</p>
+              </div>
             </div>
-          )}
-          {versesError === "api_error" && (
-            <div className="text-center py-8 space-y-3 px-4">
-              <p className="text-4xl">⚠️</p>
-              <p className="text-orange-400 text-sm font-semibold">Erreur de chargement</p>
-              <p className="text-slate-500 text-xs">Vérifie ta connexion et réessaie.</p>
-              <button onClick={() => { if (!currentSurah) return; const n = currentSurah.number; _versesMemCache.delete(n); setCurrentSurah(null); setTimeout(() => setCurrentSurah(QURAN_SURAHS[n - 1]), 100); }}
-                className="px-5 py-2.5 bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 rounded-2xl text-sm font-bold hover:bg-emerald-500/25 transition-all">🔄 Réessayer</button>
-              <button onClick={() => setCurrentSurah(null)} className="block mx-auto px-4 py-2 bg-white/8 text-slate-400 rounded-xl text-xs hover:bg-white/15 transition-all">← Retour à la liste</button>
-            </div>
-          )}
-          {!versesLoading && !versesError && verses.length > 0 && (
-            <div className="space-y-3">
-              {getJuzFilteredVerses(verses).map((v, i) => (
-                <motion.div key={v.number} ref={el => { verseRefs.current[v.number] = el; }}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: Math.min(i * 0.015, 0.5) }}
-                  onClick={() => handleVerseBookmark(v.number)}
-                  className={`group relative p-4 rounded-2xl cursor-pointer select-none hover:bg-amber-500/6 active:bg-amber-500/15 border transition-all duration-150 ${targetVerse === v.number ? "border-emerald-500/50 bg-emerald-500/8" : "border-transparent hover:border-amber-500/15"}`}>
-                  <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-40 transition-all"><Bookmark className="w-4 h-4 text-amber-400"/></div>
-                  <div className="flex items-start gap-3 mb-2">
-                    <span className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center shrink-0 mt-1 select-none">{v.number}</span>
-                    {v.tajweed ? (
-                      <p className="text-right leading-[2.5] flex-1 select-text" dir="rtl" lang="ar"
-                        style={{ fontSize: "clamp(1.2rem, 4.5vw, 1.7rem)", fontFamily: "'Amiri Quran','Scheherazade New',serif" }}
-                        dangerouslySetInnerHTML={{ __html: v.tajweed }}/>
-                    ) : (
-                      <p className="text-right font-serif text-white leading-[2.4] flex-1 select-text" dir="rtl" lang="ar" style={{ fontSize: "clamp(1.2rem, 4.5vw, 1.6rem)" }}>{v.arabic}</p>
-                    )}
-                  </div>
-                  {v.transliteration && <p className="ml-10 text-xs text-slate-400 italic leading-relaxed mb-1.5 select-text" dir="ltr">{v.transliteration}</p>}
-                  {v.french && <p className="ml-10 text-sm text-slate-400 italic leading-relaxed bg-white/3 rounded-xl px-3 py-2 select-text">{v.french}</p>}
-                </motion.div>
+            <span style={{ color:"#4285f4" }}>{openPays?"▲":"▼"}</span>
+          </div>
+          {openPays && (
+            <div style={{ padding:"0 14px 14px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
+              <div style={{ background:"rgba(224,80,80,.07)", border:"0.5px solid rgba(224,80,80,.25)", borderRadius:8, padding:"8px 12px", margin:"10px 0" }}>
+                <p style={{ fontSize:11, color:RD }}>⚠️ Phase de test : autorisation du Leader Emerald+ requise.</p>
+              </div>
+              {PAYS_LIST.map((p,i)=>(
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:12, padding:"7px 8px",
+                  background:p.test?"rgba(224,80,80,.04)":"rgba(255,255,255,.02)",
+                  borderRadius:7, marginBottom:4,
+                  border:"0.5px solid "+(p.test?"rgba(224,80,80,.12)":"rgba(255,255,255,.04)") }}>
+                  <span style={{ fontSize:18 }}>{p.flag}</span>
+                  <span style={{ fontSize:12, flex:1, color:p.test?MU:TX }}>{p.name}</span>
+                  {p.test && <span style={{ fontSize:9, color:RD, border:"0.5px solid rgba(224,80,80,.35)", borderRadius:10, padding:"1px 6px" }}>test</span>}
+                </div>
               ))}
             </div>
           )}
-          <div className="mt-8 pt-8 border-t border-white/10 text-center space-y-4">
-            <p className="text-slate-400 text-sm">Fin de {currentSurah.name}</p>
-            {!checked[currentSurah.number] && (
-              <button onClick={() => toggle(currentSurah.number)} className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-2xl shadow-lg text-sm hover:shadow-emerald-500/25 transition-all">✅ Marquer comme lue</button>
-            )}
-            {currentSurah.number < 114 && (
-              <button onClick={() => setCurrentSurah(QURAN_SURAHS[currentSurah.number])} className="block mx-auto text-slate-500 hover:text-white text-sm transition-all">Sourate suivante : {QURAN_SURAHS[currentSurah.number].name} →</button>
-            )}
-          </div>
-          <div className="h-10"/>
         </div>
-      </div>
-    );
-  }
 
-  const downloadedCount = Object.values(dlStatus).filter(v => v === "done").length;
-  return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-4">
-      <div className="flex items-center gap-3">
-        <input type="text" value={filter} onChange={e => setFilter(e.target.value)} placeholder="Rechercher une sourate..."
-          className="flex-1 bg-white/5 border border-white/15 rounded-2xl px-4 py-3 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-emerald-500/40 transition-all"/>
-        <div className="text-right shrink-0"><p className="text-emerald-400 font-bold text-sm">{counts.surahChecked}/114</p><p className="text-slate-600 text-xs">lues</p></div>
-      </div>
-      <div className="p-3 bg-blue-500/8 border border-blue-500/20 rounded-2xl flex items-center gap-3">
-        <div className="flex-1 min-w-0">
-          <p className="text-blue-300 text-xs font-semibold">📥 {downloadedCount}/114 sourates disponibles hors-ligne</p>
-          <p className="text-slate-600 text-xs mt-0.5">Appuie sur ⬇ pour télécharger une sourate avant de la lire</p>
-        </div>
-        <div className="w-16 shrink-0">
-          <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-blue-400 rounded-full transition-all duration-500" style={{ width: `${(downloadedCount / 114) * 100}%` }}/></div>
-          <p className="text-blue-400 text-xs text-center mt-1 font-bold">{Math.round((downloadedCount/114)*100)}%</p>
-        </div>
-      </div>
-      <div className="space-y-2">
-        {filtered.map((s, i) => {
-          const status = dlStatus[s.number];
-          const isDone = status === "done";
-          const isLoading = status === "loading";
-          const isError = status === "error";
-          const isEmbedded = !!EMBEDDED_VERSES[s.number];
-          return (
-            <motion.div key={s.number} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i * 0.01, 0.3) }}
-              className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all ${checked[s.number] ? "bg-emerald-500/10 border-emerald-500/25" : isDone ? "bg-white/4 border-blue-500/15" : "bg-white/4 border-white/8"}`}>
-              <div onClick={() => toggle(s.number)} className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 cursor-pointer transition-all ${checked[s.number] ? "bg-emerald-500 text-white" : "bg-white/8 text-slate-400 hover:bg-white/15"}`}>
-                {checked[s.number] ? <CheckCircle className="w-5 h-5"/> : s.number}
-              </div>
-              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setCurrentSurah(s)}>
-                <p className="font-semibold text-white text-sm">{s.name}</p>
-                <p className="text-xs text-slate-600">{s.verses} versets · Juz {s.juz}</p>
-              </div>
-              <p className="text-xl font-serif text-slate-400 shrink-0 hidden sm:block" dir="rtl">{s.arabic}</p>
-              {isDone ? (
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" title={isEmbedded ? "Intégrée" : "Téléchargée"}><span className="text-sm">{isEmbedded ? "✨" : "✅"}</span></div>
-              ) : isLoading ? (
-                <div className="w-8 h-8 rounded-xl bg-blue-500/15 flex items-center justify-center shrink-0"><motion.div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full" animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}/></div>
-              ) : (
-                <button onClick={(e) => downloadSurah(s, e)} title="Télécharger pour lire hors-ligne"
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all ${isError ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" : "bg-white/8 text-slate-500 hover:bg-blue-500/20 hover:text-blue-400"}`}>
-                  <span className="text-sm">{isError ? "↺" : "⬇"}</span>
-                </button>
-              )}
-              <button onClick={() => setCurrentSurah(s)} className="p-2 text-slate-600 hover:text-white hover:bg-white/10 rounded-xl transition-all shrink-0"><ChevronRight className="w-4 h-4"/></button>
-            </motion.div>
-          );
-        })}
       </div>
     </div>
   );
 }
 
-// ════════════════════════════════════════════════════════════════════
-// DONNÉES VERSETS INTÉGRÉES
-// ════════════════════════════════════════════════════════════════════
-const EMBEDDED_VERSES = {
-  1:[
-    {number:1,arabic:"بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",transliteration:"Bismi llāhi r-raḥmāni r-raḥīm",french:"Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux"},
-    {number:2,arabic:"الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",transliteration:"Al-ḥamdu li-llāhi rabbi l-ʿālamīn",french:"Louange à Allah, Seigneur de l'univers"},
-    {number:3,arabic:"الرَّحْمَٰنِ الرَّحِيمِ",transliteration:"Ar-raḥmāni r-raḥīm",french:"Le Tout Miséricordieux, le Très Miséricordieux"},
-    {number:4,arabic:"مَالِكِ يَوْمِ الدِّينِ",transliteration:"Māliki yawmi d-dīn",french:"Maître du Jour de la rétribution"},
-    {number:5,arabic:"إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",transliteration:"Iyyāka naʿbudu wa-iyyāka nastaʿīn",french:"C'est Toi Seul que nous adorons, et c'est Toi Seul dont nous implorons le secours"},
-    {number:6,arabic:"اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",transliteration:"Ihdinā ṣ-ṣirāṭa l-mustaqīm",french:"Guide-nous dans le droit chemin"},
-    {number:7,arabic:"صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",transliteration:"Ṣirāṭa lladhīna anʿamta ʿalayhim ġayri l-maġḍūbi ʿalayhim wa-lā ḍ-ḍāllīn",french:"Le chemin de ceux que Tu as comblés de faveurs, non ceux qui ont encouru Ta colère ni des égarés"},
-  ],
-  93:[
-    {number:1,arabic:"وَالضُّحَىٰ",transliteration:"Wa-ḍ-ḍuḥā",french:"Par le matin lumineux !"},
-    {number:2,arabic:"وَاللَّيْلِ إِذَا سَجَىٰ",transliteration:"Wa-l-layli idhā sajā",french:"Par la nuit quand elle est tranquille !"},
-    {number:3,arabic:"مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ",transliteration:"Mā waddaʿaka rabbuka wa-mā qalā",french:"Ton Seigneur ne t'a pas abandonné et ne te hait point"},
-    {number:4,arabic:"وَلَلْآخِرَةُ خَيْرٌ لَّكَ مِنَ الْأُولَىٰ",transliteration:"Wa-la-l-ākhiratu khayrun laka mina l-ūlā",french:"L'au-delà est certainement meilleur pour toi que la vie ici-bas"},
-    {number:5,arabic:"وَلَسَوْفَ يُعْطِيكَ رَبُّكَ فَتَرْضَىٰ",transliteration:"Wa-la-sawfa yuʿṭīka rabbuka fa-tarḍā",french:"Et ton Seigneur te donnera et tu seras satisfait"},
-    {number:6,arabic:"أَلَمْ يَجِدْكَ يَتِيمًا فَآوَىٰ",transliteration:"Alam yajidka yatīman fa-āwā",french:"Ne t'a-t-Il pas trouvé orphelin et recueilli ?"},
-    {number:7,arabic:"وَوَجَدَكَ ضَالًّا فَهَدَىٰ",transliteration:"Wa-wajadaka ḍāllan fa-hadā",french:"Ne t'a-t-Il pas trouvé égaré et guidé ?"},
-    {number:8,arabic:"وَوَجَدَكَ عَائِلًا فَأَغْنَىٰ",transliteration:"Wa-wajadaka ʿāʾilan fa-aġnā",french:"Ne t'a-t-Il pas trouvé pauvre et enrichi ?"},
-    {number:9,arabic:"فَأَمَّا الْيَتِيمَ فَلَا تَقْهَرْ",transliteration:"Fa-ammā l-yatīma fa-lā taqhar",french:"Quant à l'orphelin, ne le brime donc pas"},
-    {number:10,arabic:"وَأَمَّا السَّائِلَ فَلَا تَنْهَرْ",transliteration:"Wa-ammā s-sāʾila fa-lā tanhar",french:"Quant au mendiant, ne le rabroue donc pas"},
-    {number:11,arabic:"وَأَمَّا بِنِعْمَةِ رَبِّكَ فَحَدِّثْ",transliteration:"Wa-ammā bi-niʿmati rabbika fa-ḥaddith",french:"Et quant aux bienfaits de ton Seigneur, proclame-les"},
-  ],
-  94:[
-    {number:1,arabic:"أَلَمْ نَشْرَحْ لَكَ صَدْرَكَ",transliteration:"Alam našraḥ laka ṣadrak",french:"N'avons-Nous pas déployé ta poitrine ?"},
-    {number:2,arabic:"وَوَضَعْنَا عَنكَ وِزْرَكَ",transliteration:"Wa-waḍaʿnā ʿanka wizrak",french:"Et n'avons-Nous pas déposé ton fardeau"},
-    {number:3,arabic:"الَّذِي أَنقَضَ ظَهْرَكَ",transliteration:"Alladhī anqaḍa ẓahrak",french:"qui alourdissait ton dos ?"},
-    {number:4,arabic:"وَرَفَعْنَا لَكَ ذِكْرَكَ",transliteration:"Wa-rafaʿnā laka dhikrak",french:"N'avons-Nous pas élevé pour toi ta renommée ?"},
-    {number:5,arabic:"فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",transliteration:"Fa-inna maʿa l-ʿusri yusrā",french:"En vérité, avec la difficulté vient la facilité"},
-    {number:6,arabic:"إِنَّ مَعَ الْعُسْرِ يُسْرًا",transliteration:"Inna maʿa l-ʿusri yusrā",french:"Oui, avec la difficulté vient la facilité"},
-    {number:7,arabic:"فَإِذَا فَرَغْتَ فَانصَبْ",transliteration:"Fa-idhā faraġta fa-nṣab",french:"Quand tu te libères, travaille ardemment"},
-    {number:8,arabic:"وَإِلَىٰ رَبِّكَ فَارْغَب",transliteration:"Wa-ilā rabbika fa-rġab",french:"et vers ton Seigneur aspire"},
-  ],
-  95:[
-    {number:1,arabic:"وَالتِّينِ وَالزَّيْتُونِ",transliteration:"Wa-t-tīni wa-z-zaytūn",french:"Par le figuier et l'olivier !"},
-    {number:2,arabic:"وَطُورِ سِينِينَ",transliteration:"Wa-ṭūri sīnīn",french:"Par le Mont Sinaï !"},
-    {number:3,arabic:"وَهَٰذَا الْبَلَدِ الْأَمِينِ",transliteration:"Wa-hādhā l-baladi l-amīn",french:"Par cette Cité sûre !"},
-    {number:4,arabic:"لَقَدْ خَلَقْنَا الْإِنسَانَ فِي أَحْسَنِ تَقْوِيمٍ",transliteration:"Laqad khalaqnā l-insāna fī aḥsani taqwīm",french:"Nous avons certes créé l'homme dans la plus belle forme"},
-    {number:5,arabic:"ثُمَّ رَدَدْنَاهُ أَسْفَلَ سَافِلِينَ",transliteration:"Thumma radadnāhu asfala sāfilīn",french:"puis Nous l'avons ramené au niveau le plus bas"},
-    {number:6,arabic:"إِلَّا الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ فَلَهُمْ أَجْرٌ غَيْرُ مَمْنُونٍ",transliteration:"Illā lladhīna āmanū wa-ʿamilū ṣ-ṣāliḥāti fa-lahum ajrun ġayru mamnūn",french:"sauf ceux qui croient et font de bonnes oeuvres, ils auront une récompense sans fin"},
-    {number:7,arabic:"فَمَا يُكَذِّبُكَ بَعْدُ بِالدِّينِ",transliteration:"Fa-mā yukadhdhibuka baʿdu bi-d-dīn",french:"Alors qu'est-ce qui te fait nier le Jugement ?"},
-    {number:8,arabic:"أَلَيْسَ اللَّهُ بِأَحْكَمِ الْحَاكِمِينَ",transliteration:"A-laysa llāhu bi-aḥkami l-ḥākimīn",french:"Allah n'est-Il pas le plus sage des juges ?"},
-  ],
-  103:[{number:1,arabic:"وَالْعَصْرِ",transliteration:"Wa-l-ʿaṣr",french:"Par le Temps !"},{number:2,arabic:"إِنَّ الْإِنسَانَ لَفِي خُسْرٍ",transliteration:"Inna l-insāna la-fī khusr",french:"L'être humain est certes en perdition"},{number:3,arabic:"إِلَّا الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ وَتَوَاصَوْا بِالْحَقِّ وَتَوَاصَوْا بِالصَّبْرِ",transliteration:"Illā lladhīna āmanū wa-ʿamilū ṣ-ṣāliḥāti wa-tawāṣaw bi-l-ḥaqqi wa-tawāṣaw bi-ṣ-ṣabr",french:"sauf ceux qui ont cru, accompli les bonnes oeuvres, se sont recommandé mutuellement la vérité et la patience"}],
-  105:[{number:1,arabic:"أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَابِ الْفِيلِ",transliteration:"Alam tara kayfa faʿala rabbuka bi-aṣḥābi l-fīl",french:"N'as-tu pas vu comment ton Seigneur a agi avec les Compagnons de l'Éléphant ?"},{number:2,arabic:"أَلَمْ يَجْعَلْ كَيْدَهُمْ فِي تَضْلِيلٍ",transliteration:"Alam yajʿal kaydahum fī taḍlīl",french:"N'a-t-Il pas rendu vaine leur ruse ?"},{number:3,arabic:"وَأَرْسَلَ عَلَيْهِمْ طَيْرًا أَبَابِيلَ",transliteration:"Wa-arsala ʿalayhim ṭayran abābīl",french:"Il envoya contre eux des oiseaux par volées"},{number:4,arabic:"تَرْمِيهِم بِحِجَارَةٍ مِّن سِجِّيلٍ",transliteration:"Tarmīhim bi-ḥijāratin min sijjīl",french:"qui leur lançaient des pierres d'argile cuite"},{number:5,arabic:"فَجَعَلَهُمْ كَعَصْفٍ مَّأْكُولٍ",transliteration:"Fa-jaʿalahum ka-ʿaṣfin maʾkūl",french:"et Il les rendit pareils à des feuilles dévorées"}],
-  106:[{number:1,arabic:"لِإِيلَافِ قُرَيْشٍ",transliteration:"Li-ʾīlāfi qurayš",french:"Pour la cohésion des Quraysh"},{number:2,arabic:"إِيلَافِهِمْ رِحْلَةَ الشِّتَاءِ وَالصَّيْفِ",transliteration:"Īlāfihim riḥlata š-šitāʾi wa-ṣ-ṣayf",french:"leur cohésion lors des voyages d'hiver et d'été"},{number:3,arabic:"فَلْيَعْبُدُوا رَبَّ هَٰذَا الْبَيْتِ",transliteration:"Fa-l-yaʿbudū rabba hādhā l-bayt",french:"Qu'ils adorent donc le Seigneur de cette Maison"},{number:4,arabic:"الَّذِي أَطْعَمَهُم مِّن جُوعٍ وَآمَنَهُم مِّنْ خَوْفٍ",transliteration:"Alladhī aṭʿamahum min jūʿin wa-āmanahum min khawf",french:"qui les a nourris contre la faim et préservés de la crainte"}],
-  107:[{number:1,arabic:"أَرَأَيْتَ الَّذِي يُكَذِّبُ بِالدِّينِ",transliteration:"Araʾayta lladhī yukadhdhibu bi-d-dīn",french:"As-tu vu celui qui traite de mensonge la Rétribution ?"},{number:2,arabic:"فَذَٰلِكَ الَّذِي يَدُعُّ الْيَتِيمَ",transliteration:"Fadhālika lladhī yadhuʿʿu l-yatīm",french:"C'est lui qui repousse l'orphelin brutalement"},{number:3,arabic:"وَلَا يَحُضُّ عَلَىٰ طَعَامِ الْمِسْكِينِ",transliteration:"Wa-lā yaḥuḍḍu ʿalā ṭaʿāmi l-miskīn",french:"et qui n'encourage pas à nourrir le pauvre"},{number:4,arabic:"فَوَيْلٌ لِّلْمُصَلِّينَ",transliteration:"Fa-waylun li-l-muṣallīn",french:"Malheur donc à ceux qui font la Salāt"},{number:5,arabic:"الَّذِينَ هُمْ عَن صَلَاتِهِمْ سَاهُونَ",transliteration:"Alladhīna hum ʿan ṣalātihim sāhūn",french:"qui sont distraits dans leur Salāt"},{number:6,arabic:"الَّذِينَ هُمْ يُرَاءُونَ",transliteration:"Alladhīna hum yurāʾūn",french:"qui font de l'ostentation"},{number:7,arabic:"وَيَمْنَعُونَ الْمَاعُونَ",transliteration:"Wa-yamnaʿūna l-māʿūn",french:"et refusent l'entraide courante"}],
-  108:[{number:1,arabic:"إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ",transliteration:"Innā aʿṭaynāka l-kawthar",french:"Nous t'avons accordé l'Abondance"},{number:2,arabic:"فَصَلِّ لِرَبِّكَ وَانْحَرْ",transliteration:"Faṣalli li-rabbika wa-nḥar",french:"Accomplis donc la Salāt pour ton Seigneur et sacrifie"},{number:3,arabic:"إِنَّ شَانِئَكَ هُوَ الْأَبْتَرُ",transliteration:"Inna šāniʾaka huwa l-abtar",french:"C'est bien ton ennemi qui est sans postérité"}],
-  109:[{number:1,arabic:"قُلْ يَا أَيُّهَا الْكَافِرُونَ",transliteration:"Qul yā ayyuhā l-kāfirūn",french:"Dis : Ô vous les mécréants"},{number:2,arabic:"لَا أَعْبُدُ مَا تَعْبُدُونَ",transliteration:"Lā aʿbudu mā taʿbudūn",french:"Je n'adore pas ce que vous adorez"},{number:3,arabic:"وَلَا أَنتُمْ عَابِدُونَ مَا أَعْبُدُ",transliteration:"Wa-lā antum ʿābidūna mā aʿbud",french:"Et vous n'adorez pas ce que j'adore"},{number:4,arabic:"وَلَا أَنَا عَابِدٌ مَّا عَبَدتُّمْ",transliteration:"Wa-lā anā ʿābidun mā ʿabadtum",french:"Je ne suis pas adorateur de ce que vous avez adoré"},{number:5,arabic:"وَلَا أَنتُمْ عَابِدُونَ مَا أَعْبُدُ",transliteration:"Wa-lā antum ʿābidūna mā aʿbud",french:"Et vous n'êtes pas adorateurs de ce que j'adore"},{number:6,arabic:"لَكُمْ دِينُكُمْ وَلِيَ دِينِ",transliteration:"Lakum dīnukum wa-liya dīn",french:"À vous votre religion, et à moi la mienne"}],
-  110:[{number:1,arabic:"إِذَا جَاءَ نَصْرُ اللَّهِ وَالْفَتْحُ",transliteration:"Idhā jāʾa naṣru llāhi wa-l-fatḥ",french:"Quand vient le secours d'Allah et la victoire"},{number:2,arabic:"وَرَأَيْتَ النَّاسَ يَدْخُلُونَ فِي دِينِ اللَّهِ أَفْوَاجًا",transliteration:"Wa-raʾayta n-nāsa yadkhulūna fī dīni llāhi afwājā",french:"et que tu vois les gens entrer en foule dans la religion d'Allah"},{number:3,arabic:"فَسَبِّحْ بِحَمْدِ رَبِّكَ وَاسْتَغْفِرْهُ إِنَّهُ كَانَ تَوَّابًا",transliteration:"Fasabbiḥ bi-ḥamdi rabbika wa-staġfirhu innahū kāna tawwābā",french:"alors célèbre la gloire de ton Seigneur et implore Son pardon. Certes Il est le Grand Repentant"}],
-  112:[{number:1,arabic:"قُلْ هُوَ اللَّهُ أَحَدٌ",transliteration:"Qul huwa llāhu aḥad",french:"Dis : Il est Allah, Unique"},{number:2,arabic:"اللَّهُ الصَّمَدُ",transliteration:"Allāhu ṣ-ṣamad",french:"Allah, le Seul à être imploré pour ce que nous désirons"},{number:3,arabic:"لَمْ يَلِدْ وَلَمْ يُولَدْ",transliteration:"Lam yalid wa-lam yūlad",french:"Il n'a pas engendré, et n'a pas été engendré"},{number:4,arabic:"وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",transliteration:"Wa-lam yakun lahū kufuwan aḥad",french:"Et nul n'est égal à Lui"}],
-  113:[{number:1,arabic:"قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ",transliteration:"Qul aʿūdhu bi-rabbi l-falaq",french:"Dis : Je cherche refuge auprès du Seigneur de l'aurore"},{number:2,arabic:"مِن شَرِّ مَا خَلَقَ",transliteration:"Min šarri mā khalaq",french:"contre le mal de ce qu'Il a créé"},{number:3,arabic:"وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ",transliteration:"Wa-min šarri ġāsiqin idhā waqab",french:"contre le mal de l'obscurité quand elle s'étend"},{number:4,arabic:"وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ",transliteration:"Wa-min šarri n-naffāthāti fī l-ʿuqad",french:"contre le mal de celles qui soufflent sur les noeuds"},{number:5,arabic:"وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ",transliteration:"Wa-min šarri ḥāsidin idhā ḥasad",french:"contre le mal de l'envieux quand il envie"}],
-  114:[{number:1,arabic:"قُلْ أَعُوذُ بِرَبِّ النَّاسِ",transliteration:"Qul aʿūdhu bi-rabbi n-nās",french:"Dis : Je cherche refuge auprès du Seigneur des hommes"},{number:2,arabic:"مَلِكِ النَّاسِ",transliteration:"Maliki n-nās",french:"du Roi des hommes"},{number:3,arabic:"إِلَٰهِ النَّاسِ",transliteration:"Ilāhi n-nās",french:"de la Divinité des hommes"},{number:4,arabic:"مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ",transliteration:"Min šarri l-waswāsi l-khannās",french:"contre le mal du tentateur furtif"},{number:5,arabic:"الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ",transliteration:"Alladhī yuwaswisu fī ṣudūri n-nās",french:"qui souffle le mal dans les poitrines des hommes"},{number:6,arabic:"مِنَ الْجِنَّةِ وَالنَّاسِ",transliteration:"Mina l-jinnati wa-n-nās",french:"qu'il soit parmi les djinns ou parmi les hommes"}],
-  96:[{number:1,arabic:"اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ",transliteration:"Iqraʾ bi-smi rabbika lladhī khalaq",french:"Lis au nom de ton Seigneur qui a créé"},{number:2,arabic:"خَلَقَ الْإِنسَانَ مِنْ عَلَقٍ",transliteration:"Khalaqa l-insāna min ʿalaq",french:"Il a créé l'homme d'une adhérence"},{number:3,arabic:"اقْرَأْ وَرَبُّكَ الْأَكْرَمُ",transliteration:"Iqraʾ wa-rabbuka l-akram",french:"Lis, et ton Seigneur est le Plus Généreux"},{number:4,arabic:"الَّذِي عَلَّمَ بِالْقَلَمِ",transliteration:"Alladhī ʿallama bi-l-qalam",french:"Celui qui a enseigné par le calame"},{number:5,arabic:"عَلَّمَ الْإِنسَانَ مَا لَمْ يَعْلَمْ",transliteration:"ʿAllama l-insāna mā lam yaʿlam",french:"Il a enseigné à l'homme ce qu'il ne savait pas"},{number:6,arabic:"كَلَّا إِنَّ الْإِنسَانَ لَيَطْغَىٰ",transliteration:"Kallā inna l-insāna la-yaṭġā",french:"Mais non, l'homme se rebelle vraiment"},{number:7,arabic:"أَن رَّآهُ اسْتَغْنَىٰ",transliteration:"An raʾāhu staġnā",french:"parce qu'il se voit à l'aise"},{number:8,arabic:"إِنَّ إِلَىٰ رَبِّكَ الرُّجْعَىٰ",transliteration:"Inna ilā rabbika r-rujʿā",french:"Certes, vers ton Seigneur est le retour"},{number:9,arabic:"أَرَأَيْتَ الَّذِي يَنْهَىٰ",transliteration:"Araʾayta lladhī yanhā",french:"As-tu vu celui qui interdit"},{number:10,arabic:"عَبْدًا إِذَا صَلَّىٰ",transliteration:"ʿAbdan idhā ṣallā",french:"à un serviteur de faire la salāt ?"},{number:11,arabic:"أَرَأَيْتَ إِن كَانَ عَلَى الْهُدَىٰ",transliteration:"Araʾayta in kāna ʿalā l-hudā",french:"As-tu vu s'il est dans la bonne direction"},{number:12,arabic:"أَوْ أَمَرَ بِالتَّقْوَىٰ",transliteration:"Aw amara bi-t-taqwā",french:"ou s'il ordonne la piété ?"},{number:13,arabic:"أَرَأَيْتَ إِن كَذَّبَ وَتَوَلَّىٰ",transliteration:"Araʾayta in kadhdhaba wa-tawallā",french:"As-tu vu s'il dément et se détourne ?"},{number:14,arabic:"أَلَمْ يَعْلَم بِأَنَّ اللَّهَ يَرَىٰ",transliteration:"Alam yaʿlam bi-anna llāha yarā",french:"Ne sait-il pas qu'Allah voit ?"},{number:15,arabic:"كَلَّا لَئِن لَّمْ يَنتَهِ لَنَسْفَعًا بِالنَّاصِيَةِ",transliteration:"Kallā la-in lam yantahi la-nasfahʿan bi-n-nāṣiya",french:"Si vraiment il ne cesse pas, Nous le saisirons par la mèche"},{number:16,arabic:"نَاصِيَةٍ كَاذِبَةٍ خَاطِئَةٍ",transliteration:"Nāṣiyatin kādhibatin khāṭiʾa",french:"une mèche menteuse et pécheresse"},{number:17,arabic:"فَلْيَدْعُ نَادِيَهُ",transliteration:"Fa-l-yadʿu nādiyah",french:"Qu'il appelle donc ses partisans"},{number:18,arabic:"سَنَدْعُ الزَّبَانِيَةَ",transliteration:"Sa-nadʿu z-zabāniya",french:"Nous appellerons les anges gardiens du feu"},{number:19,arabic:"كَلَّا لَا تُطِعْهُ وَاسْجُدْ وَاقْتَرِب",transliteration:"Kallā lā tuṭiʿhu wa-sjud wa-qtarib",french:"Non ! Ne lui obéis pas ; prosterne-toi et rapproche-toi"}],
-  97:[{number:1,arabic:"إِنَّا أَنزَلْنَاهُ فِي لَيْلَةِ الْقَدْرِ",transliteration:"Innā anzalnāhu fī laylati l-qadr",french:"Nous l'avons certes fait descendre lors de la Nuit du Destin"},{number:2,arabic:"وَمَا أَدْرَاكَ مَا لَيْلَةُ الْقَدْرِ",transliteration:"Wa-mā adrāka mā laylatu l-qadr",french:"Et qui te dira ce qu'est la Nuit du Destin ?"},{number:3,arabic:"لَيْلَةُ الْقَدْرِ خَيْرٌ مِّنْ أَلْفِ شَهْرٍ",transliteration:"Laylatu l-qadri khayrun min alfi shahr",french:"La Nuit du Destin est meilleure que mille mois"},{number:4,arabic:"تَنَزَّلُ الْمَلَائِكَةُ وَالرُّوحُ فِيهَا بِإِذْنِ رَبِّهِم مِّن كُلِّ أَمْرٍ",transliteration:"Tanazzalu l-malāʾikatu wa-r-rūḥu fīhā bi-idhni rabbihim min kulli amr",french:"Les anges et l'Esprit y descendent par permission de leur Seigneur pour tout ordre"},{number:5,arabic:"سَلَامٌ هِيَ حَتَّىٰ مَطْلَعِ الْفَجْرِ",transliteration:"Salāmun hiya ḥattā maṭlaʿi l-fajr",french:"Paix en cette nuit jusqu'à l'apparition de l'aube"}],
-  98:[{number:1,arabic:"لَمْ يَكُنِ الَّذِينَ كَفَرُوا مِنْ أَهْلِ الْكِتَابِ وَالْمُشْرِكِينَ مُنفَكِّينَ",transliteration:"Lam yakuni lladhīna kafarū min ahli l-kitābi wa-l-mushrikīna munfakkīn",french:"Ceux qui ont mécru, parmi les gens du Livre et les associateurs, n'allaient pas cesser"},{number:2,arabic:"حَتَّىٰ تَأْتِيَهُمُ الْبَيِّنَةُ",transliteration:"Ḥattā taʾtiyahumu l-bayyina",french:"jusqu'à ce que leur vienne la preuve claire"},{number:3,arabic:"رَسُولٌ مِّنَ اللَّهِ يَتْلُو صُحُفًا مُّطَهَّرَةً",transliteration:"Rasūlun mina llāhi yatlū ṣuḥufan muṭahhara",french:"un Messager d'Allah récitant des pages purifiées"},{number:4,arabic:"فِيهَا كُتُبٌ قَيِّمَةٌ",transliteration:"Fīhā kutubun qayyima",french:"où se trouvent des écrits de valeur"},{number:5,arabic:"وَمَا أُمِرُوا إِلَّا لِيَعْبُدُوا اللَّهَ مُخْلِصِينَ لَهُ الدِّينَ",transliteration:"Wa-mā umirū illā li-yaʿbudū llāha mukhlisīna lahū d-dīn",french:"Il ne leur a été commandé que d'adorer Allah avec une dévotion sincère"},{number:6,arabic:"حُنَفَاءَ وَيُقِيمُوا الصَّلَاةَ وَيُؤْتُوا الزَّكَاةَ ۚ وَذَٰلِكَ دِينُ الْقَيِّمَةِ",transliteration:"Ḥunafāʾa wa-yuqīmū ṣ-ṣalāta wa-yuʾtū z-zakāta wa-dhālika dīnu l-qayyima",french:"comme des exclusifs, accomplir la salāt et acquitter la zakāt. C'est là la religion de droiture"},{number:7,arabic:"إِنَّ الَّذِينَ كَفَرُوا مِنْ أَهْلِ الْكِتَابِ وَالْمُشْرِكِينَ فِي نَارِ جَهَنَّمَ",transliteration:"Inna lladhīna kafarū min ahli l-kitābi wa-l-mushrikīna fī nāri jahannama",french:"Ceux qui ont mécru, parmi les gens du Livre et les associateurs, iront au feu de la Géhenne"},{number:8,arabic:"إِنَّ الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ أُولَٰئِكَ هُمْ خَيْرُ الْبَرِيَّةِ",transliteration:"Inna lladhīna āmanū wa-ʿamilū ṣ-ṣāliḥāti ulāʾika hum khayru l-bariyya",french:"Ceux qui croient et font de bonnes oeuvres, ceux-là sont les meilleures créatures"}],
-  99:[{number:1,arabic:"إِذَا زُلْزِلَتِ الْأَرْضُ زِلْزَالَهَا",transliteration:"Idhā zulzilati l-arḍu zilzālahā",french:"Quand la terre sera secouée de son séisme"},{number:2,arabic:"وَأَخْرَجَتِ الْأَرْضُ أَثْقَالَهَا",transliteration:"Wa-akhrajati l-arḍu athqālahā",french:"et que la terre expulsera ses fardeaux"},{number:3,arabic:"وَقَالَ الْإِنسَانُ مَا لَهَا",transliteration:"Wa-qāla l-insānu mā lahā",french:"et que l'homme dira : Qu'a-t-elle ?"},{number:4,arabic:"يَوْمَئِذٍ تُحَدِّثُ أَخْبَارَهَا",transliteration:"Yawmaʾidhin tuḥaddithu akhbārahā",french:"Ce jour-là, elle relatera ses nouvelles"},{number:5,arabic:"بِأَنَّ رَبَّكَ أَوْحَىٰ لَهَا",transliteration:"Bi-anna rabbaka awḥā lahā",french:"parce que ton Seigneur lui aura révélé cela"},{number:6,arabic:"يَوْمَئِذٍ يَصْدُرُ النَّاسُ أَشْتَاتًا لِّيُرَوْا أَعْمَالَهُمْ",transliteration:"Yawmaʾidhin yaṣduru n-nāsu ashtātan li-yuraw aʿmālahum",french:"Ce jour-là, les gens sortiront en groupes distincts pour qu'on leur montre leurs oeuvres"},{number:7,arabic:"فَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ خَيْرًا يَرَهُ",transliteration:"Fa-man yaʿmal mithqāla dharratin khayran yarah",french:"Quiconque fait le poids d'un atome de bien le verra"},{number:8,arabic:"وَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ شَرًّا يَرَهُ",transliteration:"Wa-man yaʿmal mithqāla dharratin sharran yarah",french:"et quiconque fait le poids d'un atome de mal le verra"}],
-  100:[{number:1,arabic:"وَالْعَادِيَاتِ ضَبْحًا",transliteration:"Wa-l-ʿādiyāti ḍabḥā",french:"Par les cavales soufflantes"},{number:2,arabic:"فَالْمُورِيَاتِ قَدْحًا",transliteration:"Fa-l-mūriyāti qadḥā",french:"et celles qui font jaillir des étincelles"},{number:3,arabic:"فَالْمُغِيرَاتِ صُبْحًا",transliteration:"Fa-l-muġīrāti ṣubḥā",french:"et celles qui attaquent au matin"},{number:4,arabic:"فَأَثَرْنَ بِهِ نَقْعًا",transliteration:"Fa-atharna bihī naqʿā",french:"et soulèvent un nuage de poussière"},{number:5,arabic:"فَوَسَطْنَ بِهِ جَمْعًا",transliteration:"Fa-wasaṭna bihī jamʿā",french:"et se trouvent au milieu d'un rassemblement"},{number:6,arabic:"إِنَّ الْإِنسَانَ لِرَبِّهِ لَكَنُودٌ",transliteration:"Inna l-insāna li-rabbihī la-kanūd",french:"L'homme est vraiment ingrat envers son Seigneur"},{number:7,arabic:"وَإِنَّهُ عَلَىٰ ذَٰلِكَ لَشَهِيدٌ",transliteration:"Wa-innahū ʿalā dhālika la-shahīd",french:"et lui-même en est témoin"},{number:8,arabic:"وَإِنَّهُ لِحُبِّ الْخَيْرِ لَشَدِيدٌ",transliteration:"Wa-innahū li-ḥubbi l-khayri la-shadīd",french:"et il est vraiment ardent dans l'amour des richesses"},{number:9,arabic:"أَفَلَا يَعْلَمُ إِذَا بُعْثِرَ مَا فِي الْقُبُورِ",transliteration:"Afa-lā yaʿlamu idhā buʿthira mā fī l-qubūr",french:"Ne sait-il pas que lorsque sera dispersé ce qui est dans les tombes"},{number:10,arabic:"وَحُصِّلَ مَا فِي الصُّدُورِ",transliteration:"Wa-ḥuṣṣila mā fī ṣ-ṣudūr",french:"et que sera divulgué ce qui est dans les poitrines"},{number:11,arabic:"إِنَّ رَبَّهُم بِهِمْ يَوْمَئِذٍ لَّخَبِيرٌ",transliteration:"Inna rabbahum bihim yawmaʾidhin la-khabīr",french:"leur Seigneur, ce jour-là, les connaît parfaitement"}],
-  101:[{number:1,arabic:"الْقَارِعَةُ",transliteration:"Al-qāriʿa",french:"La Frappe"},{number:2,arabic:"مَا الْقَارِعَةُ",transliteration:"Ma l-qāriʿa",french:"Qu'est-ce que la Frappe ?"},{number:3,arabic:"وَمَا أَدْرَاكَ مَا الْقَارِعَةُ",transliteration:"Wa-mā adrāka ma l-qāriʿa",french:"Et qui te dira ce qu'est la Frappe ?"},{number:4,arabic:"يَوْمَ يَكُونُ النَّاسُ كَالْفَرَاشِ الْمَبْثُوثِ",transliteration:"Yawma yakūnu n-nāsu ka-l-farāshi l-mabthūth",french:"Le jour où les gens seront comme des papillons éparpillés"},{number:5,arabic:"وَتَكُونُ الْجِبَالُ كَالْعِهْنِ الْمَنفُوشِ",transliteration:"Wa-takūnu l-jibālu ka-l-ʿihni l-manfūsh",french:"et les montagnes comme de la laine cardée"},{number:6,arabic:"فَأَمَّا مَن ثَقُلَتْ مَوَازِينُهُ",transliteration:"Fa-ammā man thaqulat mawāzīnuh",french:"Quant à celui dont la balance est lourde"},{number:7,arabic:"فَهُوَ فِي عِيشَةٍ رَّاضِيَةٍ",transliteration:"Fa-huwa fī ʿīshatin rāḍiya",french:"il sera dans une vie agréable"},{number:8,arabic:"وَأَمَّا مَنْ خَفَّتْ مَوَازِينُهُ",transliteration:"Wa-ammā man khaffat mawāzīnuh",french:"Mais quant à celui dont la balance est légère"},{number:9,arabic:"فَأُمُّهُ هَاوِيَةٌ",transliteration:"Fa-ummuhū hāwiya",french:"sa mère est le gouffre"},{number:10,arabic:"وَمَا أَدْرَاكَ مَا هِيَهْ",transliteration:"Wa-mā adrāka mā hiyah",french:"Et qui te dira ce que c'est ?"},{number:11,arabic:"نَارٌ حَامِيَةٌ",transliteration:"Nārun ḥāmiya",french:"C'est un feu ardent"}],
-  102:[{number:1,arabic:"أَلْهَاكُمُ التَّكَاثُرُ",transliteration:"Alhākumu t-takāthur",french:"La course aux richesses vous distrait"},{number:2,arabic:"حَتَّىٰ زُرْتُمُ الْمَقَابِرَ",transliteration:"Ḥattā zurtumu l-maqābir",french:"jusqu'à ce que vous visitiez les tombes"},{number:3,arabic:"كَلَّا سَوْفَ تَعْلَمُونَ",transliteration:"Kallā sawfa taʿlamūn",french:"Certainement, vous saurez bientôt"},{number:4,arabic:"ثُمَّ كَلَّا سَوْفَ تَعْلَمُونَ",transliteration:"Thumma kallā sawfa taʿlamūn",french:"Puis certes, vous saurez bientôt"},{number:5,arabic:"كَلَّا لَوْ تَعْلَمُونَ عِلْمَ الْيَقِينِ",transliteration:"Kallā law taʿlamūna ʿilma l-yaqīn",french:"Certes, si vous saviez d'une certitude absolue"},{number:6,arabic:"لَتَرَوُنَّ الْجَحِيمَ",transliteration:"La-tarawunna l-jaḥīm",french:"vous verrez certainement la Fournaise"},{number:7,arabic:"ثُمَّ لَتَرَوُنَّهَا عَيْنَ الْيَقِينِ",transliteration:"Thumma la-tarawunnahā ʿayna l-yaqīn",french:"puis vous la verrez de la certitude absolue"},{number:8,arabic:"ثُمَّ لَتُسْأَلُنَّ يَوْمَئِذٍ عَنِ النَّعِيمِ",transliteration:"Thumma la-tusʾalunna yawmaʾidhin ʿani n-naʿīm",french:"puis ce jour-là, vous serez interrogés sur les délices"}],
-  104:[{number:1,arabic:"وَيْلٌ لِّكُلِّ هُمَزَةٍ لُّمَزَةٍ",transliteration:"Waylun li-kulli humazatin lumazah",french:"Malheur à tout calomniateur, diffamateur"},{number:2,arabic:"الَّذِي جَمَعَ مَالًا وَعَدَّدَهُ",transliteration:"Alladhī jamaʿa mālan wa-ʿaddadah",french:"qui amasse des richesses et les compte"},{number:3,arabic:"يَحْسَبُ أَنَّ مَالَهُ أَخْلَدَهُ",transliteration:"Yaḥsabu anna mālahu akhladah",french:"Il pense que sa richesse le rendra immortel"},{number:4,arabic:"كَلَّا لَيُنبَذَنَّ فِي الْحُطَمَةِ",transliteration:"Kallā la-yunbadhanna fī l-ḥuṭama",french:"Mais non ! Il sera jeté dans Al-Hutama"},{number:5,arabic:"وَمَا أَدْرَاكَ مَا الْحُطَمَةُ",transliteration:"Wa-mā adrāka ma l-ḥuṭama",french:"Et qui te dira ce qu'est Al-Hutama ?"},{number:6,arabic:"نَارُ اللَّهِ الْمُوقَدَةُ",transliteration:"Nāru llāhi l-mūqada",french:"C'est le feu d'Allah allumé"},{number:7,arabic:"الَّتِي تَطَّلِعُ عَلَى الْأَفْئِدَةِ",transliteration:"Allatī taṭṭaliʿu ʿalā l-afʾida",french:"qui monte jusqu'aux coeurs"},{number:8,arabic:"إِنَّهَا عَلَيْهِم مُّؤْصَدَةٌ",transliteration:"Innahā ʿalayhim muʾṣada",french:"Il se referme sur eux"},{number:9,arabic:"فِي عَمَدٍ مُّمَدَّدَةٍ",transliteration:"Fī ʿamadin mumaddada",french:"en colonnes allongées"}],
-  111:[{number:1,arabic:"تَبَّتْ يَدَا أَبِي لَهَبٍ وَتَبَّ",transliteration:"Tabbat yadā abī lahabin wa-tabb",french:"Que périssent les deux mains d'Abī Lahab, et qu'il périsse"},{number:2,arabic:"مَا أَغْنَىٰ عَنْهُ مَالُهُ وَمَا كَسَبَ",transliteration:"Mā aġnā ʿanhu māluhu wa-mā kasab",french:"Sa richesse et ce qu'il a acquis ne lui ont servi à rien"},{number:3,arabic:"سَيَصْلَىٰ نَارًا ذَاتَ لَهَبٍ",transliteration:"Sa-yaṣlā nāran dhāta lahab",french:"Il sera brûlé dans un feu plein de flammes"},{number:4,arabic:"وَامْرَأَتُهُ حَمَّالَةَ الْحَطَبِ",transliteration:"Wa-mraʾatuhū ḥammālata l-ḥaṭab",french:"Et sa femme, la porteuse de bois"},{number:5,arabic:"فِي جِيدِهَا حَبْلٌ مِّن مَّسَدٍ",transliteration:"Fī jīdihā ḥablun min masad",french:"avec une corde de fibres autour du cou"}],
+// ── BON DE COMMANDE VIEW ─────────────────────────────────────────
+function BonCommandeView({ perfumes }) {
+  const [pays, setPays] = useState("fr");
+  const [taux, setTaux] = useState("245");
+  const [frais, setFrais] = useState("");
+  const [autresFrais, setAutresFrais] = useState("");
+  const [cart, setCart] = useState([]);
+  const [srch, setSrch] = useState("");
+  const [showCart, setShowCart] = useState(false);
+  const [nomClient, setNomClient] = useState("");
+  const [exported, setExported] = useState(false);
 
-};
-
-// ════════════════════════════════════════════════════════════════════
-// API & HOOKS VERSETS
-// ════════════════════════════════════════════════════════════════════
-const _versesMemCache = new Map();
-const _fetchWithTimeout = (url, ms = 10000) => {
-  const ctrl = new AbortController();
-  const tid = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(tid));
-};
-
-function parseTajweedHtml(tajweedStr) {
-  if (!tajweedStr) return tajweedStr;
-  return tajweedStr
-    .replace(/<tajweed class="([^"]+)">([^<]*)<\/tajweed>/g, (_, cls, text) => `<span data-t="${cls}">${text}</span>`)
-    .replace(/<[^>]+>/g, '');
-}
-
-async function fetchFromQuranCom(surahNumber) {
-  const pages = surahNumber <= 9 ? 1 : 2;
-  let allVerses = [];
-  for (let page = 1; page <= pages; page++) {
-    const url = `https://api.quran.com/api/v4/verses/by_chapter/${surahNumber}` +
-      `?words=true&word_fields=text_uthmani,transliteration,text_uthmani_tajweed&translations=136&per_page=300&page=${page}`;
-    const r = await _fetchWithTimeout(url, 12000);
-    if (!r.ok) throw new Error("quran.com indisponible");
-    const d = await r.json();
-    if (!d.verses?.length) break;
-    allVerses = [...allVerses, ...d.verses];
-    if (!d.pagination?.next_page) break;
-  }
-  if (!allVerses.length) throw new Error("Aucun verset");
-  return allVerses.map(v => {
-    const words = v.words?.filter(w => w.char_type_name !== "end") || [];
-    const arabic = words.map(w => w.text_uthmani || "").join(" ");
-    const tajweed = words.map(w => parseTajweedHtml(w.text_uthmani_tajweed || w.text_uthmani || "")).join(" ");
-    const translit = words.map(w => w.transliteration?.text || "").join(" ");
-    return { number: v.verse_number, arabic, tajweed, transliteration: translit, french: v.translations?.[0]?.text?.replace(/<sup[^>]*>.*?<\/sup>/g, "") || "" };
+  const filtered = perfumes.filter(p => {
+    if (!srch) return true;
+    const q = srch.toLowerCase();
+    return p.name.toLowerCase().includes(q) || (p.brand||"").toLowerCase().includes(q) || (p.ref||"").includes(srch);
   });
-}
 
-async function fetchSurahFromAPI(surahNumber) {
-  try { const verses = await fetchFromQuranCom(surahNumber); if (verses.length > 0) return verses; } catch {}
-  try {
-    const [a, f] = await Promise.all([
-      _fetchWithTimeout(`https://api.alquran.cloud/v1/surah/${surahNumber}/quran-uthmani`),
-      _fetchWithTimeout(`https://api.alquran.cloud/v1/surah/${surahNumber}/fr.hamidullah`)
-    ]);
-    if (a.ok && f.ok) {
-      const [ad, fd] = await Promise.all([a.json(), f.json()]);
-      if (ad.code === 200 && fd.code === 200) {
-        return ad.data.ayahs.map((v, i) => ({ number: v.numberInSurah, arabic: v.text, tajweed: null, transliteration: "", french: fd.data.ayahs[i]?.text || "" }));
-      }
-    }
-  } catch {}
-  try {
-    const base = `https://corsproxy.io/?https://api.alquran.cloud/v1/surah/${surahNumber}`;
-    const [a, f] = await Promise.all([_fetchWithTimeout(`${base}/quran-uthmani`), _fetchWithTimeout(`${base}/fr.hamidullah`)]);
-    if (a.ok && f.ok) {
-      const [ad, fd] = await Promise.all([a.json(), f.json()]);
-      if (ad.code === 200 && fd.code === 200) {
-        return ad.data.ayahs.map((v, i) => ({ number: v.numberInSurah, arabic: v.text, tajweed: null, transliteration: "", french: fd.data.ayahs[i]?.text || "" }));
-      }
-    }
-  } catch {}
-  throw new Error("Toutes les sources ont échoué");
-}
+  const addToCart = (p, size) => {
+    const key = `${p.id}-${size}`;
+    setCart(prev => {
+      const ex = prev.find(c=>c.key===key);
+      if (ex) return prev.map(c=>c.key===key?{...c,qty:c.qty+1}:c);
+      return [...prev, { key, id:p.id, name:p.name, ref:p.ref, brand:p.brand, size, price:p.prices?.[size]||35, qty:1 }];
+    });
+  };
 
-function cleanBasmala(verses, surahNumber) {
-  if (!verses || verses.length === 0) return verses;
-  if (surahNumber === 1) return verses;
-  const first = verses[0];
-  const isBasmala = first && (first.arabic?.includes('بِسْمِ اللَّهِ') || first.arabic?.includes('بِسْمِ ٱللَّهِ') || first.arabic?.includes('بسم الله') || (first.number === 1 && first.arabic?.startsWith('بِسْمِ')));
-  if (!isBasmala) return verses;
-  return verses.slice(1).map((v, i) => ({ ...v, number: i + 1 }));
-}
+  const removeFromCart = key => setCart(prev=>prev.filter(c=>c.key!==key));
+  const updateQty = (key, delta) => setCart(prev=>prev.map(c=>c.key===key?{...c,qty:Math.max(1,c.qty+delta)}:c).filter(c=>c.qty>0));
 
-function useVerses(surahNumber) {
-  const embedded = surahNumber ? EMBEDDED_VERSES[surahNumber] : null;
-  const [state, setState] = useState(() => {
-    if (!surahNumber) return { verses: [], loading: false, error: null };
-    if (embedded) return { verses: cleanBasmala(embedded, surahNumber), loading: false, error: null };
-    if (_versesMemCache.has(surahNumber)) return { verses: cleanBasmala(_versesMemCache.get(surahNumber), surahNumber), loading: false, error: null };
-    return { verses: [], loading: true, error: null };
-  });
-  useEffect(() => {
-    if (!surahNumber) return;
-    if (embedded) { setState({ verses: cleanBasmala(embedded, surahNumber), loading: false, error: null }); return; }
-    if (_versesMemCache.has(surahNumber)) { setState({ verses: cleanBasmala(_versesMemCache.get(surahNumber), surahNumber), loading: false, error: null }); return; }
-    setState({ verses: [], loading: true, error: null });
-    const tryLoad = async (attempts = 0) => {
-      try {
-        const raw = await fetchSurahFromAPI(surahNumber);
-        const verses = cleanBasmala(raw, surahNumber);
-        _versesMemCache.set(surahNumber, verses);
-        setState({ verses, loading: false, error: null });
-      } catch {
-        if (attempts < 2) { setTimeout(() => tryLoad(attempts + 1), 1500); }
-        else { setState({ verses: [], loading: false, error: "api_error" }); }
-      }
-    };
-    tryLoad();
-  }, [surahNumber]);
-  return state;
-}
+  const totalEur = cart.reduce((s,c)=>s+c.price*c.qty, 0);
+  const tauxN = parseFloat(taux)||245;
+  const fraisN = parseFloat(frais)||0;
+  const autresN = parseFloat(autresFrais)||0;
+  const totalDzd = Math.round(totalEur * tauxN + (pays==="dz" ? fraisN + autresN : 0));
+  const totalFr  = totalEur + fraisN + autresN;
 
-function getVerseText(surah, verse) {
-  return EMBEDDED_VERSES[surah]?.[verse - 1]?.arabic || "﴿ " + verse + " ﴾";
-}
+  const exportText = () => {
+    const lines = [`📋 BON DE COMMANDE — CHOGAN`, `👤 Client : ${nomClient||"—"}`, `📅 Date : ${new Date().toLocaleDateString("fr-FR")}`, `🌍 Pays : ${pays==="fr"?"France 🇫🇷":"Algérie 🇩🇿"}`, ``, `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`];
+    cart.forEach(c=>lines.push(`• N°${c.ref} ${c.name} — ${c.size} × ${c.qty} = ${(c.price*c.qty).toFixed(2)}€`));
+    lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    lines.push(`💶 Total produits : ${totalEur.toFixed(2)} €`);
+    if(pays==="dz") { lines.push(`💱 Taux du jour : 1€ = ${taux} DA`); lines.push(`🚚 Frais envoi : ${frais} DA`); if(autresN>0) lines.push(`➕ Autres frais : ${autresFrais} DA`); lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`); lines.push(`💰 TOTAL DZD : ${totalDzd.toLocaleString("fr-FR")} DA`); }
+    if(pays==="fr") { if(fraisN>0) lines.push(`🚚 Frais de port : ${fraisN.toFixed(2)} €`); if(autresN>0) lines.push(`➕ Autres frais : ${autresFrais} €`); lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`); lines.push(`💰 TOTAL : ${totalFr.toFixed(2)} €`); }
+    navigator.clipboard?.writeText(lines.join("\n")).then(()=>setExported(true));
+    setTimeout(()=>setExported(false), 3000);
+  };
 
-// ════════════════════════════════════════════════════════════════════
-// COMPOSANT — Stats Drawer
-// ════════════════════════════════════════════════════════════════════
-function StatsDrawer({ isOpen, onClose, counts, fridayKahf: fridayKahfProp, juzProgram: juzProp }) {
-  const pct = Math.round((counts.surahChecked / 114) * 100);
-  const [recited, setRecited] = useState(() => storage("adhkar_recited", {}) || {});
-  const { totalFridays, isReadThisWeek } = fridayKahfProp || useFridayKahf();
-  const juzProgram = juzProp || useJuzProgram();
-  useEffect(() => { if (isOpen) setRecited(storage("adhkar_recited", {}) || {}); }, [isOpen]);
-  const adhkarDone = ADHKAR_MALIKITES.filter(d => (recited[d.id] || 0) >= d.repetition).length;
-  const adhkarTotal = ADHKAR_MALIKITES.length;
-  const matinSoir = ADHKAR_MALIKITES.filter(d => ["matin","soir","matin_soir"].includes(d.category.toLowerCase()));
-  const matinSoirDone = matinSoir.filter(d => (recited[d.id] || 0) >= d.repetition).length;
+  const gc2 = g => g==="homme"?"#d4d4e2":g==="femme"?"#f4a0b5":"#7ec89a";
+
+  if (showCart) return (
+    <div className="fi">
+      <div className="sh" style={{ alignItems:"center" }}>
+        <button onClick={()=>setShowCart(false)} style={{ background:"none", border:"none", color:G, cursor:"pointer", fontSize:18, marginRight:10, padding:0 }}>←</button>
+        <span className="shtitle">Récapitulatif</span>
+        <button className="btn-d" onClick={()=>setCart([])}>Vider</button>
+      </div>
+      <div className="sb">
+        {/* Pays selector */}
+        <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+          {[["fr","🇫🇷 France"],["dz","🇩🇿 Algérie"]].map(([v,l])=>(
+            <button key={v} onClick={()=>setPays(v)} style={{ flex:1, padding:"10px", borderRadius:10, border:`1.5px solid ${pays===v?G:"rgba(255,255,255,.1)"}`, background:pays===v?"rgba(201,168,76,.1)":"transparent", color:pays===v?G:MU, fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600, cursor:"pointer" }}>{l}</button>
+          ))}
+        </div>
+
+        {/* Taux + frais */}
+        {pays==="dz" && (
+          <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+            <div style={{ flex:1 }}>
+              <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>💱 Taux du jour (1€ = ? DA)</label>
+              <input className="inp" type="number" value={taux} onChange={e=>setTaux(e.target.value)} placeholder="245" />
+            </div>
+            <div style={{ flex:1 }}>
+              <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>🚚 Frais envoi (DA)</label>
+              <input className="inp" type="number" value={frais} onChange={e=>setFrais(e.target.value)} placeholder="0" />
+            </div>
+          </div>
+        )}
+        {pays==="fr" && (
+          <div style={{ marginBottom:14 }}>
+            <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>🚚 Frais de port (€)</label>
+            <input className="inp" type="number" value={frais} onChange={e=>setFrais(e.target.value)} placeholder="2.5" />
+          </div>
+        )}
+
+        {/* Autres frais */}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>➕ Autres frais {pays==="dz"?"(DA)":"(€)"} — optionnel</label>
+          <input className="inp" type="number" value={autresFrais} onChange={e=>setAutresFrais(e.target.value)} placeholder="0" />
+        </div>
+
+        {/* Nom client */}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:10, color:MU, display:"block", marginBottom:4 }}>👤 Nom du client (optionnel)</label>
+          <input className="inp" placeholder="Prénom Nom…" value={nomClient} onChange={e=>setNomClient(e.target.value)} />
+        </div>
+
+        {cart.length===0
+          ? <div style={{ textAlign:"center", padding:32, color:MU }}>
+              <p style={{ fontSize:28, marginBottom:8 }}>🛒</p>
+              <p style={{ fontSize:13 }}>Aucun produit sélectionné</p>
+            </div>
+          : <div style={{display:"contents"}}>
+              {cart.map(c=>(
+                <div key={c.key} className="card" style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", marginBottom:7 }}>
+                  <div style={{ flex:1 }}>
+                    <p style={{ fontSize:12, fontWeight:600 }}>{c.name}</p>
+                    <p style={{ fontSize:10, color:MU }}>Réf. {c.ref} · {c.size}</p>
+                    <p style={{ fontSize:11, color:G, fontWeight:600, marginTop:2 }}>{(c.price*c.qty).toFixed(2)} €{pays==="dz"?` = ${Math.round(c.price*c.qty*tauxN).toLocaleString("fr-FR")} DA`:""}</p>
+                  </div>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <button onClick={()=>updateQty(c.key,-1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.07)", border:"none", color:TX, cursor:"pointer", fontSize:16 }}>−</button>
+                    <span style={{ fontSize:13, fontWeight:600, minWidth:16, textAlign:"center" }}>{c.qty}</span>
+                    <button onClick={()=>updateQty(c.key,1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(201,168,76,.15)", border:"none", color:G, cursor:"pointer", fontSize:16 }}>+</button>
+                    <button onClick={()=>removeFromCart(c.key)} style={{ width:26, height:26, borderRadius:6, background:"rgba(224,80,80,.1)", border:"none", color:RD, cursor:"pointer", fontSize:14 }}>×</button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Totaux */}
+              <div className="cardg" style={{ marginTop:10 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                  <span style={{ fontSize:12, color:MU }}>Total produits</span>
+                  <span style={{ fontSize:13, fontWeight:600 }}>{totalEur.toFixed(2)} €</span>
+                </div>
+                {pays==="fr" && (
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                    <span style={{ fontSize:12, color:MU }}>Frais de port</span>
+                    <span style={{ fontSize:13, fontWeight:600 }}>{fraisN.toFixed(2)} €</span>
+                  </div>
+                )}
+                {pays==="dz" && (
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                    <span style={{ fontSize:12, color:MU }}>Frais d'envoi</span>
+                    <span style={{ fontSize:13, fontWeight:600 }}>{fraisN.toLocaleString("fr-FR")} DA</span>
+                  </div>
+                )}
+                {autresN > 0 && (
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                    <span style={{ fontSize:12, color:MU }}>Autres frais</span>
+                    <span style={{ fontSize:13, fontWeight:600 }}>{pays==="dz" ? autresN.toLocaleString("fr-FR")+" DA" : autresN.toFixed(2)+" €"}</span>
+                  </div>
+                )}
+                <div style={{ height:"0.5px", background:"rgba(201,168,76,.2)", margin:"8px 0" }} />
+                {pays==="fr" && (
+                  <div style={{ display:"flex", justifyContent:"space-between" }}>
+                    <span style={{ fontSize:13, fontWeight:600 }}>TOTAL</span>
+                    <span style={{ fontSize:22, fontWeight:700, color:G }}>{(totalEur + fraisN + autresN).toFixed(2)} €</span>
+                  </div>
+                )}
+                {pays==="dz" && (
+                  <div style={{display:"contents"}}>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                      <span style={{ fontSize:11, color:MU }}>Taux : 1€ = {taux} DA</span>
+                      <span style={{ fontSize:11, color:MU }}>{totalEur.toFixed(2)}€ × {taux}</span>
+                    </div>
+                    <div style={{ display:"flex", justifyContent:"space-between" }}>
+                      <span style={{ fontSize:13, fontWeight:600 }}>TOTAL DZD</span>
+                      <span style={{ fontSize:22, fontWeight:700, color:G }}>{totalDzd.toLocaleString("fr-FR")} DA</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button className="btn-p" style={{ width:"100%", marginTop:12 }} onClick={exportText}>
+                {exported ? "✅ Copié dans le presse-papier !" : "📋 Copier le bon de commande"}
+              </button>
+            </div>
+          }
+      </div>
+    </div>
+  );
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 z-50 backdrop-blur-sm" onClick={onClose}/>
-          <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 28, stiffness: 260 }}
-            className="fixed right-0 top-0 h-full w-full max-w-sm bg-slate-900 z-50 shadow-2xl border-l border-white/10 overflow-y-auto">
-            <div className="p-5 border-b border-white/10 flex items-center justify-between sticky top-0 bg-slate-900/95 backdrop-blur-md">
-              <h2 className="font-bold text-white flex items-center gap-2"><Activity className="w-5 h-5 text-emerald-400"/> Statistiques</h2>
-              <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-400 hover:text-white"><X className="w-5 h-5"/></button>
-            </div>
-            <div className="p-5 space-y-5">
-              <div className="text-center">
-                <div className="relative w-28 h-28 mx-auto">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                    <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8"/>
-                    <circle cx="60" cy="60" r="52" fill="none" stroke="url(#sg)" strokeWidth="8" strokeLinecap="round"
-                      strokeDasharray="327" strokeDashoffset={327*(1-counts.surahChecked/114)}
-                      style={{ transition: "stroke-dashoffset 1s ease" }}/>
-                    <defs><linearGradient id="sg"><stop offset="0%" stopColor="#10B981"/><stop offset="100%" stopColor="#3B82F6"/></linearGradient></defs>
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-black text-emerald-400">{pct}%</span>
-                    <span className="text-xs text-slate-500">Coran</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-xs text-slate-600 font-bold uppercase tracking-wider mb-2">📖 Coran</p>
-                <div className="space-y-2">
-                  {[
-                    { label: "Sourates lues", value: `${counts.surahChecked}/114`, color: "text-blue-400" },
-                    { label: "Programme Khatm", value: juzProgram.program.active ? `${juzProgram.completedCount}/30 Juz` : "Non démarré", color: "text-emerald-400" },
-                    { label: "Jours de lecture", value: juzProgram.daysPassed > 0 ? `${juzProgram.daysPassed}j` : "—", color: "text-purple-400" },
-                    { label: "Dans l'objectif", value: juzProgram.program.active ? (juzProgram.onTrack ? "✅ Oui" : `⚠️ −${juzProgram.behindBy} Juz`) : "—", color: juzProgram.onTrack ? "text-emerald-400" : "text-orange-400" },
-                  ].map(({ label, value, color }) => (
-                    <div key={label} className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/8">
-                      <span className="text-slate-400 text-sm">{label}</span>
-                      <span className={`font-bold text-sm ${color}`}>{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs text-slate-600 font-bold uppercase tracking-wider mb-2">📿 Adhkār</p>
-                <div className="space-y-2">
-                  {[
-                    { label: "Adhkār complétés", value: `${adhkarDone}/${adhkarTotal}`, color: "text-emerald-400" },
-                    { label: "Matin & Soir du jour", value: `${matinSoirDone}/${matinSoir.length}`, color: matinSoirDone === matinSoir.length ? "text-emerald-400" : "text-amber-400" },
-                  ].map(({ label, value, color }) => (
-                    <div key={label} className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/8">
-                      <span className="text-slate-400 text-sm">{label}</span>
-                      <span className={`font-bold text-sm ${color}`}>{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs text-slate-600 font-bold uppercase tracking-wider mb-2">🕌 Al-Kahf — Vendredi</p>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/8">
-                    <span className="text-slate-400 text-sm">Vendredis lus</span>
-                    <span className="font-bold text-sm text-amber-400">{totalFridays} semaine{totalFridays > 1 ? "s" : ""}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/8">
-                    <span className="text-slate-400 text-sm">Ce vendredi</span>
-                    <span className={`font-bold text-sm ${isReadThisWeek ? "text-emerald-400" : "text-slate-600"}`}>{isReadThisWeek ? "✅ Lu" : "—"}</span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-center text-slate-700 text-xs italic">« وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا » — Muzzammil 4</p>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    <div className="fi">
+      <div className="sh" style={{ alignItems:"center" }}>
+        <span className="shtitle">Bon de Commande</span>
+        <button className="btn-p" style={{ padding:"6px 14px", fontSize:11, position:"relative" }} onClick={()=>setShowCart(true)}>
+          🛒 {cart.length>0&&<span style={{ position:"absolute", top:-6, right:-6, background:RD, color:"#fff", borderRadius:"50%", width:18, height:18, fontSize:10, display:"flex", alignItems:"center", justifyContent:"center" }}>{cart.reduce((s,c)=>s+c.qty,0)}</span>}
+          Panier {cart.length>0?`(${cart.reduce((s,c)=>s+c.qty,0)})` : ""}
+        </button>
+      </div>
+      <div style={{ padding:"8px 18px 4px" }}>
+        <input className="srch" style={{ width:"100%", margin:0 }} placeholder="🔍 Rechercher un parfum…" value={srch} onChange={e=>setSrch(e.target.value)} />
+      </div>
+      <div className="pgrid">
+        {filtered.map(p=>(
+          <div key={p.id} className="pcrd" style={{ borderLeftColor:gc2(p.gender) }}>
+            <p style={{ fontSize:11, fontWeight:700, color:gc2(p.gender), lineHeight:1.3, marginBottom:2 }}>{p.name}</p>
+            <p style={{ fontSize:9, color:MU, marginBottom:6 }}>{p.brand} · Réf.{p.ref}</p>
+            {(p.sizes||[]).map(s=>(
+              <button key={s} onClick={()=>addToCart(p,s)} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", width:"100%", padding:"4px 7px", marginBottom:3, borderRadius:6, background:"rgba(201,168,76,.06)", border:"0.5px solid rgba(201,168,76,.2)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                <span style={{ fontSize:10, color:MU }}>{s}</span>
+                <span style={{ fontSize:10, color:G, fontWeight:600 }}>{p.prices?.[s]?.toFixed(2)||"35.00"}€ +</span>
+              </button>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
-// ════════════════════════════════════════════════════════════════════
-// ROOT APP — PAGES (avec Learn)
-// ════════════════════════════════════════════════════════════════════
-const PAGES = [
-  { key: "quran",     label: "📖 Coran",       shortLabel: "Coran"     },
-  { key: "program",   label: "📅 Programme",   shortLabel: "Khatm"     },
-  { key: "bookmarks", label: "🔖 Marque-pages", shortLabel: "Repères"  },
-  { key: "adhkar",    label: "📿 Adhkar",       shortLabel: "Adhkar"   },
-  { key: "learn",     label: "🎓 Apprendre",    shortLabel: "Apprendre"},
+// ── PROMO VIEW ────────────────────────────────────────────────────
+const PRODUITS_PROMO = [
+  { id:"etuis",  nom:"Étuis Simple",  prixEur:9.10,  transportDzd:1.80, emballage:0    },
+  { id:"cuir",   nom:"Étui Cuire",    prixEur:10.50, transportDzd:1.80, emballage:0    },
+  { id:"15ml",   nom:"15 ML",         prixEur:5.95,  transportDzd:1.80, emballage:0.48 },
+  { id:"30ml",   nom:"30 ML",         prixEur:9.00,  transportDzd:1.80, emballage:0.48 },
+  { id:"70ml",   nom:"70 ML",         prixEur:17.50, transportDzd:1.80, emballage:0.48 },
+  { id:"lux1",   nom:"Luxury 22,50€", prixEur:22.50, transportDzd:1.80, emballage:0.48 },
+  { id:"lux2",   nom:"Luxury 23€",    prixEur:23.00, transportDzd:1.80, emballage:0.48 },
+  { id:"lux3",   nom:"Luxury 24€",    prixEur:24.00, transportDzd:1.80, emballage:0.48 },
+  { id:"lux4",   nom:"Luxury 26€",    prixEur:26.00, transportDzd:1.80, emballage:0.48 },
+  { id:"lux5",   nom:"Luxury 28,50€", prixEur:28.50, transportDzd:1.80, emballage:0.48 },
+  { id:"lux6",   nom:"Luxury 32,50€", prixEur:32.50, transportDzd:1.80, emballage:0.48 },
+  { id:"lux7",   nom:"Luxury 35,50€", prixEur:35.50, transportDzd:1.80, emballage:0.48 },
+  { id:"lux8",   nom:"Luxury 38,75€", prixEur:38.75, transportDzd:1.80, emballage:0.48 },
 ];
 
-const JUZ_EXACT = [
-  { juz:1,  startSurah:1,  startVerse:1,   endSurah:2,  endVerse:141 },
-  { juz:2,  startSurah:2,  startVerse:142, endSurah:2,  endVerse:252 },
-  { juz:3,  startSurah:2,  startVerse:253, endSurah:3,  endVerse:92  },
-  { juz:4,  startSurah:3,  startVerse:93,  endSurah:4,  endVerse:23  },
-  { juz:5,  startSurah:4,  startVerse:24,  endSurah:4,  endVerse:147 },
-  { juz:6,  startSurah:4,  startVerse:148, endSurah:5,  endVerse:81  },
-  { juz:7,  startSurah:5,  startVerse:82,  endSurah:6,  endVerse:110 },
-  { juz:8,  startSurah:6,  startVerse:111, endSurah:7,  endVerse:87  },
-  { juz:9,  startSurah:7,  startVerse:88,  endSurah:8,  endVerse:40  },
-  { juz:10, startSurah:8,  startVerse:41,  endSurah:9,  endVerse:92  },
-  { juz:11, startSurah:9,  startVerse:93,  endSurah:11, endVerse:5   },
-  { juz:12, startSurah:11, startVerse:6,   endSurah:12, endVerse:52  },
-  { juz:13, startSurah:12, startVerse:53,  endSurah:14, endVerse:52  },
-  { juz:14, startSurah:15, startVerse:1,   endSurah:16, endVerse:128 },
-  { juz:15, startSurah:17, startVerse:1,   endSurah:18, endVerse:74  },
-  { juz:16, startSurah:18, startVerse:75,  endSurah:20, endVerse:135 },
-  { juz:17, startSurah:21, startVerse:1,   endSurah:22, endVerse:78  },
-  { juz:18, startSurah:23, startVerse:1,   endSurah:25, endVerse:20  },
-  { juz:19, startSurah:25, startVerse:21,  endSurah:27, endVerse:55  },
-  { juz:20, startSurah:27, startVerse:56,  endSurah:29, endVerse:45  },
-  { juz:21, startSurah:29, startVerse:46,  endSurah:33, endVerse:30  },
-  { juz:22, startSurah:33, startVerse:31,  endSurah:36, endVerse:27  },
-  { juz:23, startSurah:36, startVerse:28,  endSurah:39, endVerse:31  },
-  { juz:24, startSurah:39, startVerse:32,  endSurah:41, endVerse:46  },
-  { juz:25, startSurah:41, startVerse:47,  endSurah:45, endVerse:37  },
-  { juz:26, startSurah:46, startVerse:1,   endSurah:51, endVerse:30  },
-  { juz:27, startSurah:51, startVerse:31,  endSurah:57, endVerse:29  },
-  { juz:28, startSurah:58, startVerse:1,   endSurah:66, endVerse:12  },
-  { juz:29, startSurah:67, startVerse:1,   endSurah:77, endVerse:50  },
-  { juz:30, startSurah:78, startVerse:1,   endSurah:114,endVerse:6   },
-];
+function PromoView({ onBack }) {
+  const [devise, setDevise] = useState("eur");
+  const [txDA, setTxDA] = useState("290");
+  const [fraisPort, setFraisPort] = useState("");
+  const [promos, setPromos] = useState({});
+  const [qtes, setQtes] = useState({});
+  const [selected, setSelected] = useState(null);
 
-function getJuzStart(juzNum) { return JUZ_EXACT.find(j => j.juz === juzNum); }
+  const tx = parseFloat(txDA) || 290;
+  const fp = parseFloat(fraisPort) || 0;
 
-export default function App() {
-  const [page, setPage] = useState("quran");
-  const [statsOpen, setStatsOpen] = useState(false);
-  const [navTarget, setNavTarget] = useState(null);
-  const [navConsumed, setNavConsumed] = useState(false);
-  const juzProgram = useJuzProgram();
-  const fridayKahf = useFridayKahf();
-  const { checked, toggle, counts } = useSurahProgress();
+  const calc = (p) => {
+    const totalEur = p.prixEur + p.emballage;                          // EUR: sans transport
+    const totalDzd = p.prixEur + (p.transportDzd||0) + p.emballage;   // DZD: avec transport
+    const prixDA   = Math.round(totalDzd * tx);
+    const minEur   = parseFloat((totalEur * 1.04).toFixed(2));
+    const minDA    = Math.round(prixDA * 1.04);
+    const promoVal = parseFloat(promos[p.id]) || 0;
+    const qte      = parseInt(qtes[p.id]) || 0;
 
-  const handleNavigateToJuz = useCallback((juzNum) => {
-    const juzInfo = getJuzStart(juzNum);
-    if (!juzInfo) return;
-    const startSurah = juzInfo.startSurah;
-    const startVerse = juzInfo.startVerse;
-    const bounds = {
-      startSurah: juzInfo.startSurah,
-      startVerse: juzInfo.startVerse,
-      endSurah:   juzInfo.endSurah,
-      endVerse:   juzInfo.endVerse,
-    };
-    setNavTarget({ surahNum: startSurah, verseNum: startVerse, bounds });
-    setNavConsumed(false);
-    setPage("quran");
-  }, []);
+    if (devise === "eur") {
+      const margeEur = promoVal > 0 && promoVal >= minEur ? parseFloat(((promoVal - totalEur) * qte).toFixed(2)) : 0;
+      const ok = promoVal >= minEur;
+      return { totalEur, prixDA, minEur, minDA, promoVal, qte, marge: margeEur, ok, devise:"eur" };
+    } else {
+      const margeDA = promoVal > 0 && promoVal >= minDA ? Math.round((promoVal - prixDA) * qte) : 0;
+      const ok = promoVal >= minDA;
+      return { totalEur, prixDA, minEur, minDA, promoVal, qte, marge: margeDA, ok, devise:"dzd" };
+    }
+  };
+
+  const totalMarge = PRODUITS_PROMO.reduce((s,p) => s + calc(p).marge, 0);
+  const produitActif = selected ? PRODUITS_PROMO.find(p=>p.id===selected) : null;
+  const calcActif = produitActif ? calc(produitActif) : null;
+
+  const fmt = (val) => devise === "eur"
+    ? val.toFixed(2) + " €"
+    : val.toLocaleString("fr-FR") + " DA";
+
+  const paLabel   = devise === "eur" ? calcActif?.totalEur.toFixed(2)+" €" : calcActif?.prixDA.toLocaleString("fr-FR")+" DA";
+  const minLabel  = devise === "eur" ? calcActif?.minEur.toFixed(2)+" €"   : calcActif?.minDA.toLocaleString("fr-FR")+" DA";
+  const minVal    = devise === "eur" ? calcActif?.minEur : calcActif?.minDA;
+
+  // Vue détail produit
+  if (produitActif && calcActif) return (
+    <div className="fi">
+      <div className="sh" style={{ alignItems:"center" }}>
+        <button onClick={()=>setSelected(null)} style={{ background:"none", border:"none", color:G, cursor:"pointer", fontSize:18, marginRight:10, padding:0 }}>←</button>
+        <span className="shtitle">{produitActif.nom}</span>
+      </div>
+      <div className="sb">
+
+        {/* Prix de revient */}
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📦 Prix de revient</p>
+        <div className="card" style={{ marginBottom:14 }}>
+          {[
+            ["Prix d'achat",  produitActif.prixEur.toFixed(2)+"€"],
+            ...(devise==="dzd" ? [["Transport", (produitActif.transportDzd||0).toFixed(2)+"€"]] : []),
+            ["Emballage",     produitActif.emballage>0?produitActif.emballage.toFixed(2)+"€":"Inclus"],
+          ].map(([l,v],i)=>(
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:"0.5px solid rgba(255,255,255,.05)" }}>
+              <span style={{ fontSize:12, color:MU }}>{l}</span>
+              <span style={{ fontSize:12, color:TX }}>{v}</span>
+            </div>
+          ))}
+          <div style={{ display:"flex", justifyContent:"space-between", padding:"10px 0 4px" }}>
+            <span style={{ fontSize:13, fontWeight:600 }}>Total PA (€)</span>
+            <span style={{ fontSize:15, fontWeight:700, color:G }}>{calcActif.totalEur.toFixed(2)} €</span>
+          </div>
+          {devise==="dzd" && (
+            <div style={{ display:"flex", justifyContent:"space-between", padding:"4px 0" }}>
+              <span style={{ fontSize:13, fontWeight:600 }}>Total PA (DA)</span>
+              <span style={{ fontSize:15, fontWeight:700, color:G }}>{calcActif.prixDA.toLocaleString("fr-FR")} DA</span>
+            </div>
+          )}
+        </div>
+
+        {/* Prix minimum */}
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🚫 Prix minimum (ne pas vendre en dessous)</p>
+        <div style={{ background:"rgba(74,222,128,.08)", border:"1.5px solid #4ade80", borderRadius:12, padding:"14px 16px", marginBottom:14, textAlign:"center" }}>
+          <p style={{ fontSize:11, color:"#4ade80", marginBottom:4 }}>PA × 1,04 = marge minimale 4%</p>
+          <p style={{ fontSize:30, fontWeight:700, color:"#4ade80" }}>{minLabel}</p>
+          <p style={{ fontSize:10, color:"rgba(74,222,128,.7)", marginTop:4 }}>En dessous de ce prix = perte</p>
+        </div>
+
+        {/* Simulateur promo */}
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🏷 Simuler une promo</p>
+        <div className="card" style={{ marginBottom:14 }}>
+          <div style={{ marginBottom:12 }}>
+            <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>
+              Mon prix promo {devise==="eur"?"(€)":"(DA)"}
+            </label>
+            <input className="inp" type="number"
+              placeholder={"Min : " + (devise==="eur"?calcActif.minEur.toFixed(2)+" €":calcActif.minDA.toLocaleString("fr-FR")+" DA")}
+              value={promos[produitActif.id]||""}
+              onChange={e=>setPromos(p=>({...p,[produitActif.id]:e.target.value}))}
+              style={{ borderColor: calcActif.promoVal>0?(calcActif.ok?"#4ade80":"#e05050"):"rgba(255,255,255,.09)" }}
+            />
+            {calcActif.promoVal>0 && !calcActif.ok && (
+              <p style={{ fontSize:11, color:RD, marginTop:5 }}>⚠️ Prix trop bas ! Minimum : {minLabel}</p>
+            )}
+            {calcActif.promoVal>0 && calcActif.ok && (
+              <p style={{ fontSize:11, color:"#4ade80", marginTop:5 }}>✅ Prix valide</p>
+            )}
+          </div>
+          <div>
+            <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>Quantité vendue</label>
+            <input className="inp" type="number" placeholder="0"
+              value={qtes[produitActif.id]||""}
+              onChange={e=>setQtes(p=>({...p,[produitActif.id]:e.target.value}))}
+            />
+          </div>
+        </div>
+
+        {calcActif.promoVal>0 && calcActif.ok && calcActif.qte>0 && (
+          <div style={{ background:"rgba(201,168,76,.1)", border:"1.5px solid "+G, borderRadius:12, padding:"14px 16px", textAlign:"center" }}>
+            <p style={{ fontSize:12, color:MU, marginBottom:4 }}>
+              ({devise==="eur"?calcActif.promoVal.toFixed(2)+" € − "+calcActif.totalEur.toFixed(2)+" €":calcActif.promoVal.toLocaleString("fr-FR")+" − "+calcActif.prixDA.toLocaleString("fr-FR")}) × {calcActif.qte}
+            </p>
+            <p style={{ fontSize:28, fontWeight:700, color:G }}>{fmt(calcActif.marge)}</p>
+            <p style={{ fontSize:11, color:MU, marginTop:4 }}>Marge générée sur cette promo</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Vue liste principale
+  return (
+    <div className="fi">
+      <div className="sh" style={{ alignItems:"center" }}>
+        {onBack && <button onClick={onBack} style={{ background:"none", border:"none", color:G, cursor:"pointer", fontSize:18, marginRight:10, padding:0 }}>←</button>}
+        <span className="shtitle">Calculateur Promo</span>
+      </div>
+      <div className="sb">
+
+        {/* Sélecteur devise */}
+        <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+          {[["eur","🇫🇷 Euros (€)"],["dzd","🇩🇿 Dinars (DA)"]].map(([v,l])=>(
+            <button key={v} onClick={()=>{ setDevise(v); setPromos({}); setQtes({}); }}
+              style={{ flex:1, padding:"10px", borderRadius:10,
+                border:"1.5px solid "+(devise===v?G:"rgba(255,255,255,.1)"),
+                background:devise===v?"rgba(201,168,76,.1)":"transparent",
+                color:devise===v?G:MU, fontFamily:"'DM Sans',sans-serif",
+                fontSize:12, fontWeight:600, cursor:"pointer" }}>{l}</button>
+          ))}
+        </div>
+
+        {/* Taux DA (seulement en DA) */}
+        {devise==="dzd" && (
+          <div className="cardg" style={{ marginBottom:14 }}>
+            <label style={{ fontSize:11, color:G, fontWeight:600, display:"block", marginBottom:8 }}>💱 Taux du jour (1€ = ? DA)</label>
+            <input className="inp" type="number" value={txDA} onChange={e=>setTxDA(e.target.value)} placeholder="290" style={{ fontSize:18, fontWeight:700, textAlign:"center" }} />
+          </div>
+        )}
+
+        {/* Frais de port */}
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>
+            🚚 Frais de port {devise==="eur"?"(€)":"(DA)"} — optionnel
+          </label>
+          <input className="inp" type="number" placeholder="0"
+            value={fraisPort} onChange={e=>setFraisPort(e.target.value)} />
+        </div>
+
+        {/* Total marge globale */}
+        {totalMarge > 0 && (
+          <div style={{ background:"rgba(201,168,76,.1)", border:"1px solid "+G, borderRadius:12, padding:"12px 16px", marginBottom:14, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <span style={{ fontSize:12, color:MU }}>Total marge promo</span>
+            <span style={{ fontSize:20, fontWeight:700, color:G }}>{fmt(totalMarge)}</span>
+          </div>
+        )}
+
+        {/* Liste produits */}
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>
+          Appuie sur un produit pour simuler
+        </p>
+        {PRODUITS_PROMO.map(p => {
+          const c = calc(p);
+          const paDisp = devise==="eur" ? c.totalEur.toFixed(2)+" €" : c.prixDA.toLocaleString("fr-FR")+" DA";
+          const minDisp = devise==="eur" ? c.minEur.toFixed(2)+" €" : c.minDA.toLocaleString("fr-FR")+" DA";
+          return (
+            <div key={p.id} onClick={()=>setSelected(p.id)} className="card"
+              style={{ display:"flex", alignItems:"center", gap:12, cursor:"pointer", marginBottom:8,
+                borderLeft: c.marge>0?"3px solid "+G:"3px solid rgba(255,255,255,.1)" }}>
+              <div style={{ flex:1 }}>
+                <p style={{ fontSize:13, fontWeight:600 }}>{p.nom}</p>
+                <div style={{ display:"flex", gap:10, marginTop:3, flexWrap:"wrap" }}>
+                  <span style={{ fontSize:11, color:MU }}>PA : {paDisp}</span>
+                  <span style={{ fontSize:11, color:"#4ade80" }}>Min : {minDisp}</span>
+                </div>
+                {c.marge>0 && (
+                  <p style={{ fontSize:11, color:G, fontWeight:600, marginTop:3 }}>
+                    Marge : {fmt(c.marge)} ({c.qte} pcs)
+                  </p>
+                )}
+              </div>
+              <span style={{ color:G, fontSize:18 }}>›</span>
+            </div>
+          );
+        })}
+
+        <button className="btn-d" style={{ width:"100%", marginTop:8 }} onClick={()=>{ setPromos({}); setQtes({}); setFraisPort(""); }}>↺ Tout réinitialiser</button>
+      </div>
+    </div>
+  );
+}
+
+// ── LANCEMENT VIEW ───────────────────────────────────────────────
+function LancementView() {
+  const [sub, setSub] = useState("lancement");
+  const [openSc, setOpenSc] = useState(null);
+  const [openPays, setOpenPays] = useState(false);
+  const [qa, setQa] = useState({});
+  const [qdone, setQdone] = useState(false);
+  const score = QUIZ.filter(q=>qa[q.id]===q.correct).length;
 
   return (
-    <div className="bg-slate-950 min-h-screen text-white font-sans antialiased flex flex-col" style={{ maxHeight: "100dvh", overflow: "hidden" }}>
-      <header className="flex items-center justify-between px-5 py-3.5 bg-slate-950/90 backdrop-blur-xl border-b border-white/8 shrink-0">
+    <div className="fi">
+      <div className="sh">
+        <span className="shtitle">Formation</span>
+        {sub==="quiz" && <button className="btn-d" onClick={()=>{if(window.confirm("Reset quiz ?")){setQa({});setQdone(false);}}}>↺ Reset</button>}
+      </div>
+      <div className="ftabs">
+        {[["lancement","🚀 Lancement"],["scripts","💬 Scripts"],["quiz","📝 Quiz"]].map(([v,l])=>(
+          <button key={v} className={`ftab ${sub===v?"on":""}`} onClick={()=>setSub(v)}>{l}</button>
+        ))}
+      </div>
+
+      {sub==="lancement" && (
+        <div className="sb">
+          <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🔓 Plateforme</p>
+          <a href="https://mylimitless.be/" target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(201,168,76,.06)", borderColor:"rgba(201,168,76,.22)" }}>
+            <span style={{ fontSize:22 }}>🔓</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600, color:G }}>Inscription Limitless</p>
+              <p style={{ fontSize:11, color:MU, marginTop:2 }}>Accède à la plateforme de formation</p>
+            </div>
+            <span style={{ color:G, fontSize:16 }}>↗</span>
+          </a>
+
+          <div className="div" style={{ margin:"14px 0" }} />
+          <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>🎬 Vidéos</p>
+          {[
+            { t:"Vidéo Mallette",             d:"Présentation de ta mallette de démarrage", url:"https://drive.google.com/file/d/1s3EKcodYivoV1wVBnkWlG3Uk4gGWkp48/view" },
+            { t:"Lien de parrainage client",  d:"Comment envoyer ton lien à tes clientes",  url:"https://drive.google.com/file/d/1XLsJsyvHPe7GHSrRHvxScbligxILIcvH/view" },
+          ].map((v,i)=>(
+            <a key={i} href={v.url} target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(201,168,76,.04)", borderColor:"rgba(201,168,76,.15)" }}>
+              <div style={{ width:44, height:44, borderRadius:"50%", background:G, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                <span style={{ fontSize:18, marginLeft:3 }}>▶</span>
+              </div>
+              <div style={{ flex:1 }}>
+                <p style={{ fontSize:13, fontWeight:600, color:G }}>{v.t}</p>
+                <p style={{ fontSize:11, color:MU, marginTop:2 }}>{v.d}</p>
+              </div>
+              <span style={{ color:G, fontSize:16 }}>↗</span>
+            </a>
+          ))}
+
+          <div className="div" style={{ margin:"14px 0" }} />
+          <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>📚 Documents</p>
+          {[
+            { ic:"📖", t:"Book 1",                url:"https://drive.google.com/file/d/1wrZCau12O-JQ3Pfkmu2Mu2qHQCP9_cdb/view" },
+            { ic:"📗", t:"Book 2",                url:"https://drive.google.com/file/d/1V4JLCN7rIqWnd7UYTH8MTLzsN0UKybzQ/view" },
+            { ic:"🌟", t:"Programme Ambassadeur", url:"https://drive.google.com/file/d/1d952VZyjBs6XM7rVmpr1K07GnP0is1U2/view" },
+          ].map((r,i)=>(
+            <a key={i} href={r.url} target="_blank" rel="noreferrer" className="rlink" style={{ background:"rgba(66,133,244,.06)", borderColor:"rgba(66,133,244,.2)" }}>
+              <span style={{ fontSize:22 }}>{r.ic}</span>
+              <div style={{ flex:1 }}>
+                <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>{r.t}</p>
+                <p style={{ fontSize:11, color:MU, marginTop:2 }}>Ouvrir via Google Drive</p>
+              </div>
+              <span style={{ color:"#4285f4", fontSize:16 }}>↗</span>
+            </a>
+          ))}
+
+          <div className="div" style={{ margin:"14px 0" }} />
+          <div className="scrd" style={{ borderLeft:"3px solid #4285f4" }}>
+            <div className="shdr" onClick={()=>setOpenPays(!openPays)}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:22 }}>🌍</span>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:600, color:"#4285f4" }}>Pays ouverts Chogan</p>
+                  <p style={{ fontSize:10, color:MU, marginTop:1 }}>Zones de livraison disponibles</p>
+                </div>
+              </div>
+              <span style={{ color:"#4285f4" }}>{openPays?"▲":"▼"}</span>
+            </div>
+            {openPays && (
+            <div style={{ padding:"0 14px 14px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
+              <div style={{ background:"rgba(224,80,80,.07)", border:"0.5px solid rgba(224,80,80,.25)", borderRadius:8, padding:"8px 12px", margin:"10px 0" }}>
+                <p style={{ fontSize:11, color:RD }}>⚠️ Phase de test : autorisation du Leader Emerald+ requise.</p>
+              </div>
+              {[
+                {flag:"🇦🇱",name:"Albanie"},{flag:"🇩🇿",name:"Algérie"},{flag:"🇦🇴",name:"Angola",test:true},
+                {flag:"🇦🇺",name:"Australie",test:true},{flag:"🇦🇹",name:"Autriche"},{flag:"🇧🇪",name:"Belgique"},
+                {flag:"🇧🇬",name:"Bulgarie"},{flag:"🇨🇦",name:"Canada",test:true},{flag:"🇭🇷",name:"Croatie"},
+                {flag:"🇩🇰",name:"Danemark"},{flag:"🇪🇬",name:"Égypte",test:true},{flag:"🇫🇷",name:"France"},
+                {flag:"🇩🇪",name:"Allemagne"},{flag:"🇬🇷",name:"Grèce"},{flag:"🇮🇹",name:"Italie"},
+                {flag:"🇱🇺",name:"Luxembourg"},{flag:"🇳🇱",name:"Pays-Bas"},{flag:"🇵🇱",name:"Pologne"},
+                {flag:"🇵🇹",name:"Portugal"},{flag:"🇬🇧",name:"Royaume-Uni"},{flag:"🇷🇴",name:"Roumanie"},
+                {flag:"🇪🇸",name:"Espagne"},{flag:"🇸🇪",name:"Suède"},{flag:"🇨🇭",name:"Suisse"},
+                {flag:"🇭🇺",name:"Hongrie"},{flag:"🇧🇪",name:"Belgique"},
+              ].map((p,i)=>(
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 8px",
+                  background:p.test?"rgba(224,80,80,.04)":"rgba(255,255,255,.02)",
+                  borderRadius:6, marginBottom:3,
+                  border:"0.5px solid "+(p.test?"rgba(224,80,80,.12)":"rgba(255,255,255,.04)") }}>
+                  <span style={{ fontSize:16 }}>{p.flag}</span>
+                  <span style={{ fontSize:12, flex:1, color:p.test?MU:TX }}>{p.name}</span>
+                  {p.test && <span style={{ fontSize:9, color:RD, border:"0.5px solid rgba(224,80,80,.35)", borderRadius:10, padding:"1px 6px" }}>test</span>}
+                </div>
+              ))}
+            </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {sub==="scripts" && (
+        <div className="sb">
+          <div className="cardg" style={{ marginBottom:14 }}>
+            <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>💬 Scripts de contact</p>
+            <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>4 scripts éprouvés. Personnalise toujours avec le prénom.</p>
+          </div>
+          {SCRIPTS.map(s=>(
+            <div key={s.id} className="scrd">
+              <div className="shdr" onClick={()=>setOpenSc(openSc===s.id?null:s.id)}>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:600 }}>{s.title}</p>
+                  <p style={{ fontSize:11, color:MU, marginTop:2 }}>{s.ctx}</p>
+                </div>
+                <span style={{ color:G }}>{openSc===s.id?"▲":"▼"}</span>
+              </div>
+              {openSc===s.id && (
+                <div style={{ padding:"0 15px 15px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
+                  <div style={{ background:"rgba(201,168,76,.05)", border:"0.5px solid rgba(201,168,76,.14)", borderRadius:10, padding:13, fontSize:13, lineHeight:1.7, margin:"12px 0", color:"#ddd", fontStyle:"italic" }}>
+                    {s.text}
+                  </div>
+                  <div style={{ fontSize:11, color:MC, padding:"7px 11px", background:"rgba(126,200,154,.07)", borderRadius:8, marginBottom:10 }}>
+                    💡 {s.tip}
+                  </div>
+                  <button className="btn-o" style={{ width:"100%" }}
+                    onClick={()=>navigator.clipboard?.writeText(s.text).then(()=>alert("Script copié ! 📋"))}>
+                    📋 Copier le script
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {sub==="quiz" && (
+        <div className="sb">
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <p style={{ fontSize:13, fontWeight:500 }}>Quiz de Certification</p>
+            <span className="badge" style={{ background:"rgba(201,168,76,.14)", color:G }}>12/15 requis</span>
+          </div>
+          {!qdone ? (
+            <div style={{display:"contents"}}>
+              {QUIZ.map((q,qi)=>(
+                <div key={q.id} className="card" style={{ marginBottom:10 }}>
+                  <p style={{ fontSize:13, fontWeight:500, marginBottom:10, lineHeight:1.45 }}>{qi+1}. {q.q}</p>
+                  {q.opts.map((opt,oi)=>(
+                    <button key={oi} className={`qopt ${qa[q.id]===oi?"sel":""}`}
+                      onClick={()=>setQa(p=>({...p,[q.id]:oi}))}>
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              ))}
+              <button className="btn-p" style={{ width:"100%", marginTop:8 }}
+                onClick={()=>{ if(Object.keys(qa).length<QUIZ.length){alert("Réponds à toutes les questions !");return;} setQdone(true); }}>
+                Valider le quiz
+              </button>
+            </div>
+          ) : (
+            <div style={{display:"contents"}}>
+              <div className={score>=12?"cardg":"card"} style={{ textAlign:"center", padding:24, marginBottom:16 }}>
+                <p style={{ fontSize:40, marginBottom:8 }}>{score>=12?"🎓":"📚"}</p>
+                <p style={{ fontSize:30, fontWeight:700, color:score>=12?G:RD }}>{score}/15</p>
+                <p style={{ fontSize:13, marginTop:8, color:"#ccc" }}>
+                  {score>=12?"Certification obtenue ! Félicitations ! 🎉":"Score insuffisant — révise et réessaie (12/15 requis)"}
+                </p>
+              </div>
+              {QUIZ.map((q,qi)=>(
+                <div key={q.id} className="card" style={{ marginBottom:8 }}>
+                  <p style={{ fontSize:12, fontWeight:500, marginBottom:8, lineHeight:1.4 }}>{qi+1}. {q.q}</p>
+                  {q.opts.map((opt,oi)=>(
+                    <button key={oi} className={`qopt ${oi===q.correct?"ok":qa[q.id]===oi&&oi!==q.correct?"ko":""}`}>{opt}</button>
+                  ))}
+                </div>
+              ))}
+              <button className="btn-o" style={{ width:"100%", marginTop:8 }} onClick={()=>{setQa({});setQdone(false);}}>
+                Reprendre le quiz
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── FAMILLE OLFACTIVE VIEW ────────────────────────────────────────
+function FamilleView() {
+  const [openFam, setOpenFam] = useState(null);
+  const [openSub, setOpenSub] = useState(null);
+  return (
+    <div className="fi">
+      <div className="sh"><span className="shtitle">Familles Olfactives</span></div>
+      <div className="sb">
+        <div className="cardg" style={{ marginBottom:14 }}>
+          <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>💐 Les 7 Familles Olfactives</p>
+          <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Guide pour orienter tes clientes vers le parfum qui leur correspond.</p>
+        </div>
+        {FAMILLES.map(f => (
+          <div key={f.id} className="scrd" style={{ borderLeft:"3px solid "+f.couleur }}>
+            <div className="shdr" onClick={()=>{ setOpenFam(openFam===f.id?null:f.id); setOpenSub(null); }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:22 }}>{f.emoji}</span>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:600, color:f.couleur }}>{f.nom}</p>
+                  <p style={{ fontSize:10, color:MU, marginTop:1 }}>{f.style}</p>
+                </div>
+              </div>
+              <span style={{ color:f.couleur }}>{openFam===f.id?"▲":"▼"}</span>
+            </div>
+            {openFam===f.id && (
+              <div style={{ padding:"0 14px 14px", borderTop:"0.5px solid rgba(255,255,255,.06)" }}>
+                <div style={{ background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px", margin:"10px 0" }}>
+                  <p style={{ fontSize:11, color:MU, marginBottom:3 }}>🎵 Notes</p>
+                  <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.notes}</p>
+                </div>
+                <div style={{ background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px", marginBottom:12 }}>
+                  <p style={{ fontSize:11, color:MU, marginBottom:3 }}>👤 Pour qui</p>
+                  <p style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{f.pourQui}</p>
+                </div>
+                <p style={{ fontSize:10, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Sous-familles</p>
+                {f.sousFamilles.map((sf,si) => {
+                  const subKey = f.id+"-"+si;
+                  const isOpen = openSub===subKey;
+                  return (
+                    <div key={si} style={{ marginBottom:6 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+                        background:"rgba(255,255,255,.04)", borderRadius:8, padding:"8px 12px", cursor:"pointer",
+                        border:"0.5px solid "+(isOpen?f.couleur:"transparent") }}
+                        onClick={()=>setOpenSub(isOpen?null:subKey)}>
+                        <p style={{ fontSize:12, fontWeight:500, color:isOpen?f.couleur:TX }}>{sf.n}</p>
+                        <span style={{ fontSize:10, color:MU }}>{sf.refs.length} réf.</span>
+                      </div>
+                      {isOpen && (
+                        <div style={{ padding:"8px 12px", background:"rgba(255,255,255,.02)", borderRadius:"0 0 8px 8px", marginTop:-4 }}>
+                          {sf.refs.map((r,ri)=>(
+                            <span key={ri} style={{ display:"inline-block", fontSize:10, padding:"2px 8px", margin:"2px 3px", background:"rgba(120,120,120,.15)", borderRadius:20, color:"#ccc" }}>{r}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── CONVERTISSEUR VIEW ────────────────────────────────────────────
+function ConvertisseurView() {
+  const [eur, setEur] = useState("");
+  const [rate, setRate] = useState("245");
+  const dzd = eur && !isNaN(+eur) ? Math.round(+eur * (+rate||245)) : null;
+  return (
+    <div className="fi">
+      <div className="sh"><span className="shtitle">Convertisseur</span></div>
+      <div className="sb">
+        <div className="cardg" style={{ marginBottom:20 }}>
+          <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>💱 Convertisseur EUR → DZD</p>
+          <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Calcule instantanément le prix en Dinars algériens.</p>
+        </div>
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:11, color:MU, display:"block", marginBottom:6 }}>Taux du jour (1€ = ? DA)</label>
+          <input className="inp" type="number" placeholder="245" value={rate} onChange={e=>setRate(e.target.value)} style={{ fontSize:18, fontWeight:600, textAlign:"center" }} />
+        </div>
+        <div style={{ marginBottom:20 }}>
+          <label style={{ fontSize:11, color:MU, display:"block", marginBottom:6 }}>Montant en Euros (€)</label>
+          <input className="inp" type="number" placeholder="0.00" value={eur} onChange={e=>setEur(e.target.value)} style={{ fontSize:22, fontWeight:700, textAlign:"center" }} />
+        </div>
+        {dzd !== null && (
+          <div className="cardg" style={{ textAlign:"center", padding:"24px 16px" }}>
+            <p style={{ fontSize:13, color:MU, marginBottom:8 }}>{eur} € =</p>
+            <p style={{ fontSize:42, fontWeight:700, color:G, lineHeight:1 }}>{dzd.toLocaleString("fr-FR")}</p>
+            <p style={{ fontSize:16, color:G, marginTop:4 }}>Dinars algériens</p>
+            <p style={{ fontSize:11, color:MU, marginTop:8 }}>Taux : 1€ = {rate} DA</p>
+          </div>
+        )}
+        <div className="div" style={{ margin:"20px 0" }} />
+        <p style={{ fontSize:11, color:MU, textTransform:"uppercase", letterSpacing:1, marginBottom:12 }}>Conversions rapides</p>
+        {[11.90,18,25.50,35,45,48,52,57,65].map(p => (
+          <div key={p} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 14px", background:"rgba(255,255,255,.03)", borderRadius:8, marginBottom:6, border:"0.5px solid rgba(255,255,255,.05)" }}>
+            <span style={{ fontSize:13, color:TX, fontWeight:500 }}>{p.toFixed(2)} €</span>
+            <span style={{ fontSize:13, color:G, fontWeight:700 }}>{Math.round(p*(+rate||245)).toLocaleString("fr-FR")} DA</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── CODES CONSULTANTES (codes Chogan officiels) ───────────────────
+// Code admin Marie (secret) : MAR74B59D
+const CODES_VALIDES = [
+  "SHAC7CB8F",  // Shaïma Khelifi
+  "TRAEB240A",  // Tracy Mafita Kembo
+  "MIL1B11E0",  // Milene Bouguera
+  "SEL2D06DE",  // Selma Merikhi
+  "YASD2F154",  // Yasmine Chemali
+  "ISA98670B",  // Isabelle Bellaha
+  "BLABC677B",  // Blandine Ameur
+  "BAY2CAEB0",  // Baya Sahraoui
+  "SOPB7D832",  // Sophia Necer
+  "NAD7354BF",  // Nadia Nadjem
+  "SAR0E4537",  // Sarah Meziou
+  "NAD93A481",  // Nadia Bendjeddou
+  "MELB42DE5",  // Melissa Zerouk
+  "CAS04EBF2",  // Cassandra Cortezon
+  "SOU36AE1C",  // Soumia Bensaad
+  "ADA7DBE89",  // Adam Talmoudi
+  "KAR96A897",  // Karim Ayachi
+  "MER2105D7",  // Meryem Boukenkoul
+  "NO81BN48",   // Nej Ouadi
+  "YAS2794C9",  // Yasmina Necib
+];
+
+// ── PENDING VIEW ──────────────────────────────────────────────────
+function PendingView({ prenom, nom, onRetry }) {
+  return (
+    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 24px", background:"radial-gradient(ellipse at 50% 20%, rgba(201,168,76,.09) 0%, transparent 65%)", fontFamily:"'DM Sans',sans-serif", textAlign:"center" }}>
+      <div style={{ fontSize:50, marginBottom:16 }}>⏳</div>
+      <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:26, fontWeight:700, color:G, marginBottom:8 }}>Demande envoyée !</div>
+      <div style={{ background:S1, borderRadius:16, padding:"24px 22px", maxWidth:340, width:"100%", border:"0.5px solid rgba(201,168,76,.22)", marginBottom:20 }}>
+        <p style={{ fontSize:13, color:"#ccc", lineHeight:1.8, marginBottom:12 }}>
+          Bonjour <strong style={{color:G}}>{prenom} {nom}</strong> 👋<br/><br/>
+          Ta demande d'accès a bien été envoyée à Marie.<br/>
+          Elle va valider ton accès très prochainement.<br/><br/>
+          <span style={{ fontSize:11, color:MU }}>Une fois autorisée, reviens ici et connecte-toi à nouveau.</span>
+        </p>
+        <div style={{ background:"rgba(201,168,76,.07)", borderRadius:10, padding:"10px 14px" }}>
+          <p style={{ fontSize:11, color:G }}>📧 Marie a reçu une notification et reviendra vers toi.</p>
+        </div>
+      </div>
+      <button className="btn-o" onClick={onRetry}>← Retour à la connexion</button>
+      <p style={{ fontSize:22, color:G, fontFamily:"'Cormorant Garamond',serif", fontStyle:"italic", marginTop:20, fontWeight:600 }}>Marie</p>
+    </div>
+  );
+}
+
+// ── UPDATE BANNER ─────────────────────────────────────────────────
+function UpdateBanner() {
+  const key = "chogan_version";
+  const seen = localStorage.getItem(key);
+  const [visible, setVisible] = useState(seen !== APP_VERSION);
+
+  if (!visible) return null;
+
+  return (
+    <div style={{
+      position:"fixed", top:0, left:0, right:0, zIndex:9999,
+      background:`linear-gradient(135deg, ${G}, #a8872e)`,
+      padding:"10px 16px", display:"flex", alignItems:"center",
+      justifyContent:"space-between", gap:10, boxShadow:"0 2px 12px rgba(201,168,76,.4)"
+    }}>
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ fontSize:18 }}>✨</span>
         <div>
-          <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-2">
-            <span className="text-2xl">🕌</span> Al-Murshid
-          </h1>
-          <p className="text-[10px] text-slate-600 font-medium tracking-widest uppercase -mt-0.5">المرشد — Guide Coranique</p>
+          <p style={{ fontSize:12, fontWeight:700, color:"#07070f" }}>Nouvelle mise à jour disponible !</p>
+          <p style={{ fontSize:10, color:"rgba(0,0,0,.6)" }}>Ferme et rouvre l'app pour en profiter — v{APP_VERSION}</p>
         </div>
-        <button onClick={() => setStatsOpen(true)} className="p-2.5 hover:bg-white/10 rounded-2xl transition-all text-slate-500 hover:text-white border border-white/8 hover:border-white/20">
-          <Activity className="w-5 h-5"/>
+      </div>
+      <button onClick={()=>{ localStorage.setItem(key, APP_VERSION); setVisible(false); }}
+        style={{ background:"rgba(0,0,0,.15)", border:"none", borderRadius:8,
+          padding:"6px 12px", fontSize:11, fontWeight:600, color:"#07070f",
+          cursor:"pointer", whiteSpace:"nowrap" }}>
+        OK ✓
+      </button>
+    </div>
+  );
+}
+
+// ── LOGIN VIEW ────────────────────────────────────────────────────
+function LoginView({ onLogin }) {
+  const [nom, setNom] = useState("");
+  const [prenom, setPrenom] = useState("");
+  const [code, setCode] = useState("");
+  const [err, setErr] = useState("");
+
+  const handleLogin = () => {
+    if (!prenom.trim() || !nom.trim()) { setErr("Merci d'entrer ton prénom et nom."); return; }
+    if (!code.trim()) { setErr("Merci d'entrer ton code sponsor."); return; }
+    const c = code.trim().toUpperCase();
+    const isAdmin = c === "MAR74B59D"; // seul ce code admin
+    const isValid = isAdmin || CODES_VALIDES.includes(c);
+    if (!isValid) { setErr("Code sponsor incorrect. Contacte Marie pour obtenir ton code."); return; }
+    onLogin(prenom.trim(), nom.trim(), c);
+  };
+
+  return (
+    <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 24px", background:"radial-gradient(ellipse at 50% 20%, rgba(201,168,76,.09) 0%, transparent 65%)", fontFamily:"'DM Sans',sans-serif" }}>
+      <div style={{ width:80, height:80, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"2px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14, boxShadow:"0 4px 20px rgba(201,168,76,.2)" }}><span style={{ fontFamily:"serif", fontSize:32, color:"#c9a84c", fontWeight:700 }}>C</span></div>
+      <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:26, fontWeight:700, color:G, marginBottom:4, letterSpacing:2, textAlign:"center", lineHeight:1.3 }}>Team Marie</div>
+      <p style={{ fontSize:13, color:G, marginBottom:28, letterSpacing:2, fontFamily:"'Cormorant Garamond',serif", fontStyle:"italic" }}>Équipe Chogan Succès 🌷</p>
+
+      <div style={{ width:"100%", maxWidth:340, background:S1, borderRadius:16, padding:"28px 22px", border:"0.5px solid rgba(201,168,76,.22)" }}>
+        <p style={{ fontSize:14, color:G, fontWeight:600, marginBottom:18, textAlign:"center" }}>Connexion à l'application</p>
+
+        <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>Prénom</label>
+        <input className="inp" placeholder="Ton prénom…" value={prenom} onChange={e=>setPrenom(e.target.value)} style={{ marginBottom:12 }} />
+
+        <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>Nom</label>
+        <input className="inp" placeholder="Ton nom…" value={nom} onChange={e=>setNom(e.target.value)} style={{ marginBottom:12 }} />
+
+        <label style={{ fontSize:11, color:MU, display:"block", marginBottom:5 }}>Code Sponsor</label>
+        <input className="inp" placeholder="Code sponsor" value={code}
+          type="password"
+          onChange={e=>setCode(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&handleLogin()}
+          style={{ marginBottom:18 }} />
+
+        {err && <p style={{ fontSize:11, color:RD, marginBottom:12, textAlign:"center" }}>{err}</p>}
+
+        <button className="btn-p" style={{ width:"100%" }} onClick={handleLogin}>
+          🚀 Accéder à l'application
         </button>
-      </header>
-      <main className="flex-1 overflow-hidden relative">
-        <AnimatePresence mode="wait">
-          {page === "quran" && (
-            <motion.div key="quran" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-              className="overflow-y-auto" style={{ maxHeight: "calc(100dvh - 120px)" }}>
-              <QuranReader
-                initialSurahNum={navTarget?.surahNum}
-                initialVerseNum={navTarget?.verseNum}
-                juzBounds={navTarget?.bounds}
-                onNavConsumed={() => { setNavConsumed(true); setNavTarget(null); }}
-                checked={checked}
-                toggle={toggle}
-                counts={counts}
-              />
-            </motion.div>
-          )}
-          {page === "program" && (
-            <motion.div key="program" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-              className="overflow-y-auto" style={{ maxHeight: "calc(100dvh - 120px)" }}>
-              <JuzProgram onNavigateToJuz={handleNavigateToJuz} juzProgram={juzProgram}/>
-            </motion.div>
-          )}
-          {page === "bookmarks" && (
-            <motion.div key="bookmarks" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-              className="overflow-y-auto" style={{ maxHeight: "calc(100dvh - 120px)" }}>
-              <BookmarksPage/>
-            </motion.div>
-          )}
-          {page === "adhkar" && (
-            <motion.div key="adhkar" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-              className="overflow-y-auto" style={{ maxHeight: "calc(100dvh - 120px)" }}>
-              <AdhkarPage fridayKahf={fridayKahf}/>
-            </motion.div>
-          )}
-          {page === "learn" && (
-            <motion.div key="learn" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-              className="overflow-y-auto" style={{ maxHeight: "calc(100dvh - 120px)" }}>
-              <LearnScreen/>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
-      <nav className="shrink-0 bg-slate-950/95 backdrop-blur-xl border-t border-white/8 px-2 py-2 safe-area-bottom">
-        <div className="flex items-stretch gap-1 max-w-lg mx-auto">
-          {PAGES.map(({ key, label, shortLabel }) => {
-            const active = page === key;
-            return (
-              <motion.button key={key} whileTap={{ scale: 0.92 }} onClick={() => setPage(key)}
-                className={`flex-1 flex flex-col items-center justify-center gap-1 rounded-2xl py-2 px-1 transition-all min-w-0 ${active ? "bg-gradient-to-b from-emerald-600/25 to-teal-600/15 border border-emerald-500/30 shadow-lg shadow-emerald-500/10" : "hover:bg-white/5 border border-transparent"}`}>
-                <span className="text-lg leading-none">
-                  {key === "quran"     && "📖"}
-                  {key === "program"   && "📅"}
-                  {key === "bookmarks" && "🔖"}
-                  {key === "adhkar"    && "📿"}
-                  {key === "learn"     && "🎓"}
-                </span>
-                <span className={`text-[9px] font-bold leading-none truncate max-w-full ${active ? "text-emerald-300" : "text-slate-600"}`}>{shortLabel}</span>
-              </motion.button>
-            );
-          })}
+      </div>
+      <p style={{ fontSize:10, color:MU, marginTop:16, letterSpacing:1 }}>© Chogan Élite — Espace privé</p>
+    </div>
+  );
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────────
+export default function ChoganApp() {
+  const [screen, setScreen] = useState("login"); // "login" | "pending" | "app"
+  const [tab, setTab] = useState("accueil");
+  const [prenom, setPrenom] = useState("");
+  const [nom, setNom] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [perfumes, setPerfumes] = useState(DEMO_PERFUMES);
+  const [checklist, setChecklist] = useState(CHECKLIST0);
+  const [showPromo, setShowPromo] = useState(false);
+
+  const handleLogin = (p, n, code) => {
+    const admin = code === "MAR74B59D"; // seul ce code donne les droits admin
+    setPrenom(p); setNom(n); setIsAdmin(admin);
+    const key = "chogan_seen_" + (p+n).toLowerCase().replace(/\s/g,"");
+    const isNew = !localStorage.getItem(key);
+    if (isNew && !admin) {
+      localStorage.setItem(key, new Date().toLocaleDateString("fr-FR"));
+      trackAction(p+" "+n, "accueil", "premiere-connexion");
+    } else {
+      trackAction(p+" "+n, "accueil", admin?"connexion-admin":"connexion");
+    }
+    setScreen("app");
+  };
+
+  const changeTab = (newTab) => {
+    setShowPromo(false); setTab(newTab);
+    trackAction(prenom+" "+nom, newTab, "navigation");
+  };
+
+  const TABS = [
+    { id:"accueil",      lbl:"Accueil",      ic:"🏠" },
+    { id:"formation",    lbl:"Formation",    ic:"🚀" },
+    { id:"inspirations", lbl:"Inspirations", ic:"🌹" },
+    { id:"familles",     lbl:"Familles",     ic:"💐" },
+    { id:"catalogues",   lbl:"Catalogue",    ic:"💄" },
+    { id:"commande",     lbl:"Commande",     ic:"💶" },
+    { id:"checklist",    lbl:"Check-list",   ic:"✨" },
+    { id:"promo",        lbl:"Promo",        ic:"%" },
+    { id:"convertisseur",lbl:"Convertis.",   ic:"💱" },
+  ];
+
+  const activeLabel = TABS.find(t=>t.id===tab)?.lbl || "";
+
+  if (screen==="login") return (
+    <div style={{ background:BG, minHeight:"100vh" }}>
+      <style>{CSS}</style>
+      <LoginView onLogin={handleLogin} />
+    </div>
+  );
+
+  if (screen==="pending") return (
+    <div style={{ background:BG, minHeight:"100vh" }}>
+      <style>{CSS}</style>
+      <PendingView prenom={prenom} nom={nom} onRetry={()=>setScreen("login")} />
+    </div>
+  );
+
+  return (
+    <div style={{ background:BG, minHeight:"100vh" }}>
+      <style>{CSS}</style>
+      <UpdateBanner />
+      <div className="app">
+        <nav className="lnav">
+          <div style={{ width:40, height:40, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"1.5px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:10, marginTop:4, flexShrink:0 }}><span style={{ fontFamily:"serif", fontSize:18, color:"#c9a84c", fontWeight:700 }}>C</span></div>
+          <div className="lnav-inner">
+            {TABS.map(t=>(
+              <button key={t.id} className={`nb ${tab===t.id?"on":""}`} onClick={()=>changeTab(t.id)}>
+                <span className="nic">{t.ic}</span>
+                <span className="nlbl">{t.lbl}</span>
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        <div className="content-wrap">
+          <header className="hdr">
+            <div style={{ width:30, height:30, borderRadius:"50%", background:"rgba(201,168,76,.15)", border:"1.5px solid rgba(201,168,76,.4)", display:"flex", alignItems:"center", justifyContent:"center", marginRight:8, flexShrink:0 }}>
+              <span style={{ fontFamily:"serif", fontSize:14, color:"#c9a84c", fontWeight:700 }}>C</span>
+            </div>
+            <span className="logo">Team Marie 🌷</span>
+            <span className="hdr-sub">{activeLabel}</span>
+            <button onClick={()=>{ if(window.confirm("Se déconnecter ?")) setScreen("login"); }}
+              style={{ marginLeft:"auto", background:"none", border:"0.5px solid rgba(224,80,80,.35)", color:RD, borderRadius:8, padding:"4px 10px", fontSize:10, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", letterSpacing:.5 }}>
+              ⏻ Quitter
+            </button>
+          </header>
+
+          <main className="main">
+            {showPromo
+              ? <PromoView onBack={()=>setShowPromo(false)} />
+              : <div style={{display:"contents"}}>
+                  {tab==="accueil"       && <AccueilView prenom={prenom} isAdmin={isAdmin} />}
+                  {tab==="formation"     && <LancementView />}
+                  {tab==="inspirations"  && <CatalogueView perfumes={perfumes} setPerfumes={setPerfumes} />}
+                  {tab==="familles"      && <FamilleView />}
+                  {tab==="catalogues"    && <CataloguesView />}
+                  {tab==="commande"      && <BonCommandeView perfumes={perfumes} />}
+                  {tab==="convertisseur" && <ConvertisseurView />}
+                  {tab==="checklist"     && <ChecklistView checklist={checklist} setChecklist={setChecklist} />}
+                  {tab==="promo"         && <PromoView />}
+                </div>
+            }
+          </main>
         </div>
-      </nav>
-      <StatsDrawer isOpen={statsOpen} onClose={() => setStatsOpen(false)} counts={counts} fridayKahf={fridayKahf} juzProgram={juzProgram}/>
+      </div>
     </div>
   );
 }
