@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 
-const APP_VERSION = "2.3";
+const APP_VERSION = "2.4";
 
 const G = "#c9a84c";
 const GL = "#e8d48a";
@@ -412,6 +412,7 @@ const CODES_VALIDES = [
   "ISA98670B","BLABC677B","BAY2CAEB0","SOPB7D832","NAD7354BF",
   "SAR0E4537","NAD93A481","MELB42DE5","CAS04EBF2","SOU36AE1C",
   "ADA7DBE89","KAR96A897","MER2105D7","NO81BN48","YAS2794C9",
+  "KHAE674E2",  // Khayra Benyoucef
 ];
 
 // ── COMPOSANTS ────────────────────────────────────────────────────
