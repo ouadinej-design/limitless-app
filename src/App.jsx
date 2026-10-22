@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 
 // ── VERSION ────────────────────────────────────────────────────────
-const APP_VERSION = "2.5";
+const APP_VERSION = "2.6";
  // ← changer ce numéro à chaque mise à jour
 
 // ── THEME ─────────────────────────────────────────────────────────
@@ -637,6 +637,35 @@ const OSER_CARTES = [
       ["3 · L'histoire","3 phrases vraies : « Moi aussi, au début… Puis j'ai… Depuis… » Pas d'histoire vraie ? Je saute ce geste."],
       ["UNE proposition","Une seule question : « Je te le mets de côté ? » · « Le 30 ml ou le 70 ml ? » · « Mardi ou jeudi ? »"],
       ["À éviter","Se justifier · 5 arguments d'un coup · « Qu'est-ce que tu en penses ? » · insister après un vrai non."]] },
+  { id:"obj1", c:"#ad1457", titre:"Objections : argent et marque", sous:"Ce qu'on entend vraiment",
+    lignes:[["« Je trouve moins cher sur internet. »","« Moins cher ? » … 1, 2, 3 … « Avec moi, tu le sens sur ta peau avant d'acheter, et je te conseille. Je te fais sentir celui-là ? »"],
+      ["« Ce n'est pas le moment, c'est la fin du mois. »","« La fin du mois ? » … 1, 2, 3 … « Je te le mets de côté jusqu'au début du mois ? »"],
+      ["« Tu me fais un prix, on est copines ? »","« Un prix ? » … 1, 2, 3 … « Le prix est le même pour tout le monde. Ce que je t'offre, c'est de le tester avant. Tu le gardes sur ton poignet aujourd'hui ? »"],
+      ["« 18 €, pour un parfum que je ne connais pas… »","« Que tu ne connais pas ? » … 1, 2, 3 … « C'est pour ça que je te le fais sentir avant. On commence par le 30 ml ? »"],
+      ["« Ça ne sent pas exactement pareil que l'original. »","« Pas pareil ? » … 1, 2, 3 … « C'est une inspiration, avec sa propre formule : il ne sera jamais identique. La vraie question : tu l'aimes sur ta peau ? »"],
+      ["« C'est de la contrefaçon. »","« De la contrefaçon ? » … 1, 2, 3 … « Une contrefaçon copie le nom et le flacon d'une marque. Ici, c'est la marque Chogan, avec son nom et sa formule. Tu le sens ? »"],
+      ["« Je n'ai jamais entendu parler de Chogan. »","« Jamais ? » … 1, 2, 3 … « C'est une marque italienne, vendue par des consultantes comme moi. Sens-le, et tu me dis ? »"],
+      ["« J'ai lu des avis négatifs. »","« Des avis négatifs ? » … 1, 2, 3 … « Le mieux, c'est ton nez : je te laisse un testeur trois jours ? »"],
+      ["« J'ai la peau sensible. »","« Sensible ? » … 1, 2, 3 … « Je te montre la liste des ingrédients, et tu l'essaies d'abord sur un petit endroit. Je te laisse le testeur ? »"],
+      ["« Les parfums forts, ça me dérange. »","« Forts ? » … 1, 2, 3 … « Tu préfères quelque chose de plus discret ? On cherche ensemble une note légère. »"]] },
+  { id:"obj2", c:"#7b1fa2", titre:"Objections : vente à domicile et pros", sous:"Ce qu'on entend vraiment",
+    lignes:[["« C'est de la vente pyramidale, ton truc ? »","« Pyramidale ? » … 1, 2, 3 … « Moi, je vends des parfums à des clientes, comme une boutique, sauf que je viens chez toi. Tu veux juste sentir, sans rien acheter ? »"],
+      ["« Je préfère acheter en magasin. »","« En magasin ? » … 1, 2, 3 … « Là-bas, tu choisis seule. Moi je viens avec les testeurs et je te conseille. On sent ensemble ? »"],
+      ["« Une amie en vend déjà. »","« Une amie ? » … 1, 2, 3 … « Super, garde-la ! Si un jour tu veux un deuxième avis, je te laisse ma carte ? »"],
+      ["« Tu ne vas pas me relancer tous les jours ? »","« Tous les jours ? » … 1, 2, 3 … « Promis : je te recontacte une seule fois, le jour que tu choisis. Mardi ou jeudi ? »"],
+      ["« Où as-tu eu mon numéro ? »","« Mon numéro ? » … 1, 2, 3 … Tu dis la vérité : « C'est [prénom] qui m'a parlé de toi. Je t'envoie juste une photo des testeurs ? »"],
+      ["« Je n'aime pas qu'on me vende des choses. »","« Qu'on te vende ? » … 1, 2, 3 … « Je comprends. Alors aujourd'hui je ne vends rien : je te fais juste sentir. Ça te va ? »"],
+      ["« Je dois en parler à mon associée. »","« À votre associée ? » … 1, 2, 3 … « Je vous laisse un testeur pour elle aussi. Je repasse quand elle est là ? »"],
+      ["« Vous êtes la troisième vendeuse cette semaine. »","« La troisième ? » … 1, 2, 3 … « Alors je fais court : un testeur, 30 secondes, et vous jugez. »"],
+      ["« J'ai eu une mauvaise expérience avec une vendeuse. »","« Une mauvaise expérience ? » … 1, 2, 3 … « Qu'est-ce qui s'était passé ? » … puis : « Avec moi : un testeur, un passage le jour promis, rien d'autre. »"],
+      ["« Je n'ai pas de budget pour ça. »","« Pas de budget ? » … 1, 2, 3 … « Justement, vous n'avancez rien : un testeur, et vos clientes commandent avec moi. On essaie deux semaines ? »"],
+      ["« Je ne connais personne à qui vendre. »","« Personne ? » … 1, 2, 3 … « On fait ensemble ta liste de 10 prénoms : tu verras qui te vient en tête. Mardi ou jeudi ? »"],
+      ["« Je n'ai pas le temps pour une activité en plus. »","« Pas le temps ? » … 1, 2, 3 … « Un appel de 15 minutes avec ma marraine, pour voir comment ça peut s'adapter à ton emploi du temps. Mardi ou jeudi ? »"]] },
+  { id:"tete", c:"#455a64", titre:"Les objections dans ma tête", sous:"Avant même de proposer",
+    lignes:[["« Je vais la déranger. »","Tu proposes, elle choisit. Poser une question, ce n'est pas déranger."],
+      ["« Elle va dire non. »","Un non porte sur le parfum, pas sur toi. Et souvent, il veut dire « pas maintenant »."],
+      ["« Je ne vais pas savoir quoi répondre. »","Tu as toujours un geste : le miroir. Il te donne 3 secondes pour réfléchir."],
+      ["« J'ai peur de passer pour une vendeuse. »","Tu conseilles, tu ne forces pas : UNE seule proposition, puis tu respectes sa réponse."]] },
   { id:"soc", c:"#2f6fd0", titre:"Mon SOC en 30 secondes", sous:"Se présenter",
     lignes:[["S · Sujet","« Je suis consultante Chogan. »"],["O · Objectif","« J'adore trouver le parfum qui te ressemble. »"],["C · Comment","« Je passe te faire sentir mes testeurs samedi ? »"]] },
   { id:"vente", c:"#d9720b", titre:"Mener la vente en 5 temps", sous:"Q · PA · Si · Arg · CL",
