@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 
 // ── VERSION ────────────────────────────────────────────────────────
-const APP_VERSION = "2.3";
+const APP_VERSION = "2.4";
  // ← changer ce numéro à chaque mise à jour
 
 // ── THEME ─────────────────────────────────────────────────────────
@@ -622,6 +622,71 @@ function FormationView() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+
+// ── OSER PROPOSER : cartes à garder et à envoyer sur WhatsApp ─────
+const OSER_CARTES = [
+  { id:"non", c:"#c2185b", titre:"Elle dit non ? 3 gestes", sous:"Les objections",
+    lignes:[["1 · Le miroir","Je répète ses mots en question : « Trop cher par rapport à quoi ? »"],["2 · Le silence","Je me tais 3 secondes. Elle me dit le vrai problème."],["3 · L'histoire","Une vraie histoire, puis UNE question : « Tu avais prévu quel budget ? »"]] },
+  { id:"soc", c:"#2f6fd0", titre:"Mon SOC en 30 secondes", sous:"Se présenter",
+    lignes:[["S · Sujet","« Je suis consultante Chogan. »"],["O · Objectif","« J'adore trouver le parfum qui te ressemble. »"],["C · Comment","« Je passe te faire sentir mes testeurs samedi ? »"]] },
+  { id:"vente", c:"#d9720b", titre:"Mener la vente en 5 temps", sous:"Q · PA · Si · Arg · CL",
+    lignes:[["Q","« C'est pour toi ou pour offrir ? »"],["PA","« Plutôt frais ou plutôt sucré ? »"],["Si","« Si tu aimes le frais, sens celui-là. »"],["Arg","« Le 30 ml est à 18 €. »"],["CL","« Je te le mets de côté ? »"]] },
+  { id:"pca", c:"#2e9a4a", titre:"Elle a dit oui ? Vends plus", sous:"P · C · A",
+    lignes:[["P · Promo","« Ce mois-ci, il y a une promo : je te montre ? »"],["C · Complément","« Pour qu'il tienne plus longtemps, je te mets la crème parfumée assortie ? »"],["A · Additionnel","« Au fait, tu connais le spray capillaire 10 en 1 ? »"]] },
+  { id:"soncas", c:"#6a3fa0", titre:"Ce qui la fait acheter", sous:"SONCAS",
+    lignes:[["Sécurité","« Teste-le sur ta peau aujourd'hui, tu me dis ce soir. »"],["Orgueil","« Sens celui-ci : on va te demander ce que tu portes. »"],["Nouveauté","« Tu seras parmi les premières à le sentir. »"],["Confort","« C'est simple : tu choisis, je te livre. »"],["Argent","« 18 € le 30 ml, 35 € le 70 ml. Lequel tu préfères ? »"],["Sympathie","« Choisissons ensemble celui qui te ressemble. »"]] },
+  { id:"cher", c:"#c2185b", titre:"« C'est trop cher »", sous:"La réponse toute prête",
+    lignes:[["Miroir","« Trop cher par rapport à quoi ? »"],["Silence","Je me tais et j'écoute."],["Budget","« Tu avais prévu quel budget ? »"],["Proposition","« Le 30 ml est à 18 € : ça rentre dans ton budget ? »"]] },
+  { id:"pro", c:"#2f3a8f", titre:"Chez une pro : 5 étapes", sous:"Coiffeuse, esthéticienne, boutique",
+    lignes:[["1","Répondre d'abord : « Je repasse dans 10 minutes ? »"],["2","SOC : « Je suis consultante Chogan, j'adore… je vous fais sentir un parfum, 30 secondes. »"],["3","« Vos clientes vous demandent parfois une idée cadeau ? »"],["4","Miroir : « Une idée cadeau ? » … et j'écoute."],["5","« Je vous laisse un testeur et je repasse mardi ou jeudi ? »"]] },
+  { id:"relance", c:"#d9720b", titre:"La relance qui rassure", sous:"3 jours sans réponse",
+    lignes:[["Message","« Coucou ! Je ne veux pas t'embêter. J'ai pensé à toi en préparant mes testeurs : tu préfères que je repasse la semaine prochaine, ou on en reste là ? »"],["Pourquoi","Elle a une sortie facile : elle se sent libre, et répond plus souvent."]] },
+];
+const carteTexte = k => "🌷 " + k.titre + " · " + k.sous + "\n\n" + k.lignes.map(([a,b])=>"▪️ " + a + " : " + b).join("\n") + "\n\nOser proposer · Team Marie";
+
+function OserView() {
+  const [ouverte, setOuverte] = useState(null);
+  const envoyer = k => { window.open("https://wa.me/?text=" + encodeURIComponent(carteTexte(k)), "_blank"); };
+  const copier = k => { navigator.clipboard?.writeText(carteTexte(k)).then(()=>alert("Carte copiée ! Colle-la dans WhatsApp 📋")); };
+  return (
+    <div className="fi">
+      <div className="sh"><span className="shtitle">Oser proposer</span></div>
+      <div className="sb">
+        <div className="cardg" style={{ marginBottom:14 }}>
+          <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🎯 Mes cartes de vente</p>
+          <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Les phrases de la formation Oser proposer, toutes prêtes. Ouvre une carte, puis envoie-la sur WhatsApp ou garde-la dans ton téléphone.</p>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(260px, 1fr))", gap:12 }}>
+          {OSER_CARTES.map(k => (
+            <div key={k.id} style={{ borderRadius:16, overflow:"hidden", background:S1, border:`0.5px solid ${k.c}55` }}>
+              <button onClick={()=>setOuverte(ouverte===k.id?null:k.id)}
+                style={{ width:"100%", textAlign:"left", border:"none", cursor:"pointer", background:`linear-gradient(135deg, ${k.c}, ${k.c}cc)`, color:"#fff", padding:"16px 16px 14px", fontFamily:"'DM Sans',sans-serif" }}>
+                <p style={{ fontSize:10, letterSpacing:1.5, textTransform:"uppercase", opacity:.85, marginBottom:4 }}>{k.sous}</p>
+                <p style={{ fontSize:17, fontWeight:700, lineHeight:1.25 }}>{k.titre}</p>
+                <p style={{ fontSize:11, marginTop:8, opacity:.85 }}>{ouverte===k.id ? "▲ Fermer" : "▼ Ouvrir la carte"}</p>
+              </button>
+              {ouverte===k.id && (
+                <div style={{ padding:14, display:"grid", gap:10 }}>
+                  {k.lignes.map(([a,b],i)=>(
+                    <div key={i} style={{ display:"grid", gap:2 }}>
+                      <span style={{ fontSize:11, fontWeight:700, color:k.c === "#2f3a8f" ? "#8fa0ff" : k.c, textTransform:"uppercase", letterSpacing:.6 }}>{a}</span>
+                      <span style={{ fontSize:13, color:"#ddd", lineHeight:1.55 }}>{b}</span>
+                    </div>
+                  ))}
+                  <div style={{ display:"flex", gap:8, marginTop:4 }}>
+                    <button className="btn-p" style={{ flex:1, padding:"11px 10px", background:"linear-gradient(135deg,#25D366,#1da851)", color:"#fff" }} onClick={()=>envoyer(k)}>📲 WhatsApp</button>
+                    <button className="btn-o" style={{ flex:1 }} onClick={()=>copier(k)}>📋 Copier</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -2084,6 +2149,7 @@ export default function ChoganApp() {
   const TABS = [
     { id:"accueil",      lbl:"Accueil",      ic:"🏠" },
     { id:"formation",    lbl:"Formation",    ic:"🚀" },
+    { id:"oser",         lbl:"Oser",         ic:"🎯" },
     { id:"inspirations", lbl:"Inspirations", ic:"🌹" },
     { id:"familles",     lbl:"Familles",     ic:"💐" },
     { id:"catalogues",   lbl:"Catalogue",    ic:"💄" },
@@ -2145,6 +2211,7 @@ export default function ChoganApp() {
               : <div style={{display:"contents"}}>
                   {tab==="accueil"       && <AccueilView prenom={prenom} isAdmin={isAdmin} />}
                   {tab==="formation"     && <LancementView />}
+                  {tab==="oser"          && <OserView />}
                   {tab==="inspirations"  && <CatalogueView perfumes={perfumes} setPerfumes={setPerfumes} />}
                   {tab==="familles"      && <FamilleView />}
                   {tab==="catalogues"    && <CataloguesView />}
