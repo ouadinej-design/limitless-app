@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 
 // ── VERSION ────────────────────────────────────────────────────────
-const APP_VERSION = "2.4";
+const APP_VERSION = "2.5";
  // ← changer ce numéro à chaque mise à jour
 
 // ── THEME ─────────────────────────────────────────────────────────
@@ -630,7 +630,13 @@ function FormationView() {
 // ── OSER PROPOSER : cartes à garder et à envoyer sur WhatsApp ─────
 const OSER_CARTES = [
   { id:"non", c:"#c2185b", titre:"Elle dit non ? 3 gestes", sous:"Les objections",
-    lignes:[["1 · Le miroir","Je répète ses mots en question : « Trop cher par rapport à quoi ? »"],["2 · Le silence","Je me tais 3 secondes. Elle me dit le vrai problème."],["3 · L'histoire","Une vraie histoire, puis UNE question : « Tu avais prévu quel budget ? »"]] },
+    lignes:[["Avant tout","Je respire. Un mot calme avec le sourire : « D'accord. » ou « Je comprends. » Je ne me justifie pas."],
+      ["1 · Le miroir","Je répète 1 à 3 de ses mots, en question, voix douce : « Trop cher par rapport à quoi ? » · « Réfléchir ? » · « Le siège ? »"],
+      ["2 · Le silence","Je me tais et je compte 1, 2, 3 en souriant. Elle me dit la vraie raison."],
+      ["Après le silence","Elle explique → je réponds à CETTE raison. Elle se tait → « Qu'est-ce qui te fait hésiter ? » Elle redit non → « Pas de souci. Je te recontacte quand ? »"],
+      ["3 · L'histoire","3 phrases vraies : « Moi aussi, au début… Puis j'ai… Depuis… » Pas d'histoire vraie ? Je saute ce geste."],
+      ["UNE proposition","Une seule question : « Je te le mets de côté ? » · « Le 30 ml ou le 70 ml ? » · « Mardi ou jeudi ? »"],
+      ["À éviter","Se justifier · 5 arguments d'un coup · « Qu'est-ce que tu en penses ? » · insister après un vrai non."]] },
   { id:"soc", c:"#2f6fd0", titre:"Mon SOC en 30 secondes", sous:"Se présenter",
     lignes:[["S · Sujet","« Je suis consultante Chogan. »"],["O · Objectif","« J'adore trouver le parfum qui te ressemble. »"],["C · Comment","« Je passe te faire sentir mes testeurs samedi ? »"]] },
   { id:"vente", c:"#d9720b", titre:"Mener la vente en 5 temps", sous:"Q · PA · Si · Arg · CL",
