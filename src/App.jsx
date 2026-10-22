@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 
 // ── VERSION ────────────────────────────────────────────────────────
-const APP_VERSION = "2.8";
+const APP_VERSION = "2.9";
  // ← changer ce numéro à chaque mise à jour
 
 // ── THEME ─────────────────────────────────────────────────────────
@@ -636,7 +636,14 @@ const OSER_CARTES = [
       ["Après le silence","Elle explique → je réponds à CETTE raison. Elle se tait → « Qu'est-ce qui te fait hésiter ? » Elle redit non → « Pas de souci. Je te recontacte quand ? »"],
       ["3 · L'histoire","3 phrases vraies : « Moi aussi, au début… Puis j'ai… Depuis… » Pas d'histoire vraie ? Je saute ce geste."],
       ["UNE proposition","Une seule question : « Je te le mets de côté ? » · « Le 30 ml ou le 70 ml ? » · « Mardi ou jeudi ? »"],
-      ["À éviter","Se justifier · 5 arguments d'un coup · « Qu'est-ce que tu en penses ? » · insister après un vrai non."]] },
+      ["Question joker","Si le miroir ne suffit pas : « D'accord, mais concrètement, qu'est-ce que tu penses de ce que je viens de te montrer ? »"],
+      ["« Je vais réfléchir »","Souvent un écran de fumée : elle est trop polie pour dire la vraie raison. Miroir et silence l'aident à la dire."],
+      ["À éviter","« Pourquoi ? » (elle doit se justifier) · se justifier · 5 arguments d'un coup · insister après un vrai non."]] },
+  { id:"medecin", c:"#00796b", titre:"Inspirer confiance comme un médecin", sous:"Le diagnostic avant l'ordonnance",
+    lignes:[["1 · Le diagnostic","Des questions avant de sortir mes flacons : « Pour toi ou pour offrir ? » · « Pour le travail ou pour sortir ? »"],
+      ["2 · Mettre des mots","Je résume son besoin : « Si je comprends bien, tu veux un parfum discret pour le bureau, qui tienne jusqu'au soir ? »"],
+      ["3 · Son intérêt d'abord","J'ose dire : « Celui-là, je ne te le conseille pas pour le bureau. Sens plutôt celui-ci. »"],
+      ["À retenir","Une cliente qui sent que je suis là pour l'aider, et pas pour vendre, me fait confiance. Et elle revient."]] },
   { id:"obj1", c:"#ad1457", titre:"Objections : argent et marque", sous:"Ce qu'on entend vraiment",
     lignes:[["« Je trouve moins cher sur internet. »","« Moins cher ? » … 1, 2, 3 … « Avec moi, tu le sens sur ta peau avant d'acheter, et je te conseille. Je te fais sentir celui-là ? »"],
       ["« Ce n'est pas le moment, c'est la fin du mois. »","« La fin du mois ? » … 1, 2, 3 … « Je te le mets de côté jusqu'au début du mois ? »"],
