@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 
 // ── VERSION ────────────────────────────────────────────────────────
-const APP_VERSION = "2.9";
+const APP_VERSION = "3.0";
  // ← changer ce numéro à chaque mise à jour
 
 // ── THEME ─────────────────────────────────────────────────────────
@@ -673,6 +673,14 @@ const OSER_CARTES = [
       ["« Elle va dire non. »","Un non porte sur le parfum, pas sur toi. Et souvent, il veut dire « pas maintenant »."],
       ["« Je ne vais pas savoir quoi répondre. »","Tu as toujours un geste : le miroir. Il te donne 3 secondes pour réfléchir."],
       ["« J'ai peur de passer pour une vendeuse. »","Tu conseilles, tu ne forces pas : UNE seule proposition, puis tu respectes sa réponse."]] },
+  { id:"collab", c:"#2e7d32", titre:"Préparer une collaboration", sous:"Les conseils de Marie",
+    lignes:[["Mes outils","Carte de visite · flyer avec prix et QR code · grande mallette (si ça aboutit) · petite mallette (si elle veut démarrer pour elle) · un flacon femme et un flacon homme à montrer."],
+      ["Fleuriste","Le flacon cœur : une composition florale avec le parfum, en cadeau."],
+      ["Puériculture","Le coffret bébé : gel douche, crème, parfum."],
+      ["Hôtel, déco","Le spray d'ambiance ou le diffuseur."],
+      ["Resto, crèche, école","Les produits ménagers."],
+      ["Compositions","Parfum + crème : montre une crème ou un gel douche parfumé."],
+      ["La règle","Le bon produit pour l'enseigne. Avant d'entrer : « Qu'est-ce que ce commerçant va y gagner ? »"]] },
   { id:"soc", c:"#2f6fd0", titre:"Mon SOC en 30 secondes", sous:"Se présenter",
     lignes:[["S · Sujet","« Je suis consultante Chogan. »"],["O · Objectif","« J'adore trouver le parfum qui te ressemble. »"],["C · Comment","« Je passe te faire sentir mes testeurs samedi ? »"]] },
   { id:"vente", c:"#d9720b", titre:"Mener la vente en 5 temps", sous:"Q · PA · Si · Arg · CL",
