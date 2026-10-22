@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 
 // ── VERSION ────────────────────────────────────────────────────────
-const APP_VERSION = "2.7";
+const APP_VERSION = "2.8";
  // ← changer ce numéro à chaque mise à jour
 
 // ── THEME ─────────────────────────────────────────────────────────
@@ -631,7 +631,7 @@ function FormationView() {
 const OSER_CARTES = [
   { id:"non", c:"#c2185b", titre:"Elle dit non ? 3 gestes", sous:"Les objections",
     lignes:[["Avant tout","Je respire. Un mot calme avec le sourire : « D'accord. » ou « Je comprends. » Je ne me justifie pas."],
-      ["1 · Le miroir","Je répète 1 à 3 de ses mots, en question, voix douce : « Trop cher par rapport à quoi ? » · « Réfléchir ? » · « Le siège ? »"],
+      ["1 · Le miroir","Je répète 1 à 3 de ses mots, en question, voix douce : « Ça dépasse ton budget ? » · « Réfléchir ? » · « Le siège ? »"],
       ["2 · Le silence","Je me tais et je compte 1, 2, 3 en souriant. Elle me dit la vraie raison."],
       ["Après le silence","Elle explique → je réponds à CETTE raison. Elle se tait → « Qu'est-ce qui te fait hésiter ? » Elle redit non → « Pas de souci. Je te recontacte quand ? »"],
       ["3 · L'histoire","3 phrases vraies : « Moi aussi, au début… Puis j'ai… Depuis… » Pas d'histoire vraie ? Je saute ce geste."],
@@ -675,7 +675,7 @@ const OSER_CARTES = [
   { id:"soncas", c:"#6a3fa0", titre:"Ce qui la fait acheter", sous:"SONCAS",
     lignes:[["Sécurité","« Teste-le sur ta peau aujourd'hui, tu me dis ce soir. »"],["Orgueil","« Sens celui-ci : on va te demander ce que tu portes. »"],["Nouveauté","« Tu seras parmi les premières à le sentir. »"],["Confort","« C'est simple : tu choisis, je te livre. »"],["Argent","« 18 € le 30 ml, 35 € le 70 ml. Lequel tu préfères ? »"],["Sympathie","« Choisissons ensemble celui qui te ressemble. »"]] },
   { id:"cher", c:"#c2185b", titre:"« C'est trop cher »", sous:"La réponse toute prête",
-    lignes:[["Miroir","« Trop cher par rapport à quoi ? »"],["Silence","Je me tais et j'écoute."],["Budget","« Tu avais prévu quel budget ? »"],["Proposition","« Le 30 ml est à 18 € : ça rentre dans ton budget ? »"]] },
+    lignes:[["Miroir","« Ça dépasse ton budget ? »"],["Silence","Je me tais et j'écoute."],["Budget","« Tu avais prévu quel budget ? »"],["Proposition","« Le 30 ml est à 18 € : ça rentre dans ton budget ? »"]] },
   { id:"pro", c:"#2f3a8f", titre:"Chez une pro : 5 étapes", sous:"Coiffeuse, esthéticienne, boutique",
     lignes:[["1","Répondre d'abord : « Je repasse dans 10 minutes ? »"],["2","SOC : « Je suis consultante Chogan, j'adore… je vous fais sentir un parfum, 30 secondes. »"],["3","« Vos clientes vous demandent parfois une idée cadeau ? »"],["4","Miroir : « Une idée cadeau ? » … et j'écoute."],["5","« Je vous laisse un testeur et je repasse mardi ou jeudi ? »"]] },
   { id:"relance", c:"#d9720b", titre:"La relance qui rassure", sous:"3 jours sans réponse",
