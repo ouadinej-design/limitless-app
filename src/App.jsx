@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 
 // ── VERSION ────────────────────────────────────────────────────────
-const APP_VERSION = "3.0";
+const APP_VERSION = "3.1";
  // ← changer ce numéro à chaque mise à jour
 
 // ── THEME ─────────────────────────────────────────────────────────
@@ -710,6 +710,8 @@ function OserView() {
           <p style={{ fontSize:12, color:G, fontWeight:500, marginBottom:4 }}>🎯 Mes cartes de vente</p>
           <p style={{ fontSize:12, color:MU, lineHeight:1.65 }}>Les phrases de la formation Oser proposer, toutes prêtes. Ouvre une carte, puis envoie-la sur WhatsApp ou garde-la dans ton téléphone.</p>
           <a href="https://prompteur-formateur.vercel.app/mag" target="_blank" rel="noopener" style={{ display:"inline-block", marginTop:10, padding:"9px 14px", borderRadius:10, background:"#c2185b", color:"#fff", fontSize:13, fontWeight:700, textDecoration:"none" }}>📖 Ouvrir le Mag Oser proposer</a>
+          <a href="https://prompteur-formateur.vercel.app/carte" target="_blank" rel="noopener" style={{ display:"inline-block", marginTop:10, marginLeft:8, padding:"9px 14px", borderRadius:10, background:"#1f2557", color:"#fff", fontSize:13, fontWeight:700, textDecoration:"none" }}>🗺️ Ma carte de la formation</a>
+          <a href="https://prompteur-formateur.vercel.app/mallette" target="_blank" rel="noopener" style={{ display:"inline-block", marginTop:10, marginLeft:8, padding:"9px 14px", borderRadius:10, background:"#5f7d5a", color:"#fff", fontSize:13, fontWeight:700, textDecoration:"none" }}>💼 La mallette voyageuse</a>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(260px, 1fr))", gap:12 }}>
           {OSER_CARTES.map(k => (
